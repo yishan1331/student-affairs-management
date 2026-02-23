@@ -9,6 +9,7 @@ import {
 	Query,
 	UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -16,6 +17,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
+@ApiTags('課程管理')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/course')
 export class CourseController {
