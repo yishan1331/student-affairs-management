@@ -20,6 +20,7 @@ import {
 } from './common/providers';
 import { AuthModule } from './core/auth/auth.module';
 import { DashboardModule } from './core/dashboard/dashboard.module';
+import { UploadModule } from './core/upload/upload.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -48,6 +49,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		GradeSheetModule,
 		AuthModule,
 		DashboardModule,
+		UploadModule,
 	],
 	controllers: [],
 	providers: [
