@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, UseGuards, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -8,6 +8,7 @@ import { UserService } from '../user/user.service';
 import { JwtAuthGuard, LocalAuthGuard } from '../../common/guards';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtPayload } from './stratgies/types';
 
 @ApiTags('認證')
@@ -44,6 +45,14 @@ export class AuthController {
 			resetPasswordDto.token,
 			resetPasswordDto.new_password,
 		);
+	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtAuthGuard)
+	@Put('/profile')
+	updateProfile(@Req() request: Request, @Body() updateProfileDto: UpdateProfileDto) {
+		const user = request.user as JwtPayload;
+		return this.authService.updateProfile(user.sub, updateProfileDto);
 	}
 
 	@ApiBearerAuth()

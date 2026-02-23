@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { CommonUtility } from '../../common/utility';
 import { JwtPayload } from './stratgies/types';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -98,5 +99,19 @@ export class AuthService {
 			}
 			throw new UnauthorizedException('重設連結已過期或無效');
 		}
+	}
+
+	async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+		const updateData: any = {};
+		if (updateProfileDto.username) {
+			updateData.username = updateProfileDto.username;
+		}
+		if (updateProfileDto.email) {
+			updateData.email = updateProfileDto.email;
+		}
+		if (updateProfileDto.password) {
+			updateData.password = updateProfileDto.password;
+		}
+		return this.userService.update(userId, updateData);
 	}
 }
