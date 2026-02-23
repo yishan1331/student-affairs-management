@@ -1,0 +1,30 @@
+:root {
+    // 主要顏色
+    --primary-btn-color: #{$primary-color};
+    --primary-color: #{$primary-color};
+    --primary-color-light: #{$primary-color-light};
+    --primary-color-dark: #{$primary-color-dark};
+
+    // 次要顏色
+    --secondary-color: #{$secondary-color};
+    --secondary-color-light: #{$secondary-color-light};
+    --secondary-color-dark: #{$secondary-color-dark};
+
+    // 中性色調
+    --text-color: #{$text-color};
+    --text-color-secondary: #{$text-color-secondary};
+    --disabled-color: #{$disabled-color};
+    --border-color: #{$border-color};
+    --background-color: #{$background-color};
+
+    // 功能色
+    --success-color: #{$success-color};
+    --warning-color: #{$warning-color};
+    --error-color: #{$error-color};
+    --info-color: #{$info-color};
+
+    // 深色模式顏色
+    --dark-background: #{$dark-background};
+    --dark-text-color: #{$dark-text-color};
+    --dark-border-color: #{$dark-border-color};
+}

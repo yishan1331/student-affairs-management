@@ -1,0 +1,19 @@
+export const TOKEN_KEY = "SAMS";
+
+// API基礎URL配置
+export const BASE_URL = import.meta.env.VITE_API_URL;
+
+export const ROUTE_RESOURCE = {
+	course: "v1/course",
+	school: "v1/school",
+	student: "v1/student",
+	attendance: "v1/attendance",
+	gradeSheet: "v1/grade-sheet",
+};
+export const ROUTE_PATH = {
+	course: "course",
+	school: "school",
+	student: "student",
+	attendance: "attendance",
+	gradeSheet: "grade-sheet",
+};
