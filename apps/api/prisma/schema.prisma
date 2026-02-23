@@ -39,11 +39,14 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  schools     School[]
-  courses     Course[]
-  students    Student[]
-  gradesheets GradeSheet[]
-  attendances Attendance[]
+  schools              School[]
+  courses              Course[]
+  students             Student[]
+  gradesheets          GradeSheet[]
+  attendances          Attendance[]
+  salaryBases          SalaryBase[]
+  teacherSalaryConfigs TeacherSalaryConfig[]
+  auditLogs            AuditLog[]
 }
 
 model School {
@@ -58,7 +61,8 @@ model School {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  courses Course[]
+  courses     Course[]
+  salaryBases SalaryBase[]
 }
 
 model Course {
@@ -77,7 +81,8 @@ model Course {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  students Student[]
+  students             Student[]
+  teacherSalaryConfigs TeacherSalaryConfig[]
 }
 
 model Student {
@@ -120,4 +125,44 @@ model GradeSheet {
   modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model SalaryBase {
+  id          Int      @id @default(autoincrement())
+  name        String
+  school_id   Int
+  school      School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  hourly_rate Float
+  description String?
+  is_active   Boolean  @default(true)
+  modifier_id Int?
+  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  teacherSalaryConfigs TeacherSalaryConfig[]
+}
+
+model TeacherSalaryConfig {
+  id             Int        @id @default(autoincrement())
+  course_id      Int
+  course         Course     @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  salary_base_id Int
+  salaryBase     SalaryBase @relation(fields: [salary_base_id], references: [id], onDelete: Cascade)
+  modifier_id    Int?
+  modifier       User?      @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String   // CREATE, UPDATE, DELETE
+  entity     String   // e.g., "School", "Student", "Attendance"
+  entity_id  Int?
+  user_id    Int?
+  user       User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  changes    Json?    // Store what was changed
+  ip_address String?
+  created_at DateTime @default(now())
 }
