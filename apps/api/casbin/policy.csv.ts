@@ -17,6 +17,10 @@ p, role:staff, /api/v1/banner, read
 p, role:staff, /api/v1/banner/:id, read
 p, role:staff, /api/v1/video, read
 p, role:staff, /api/v1/video/:id, read
+p, role:staff, /api/v1/dashboard/statistics, read
+p, role:staff, /api/v1/attendance/statistics, read
+p, role:staff, /api/v1/attendance/batch, read
+p, role:staff, /api/v1/grade-sheet/statistics, read
 
 p, role:manager, /api/v1/user, create
 p, role:manager, /api/v1/user/:id, update
@@ -36,6 +40,7 @@ p, role:manager, /api/v1/banner, create
 p, role:manager, /api/v1/banner/:id, update
 p, role:manager, /api/v1/video, create
 p, role:manager, /api/v1/video/:id, update
+p, role:manager, /api/v1/attendance/batch, create
 
 p, role:admin, /api/v1/user, *
 p, role:admin, /api/v1/user/:id, *
@@ -55,6 +60,10 @@ p, role:admin, /api/v1/banner, *
 p, role:admin, /api/v1/banner/:id, *
 p, role:admin, /api/v1/video, *
 p, role:admin, /api/v1/video/:id, *
+p, role:admin, /api/v1/dashboard/statistics, *
+p, role:admin, /api/v1/attendance/statistics, *
+p, role:admin, /api/v1/attendance/batch, *
+p, role:admin, /api/v1/grade-sheet/statistics, *
 
 g, role:admin, role:manager
 g, role:manager, role:staff`;
