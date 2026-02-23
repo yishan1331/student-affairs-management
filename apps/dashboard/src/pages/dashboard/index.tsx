@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Card, Col, Row, Statistic, Spin } from "antd";
+import { Button, Card, Col, Row, Statistic, Spin, message } from "antd";
 import {
 	BankOutlined,
 	BookOutlined,
 	TeamOutlined,
 	CheckCircleOutlined,
+	DownloadOutlined,
 } from "@ant-design/icons";
 import apiClient from "../../services/api/apiClient";
 
@@ -24,6 +25,29 @@ export const DashboardPage: React.FC = () => {
 		null,
 	);
 	const [loading, setLoading] = useState(true);
+	const [exporting, setExporting] = useState<string | null>(null);
+
+	const handleExport = async (type: string, label: string) => {
+		setExporting(type);
+		try {
+			const response = await apiClient.get(`/v1/${type}/export`, {
+				responseType: "blob",
+			});
+			const url = window.URL.createObjectURL(new Blob([response.data]));
+			const link = document.createElement("a");
+			link.href = url;
+			link.setAttribute("download", `${type}.xlsx`);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+			message.success(`${label}匯出成功`);
+		} catch {
+			message.error(`${label}匯出失敗`);
+		} finally {
+			setExporting(null);
+		}
+	};
 
 	useEffect(() => {
 		const fetchStatistics = async () => {
@@ -97,6 +121,49 @@ export const DashboardPage: React.FC = () => {
 							suffix="%"
 							prefix={<CheckCircleOutlined />}
 						/>
+					</Card>
+				</Col>
+			</Row>
+
+			<h2 style={{ marginTop: 24 }}>快速匯出</h2>
+			<Row gutter={[16, 16]}>
+				<Col xs={24} sm={8}>
+					<Card>
+						<Button
+							type="primary"
+							icon={<DownloadOutlined />}
+							loading={exporting === "student"}
+							onClick={() => handleExport("student", "學生名單")}
+							block
+						>
+							匯出學生名單
+						</Button>
+					</Card>
+				</Col>
+				<Col xs={24} sm={8}>
+					<Card>
+						<Button
+							type="primary"
+							icon={<DownloadOutlined />}
+							loading={exporting === "attendance"}
+							onClick={() => handleExport("attendance", "考勤紀錄")}
+							block
+						>
+							匯出考勤紀錄
+						</Button>
+					</Card>
+				</Col>
+				<Col xs={24} sm={8}>
+					<Card>
+						<Button
+							type="primary"
+							icon={<DownloadOutlined />}
+							loading={exporting === "grade-sheet"}
+							onClick={() => handleExport("grade-sheet", "成績紀錄")}
+							block
+						>
+							匯出成績紀錄
+						</Button>
 					</Card>
 				</Col>
 			</Row>
