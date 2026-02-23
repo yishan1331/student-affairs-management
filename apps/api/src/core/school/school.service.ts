@@ -18,6 +18,10 @@ export class SchoolService {
 		return this.prisma.school.findMany(query);
 	}
 
+	async count(where: Prisma.SchoolWhereInput) {
+		return this.prisma.school.count({ where });
+	}
+
 	async findOne(id: number) {
 		return this.prisma.school.findUnique({
 			where: { id },

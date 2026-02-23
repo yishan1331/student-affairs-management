@@ -16,4 +16,5 @@ export const corsOptions: CorsOptions = {
 		return callback(new Error(`CORS blocked for origin: ${origin}`));
 	},
 	credentials: true,
+	exposedHeaders: ['x-total-count'],
 };

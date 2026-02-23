@@ -18,6 +18,10 @@ export class CourseService {
 		return this.prisma.course.findMany(query);
 	}
 
+	async count(where: Prisma.CourseWhereInput) {
+		return this.prisma.course.count({ where });
+	}
+
 	async findOne(id: number) {
 		return this.prisma.course.findUnique({
 			where: { id },

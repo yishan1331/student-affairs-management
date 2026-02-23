@@ -2,8 +2,12 @@ import { Prisma } from '@prisma/client';
 
 export interface QueryParams {
 	sort?: string;
+	_sort?: string;
+	_order?: string;
 	page?: string;
 	pageSize?: string;
+	_start?: string;
+	_end?: string;
 	[key: string]: any;
 }
 
@@ -12,6 +16,11 @@ export interface PrismaQueryBuilderOptions {
 	defaultPageSize?: number;
 	searchableFields?: string[];
 	filterableFields?: string[];
+}
+
+export interface PaginatedResult<T> {
+	data: T[];
+	total: number;
 }
 
 export class PrismaQueryBuilder {
@@ -34,31 +43,54 @@ export class PrismaQueryBuilder {
 			take: undefined,
 		};
 
-		// 處理排序
 		this.handleSort(query, prismaQuery);
-
-		// 處理分頁
 		this.handlePagination(query, prismaQuery);
-
-		// 處理篩選條件
 		this.handleFilters(query, prismaQuery);
 
 		return prismaQuery as T;
 	}
 
+	// Extract just the where clause for count queries
+	buildWhere(query: QueryParams): any {
+		const prismaQuery: any = { where: {} };
+		this.handleFilters(query, prismaQuery);
+		return prismaQuery.where;
+	}
+
 	private handleSort(query: QueryParams, prismaQuery: any) {
-		if (query.sort) {
+		// Support _sort/_order format (from Refine data provider)
+		if (query._sort && query._order) {
+			const fields = query._sort.split(',');
+			const orders = query._order.split(',');
+			if (fields.length === 1) {
+				prismaQuery.orderBy = { [fields[0]]: orders[0] || 'asc' };
+			} else {
+				prismaQuery.orderBy = fields.map((field, i) => ({
+					[field]: orders[i] || 'asc',
+				}));
+			}
+		}
+		// Support sort format (field:order)
+		else if (query.sort) {
 			const [field, order] = query.sort.split(':');
-			prismaQuery.orderBy = {
-				[field]: order || 'asc',
-			};
-		} else if (this.options.defaultSort) {
+			prismaQuery.orderBy = { [field]: order || 'asc' };
+		}
+		// Default sort
+		else if (this.options.defaultSort) {
 			prismaQuery.orderBy = this.options.defaultSort;
 		}
 	}
 
 	private handlePagination(query: QueryParams, prismaQuery: any) {
-		if (query.page && query.pageSize) {
+		// Support _start/_end format (from Refine data provider)
+		if (query._start !== undefined && query._end !== undefined) {
+			const start = parseInt(query._start);
+			const end = parseInt(query._end);
+			prismaQuery.skip = start;
+			prismaQuery.take = end - start;
+		}
+		// Support page/pageSize format
+		else if (query.page && query.pageSize) {
 			const page = parseInt(query.page);
 			const pageSize = parseInt(query.pageSize);
 			prismaQuery.skip = (page - 1) * pageSize;

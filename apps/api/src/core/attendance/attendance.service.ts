@@ -19,6 +19,10 @@ export class AttendanceService {
 		return this.prisma.attendance.findMany(query);
 	}
 
+	async count(where: Prisma.AttendanceWhereInput) {
+		return this.prisma.attendance.count({ where });
+	}
+
 	async findOne(id: number) {
 		return this.prisma.attendance.findUnique({
 			where: { id },

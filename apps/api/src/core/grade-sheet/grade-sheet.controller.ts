@@ -42,10 +42,16 @@ export class GradeSheetController {
 	}
 
 	@Get()
-	findAll(@Query() query: any) {
+	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.GradeSheetFindManyArgs>(query);
-		return this.gradeSheetService.findAll(prismaQuery);
+		const where = this.queryBuilder.buildWhere(query);
+		const [data, total] = await Promise.all([
+			this.gradeSheetService.findAll(prismaQuery),
+			this.gradeSheetService.count(where),
+		]);
+		res.setHeader('x-total-count', total);
+		return data;
 	}
 
 	@Get('statistics')

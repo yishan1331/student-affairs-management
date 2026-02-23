@@ -18,6 +18,10 @@ export class GradeSheetService {
 		return this.prisma.gradeSheet.findMany(query);
 	}
 
+	async count(where: Prisma.GradeSheetWhereInput) {
+		return this.prisma.gradeSheet.count({ where });
+	}
+
 	async findOne(id: number) {
 		return this.prisma.gradeSheet.findUnique({
 			where: { id },

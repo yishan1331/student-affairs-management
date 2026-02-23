@@ -9,7 +9,9 @@ async function bootstrap() {
 	const configService = app.get(ConfigService);
 	const port = configService.get('PORT');
 	app.setGlobalPrefix('api');
-	app.enableCors();
+	app.enableCors({
+		exposedHeaders: ['x-total-count'],
+	});
 
 	const config = new DocumentBuilder()
 		.setTitle('Student Affairs Management System API')

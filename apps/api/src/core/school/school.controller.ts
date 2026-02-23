@@ -7,9 +7,11 @@ import {
 	Body,
 	Param,
 	Query,
+	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
@@ -39,10 +41,16 @@ export class SchoolController {
 	}
 
 	@Get()
-	findAll(@Query() query: any) {
+	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.SchoolFindManyArgs>(query);
-		return this.schoolService.findAll(prismaQuery);
+		const where = this.queryBuilder.buildWhere(query);
+		const [data, total] = await Promise.all([
+			this.schoolService.findAll(prismaQuery),
+			this.schoolService.count(where),
+		]);
+		res.setHeader('x-total-count', total);
+		return data;
 	}
 
 	@Get(':id')

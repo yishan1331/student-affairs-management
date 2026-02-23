@@ -43,10 +43,16 @@ export class AttendanceController {
 	}
 
 	@Get()
-	findAll(@Query() query: any) {
+	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.AttendanceFindManyArgs>(query);
-		return this.attendanceService.findAll(prismaQuery);
+		const where = this.queryBuilder.buildWhere(query);
+		const [data, total] = await Promise.all([
+			this.attendanceService.findAll(prismaQuery),
+			this.attendanceService.count(where),
+		]);
+		res.setHeader('x-total-count', total);
+		return data;
 	}
 
 	@Post('batch')

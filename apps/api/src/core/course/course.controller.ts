@@ -7,9 +7,11 @@ import {
 	Body,
 	Param,
 	Query,
+	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -39,10 +41,16 @@ export class CourseController {
 	}
 
 	@Get()
-	findAll(@Query() query: any) {
+	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.CourseFindManyArgs>(query);
-		return this.courseService.findAll(prismaQuery);
+		const where = this.queryBuilder.buildWhere(query);
+		const [data, total] = await Promise.all([
+			this.courseService.findAll(prismaQuery),
+			this.courseService.count(where),
+		]);
+		res.setHeader('x-total-count', total);
+		return data;
 	}
 
 	@Get(':id')
