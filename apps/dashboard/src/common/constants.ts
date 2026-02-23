@@ -9,6 +9,7 @@ export const ROUTE_RESOURCE = {
 	student: "v1/student",
 	attendance: "v1/attendance",
 	gradeSheet: "v1/grade-sheet",
+	user: "v1/user",
 };
 export const ROUTE_PATH = {
 	course: "course",
@@ -16,4 +17,5 @@ export const ROUTE_PATH = {
 	student: "student",
 	attendance: "attendance",
 	gradeSheet: "grade-sheet",
+	user: "user",
 };
