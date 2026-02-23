@@ -15,8 +15,10 @@ import {
 	MedicineBoxOutlined,
 	AppstoreOutlined,
 	FrownOutlined,
+	TeamOutlined,
+	CheckCircleOutlined,
 	FileTextOutlined,
-	SettingOutlined,
+	UserOutlined,
 } from "@ant-design/icons";
 
 import { authProvider } from "./providers/authProvider";
@@ -38,14 +40,36 @@ import {
 	SchoolEdit,
 	SchoolShow,
 } from "./pages/school";
-// import { WebsiteSettings } from './pages/website-settings';
 import {
 	CourseList,
 	CourseCreate,
 	CourseEdit,
 	CourseShow,
 } from "./pages/course";
-// import { BlogList } from './pages/blog';
+import {
+	StudentList,
+	StudentCreate,
+	StudentEdit,
+	StudentShow,
+} from "./pages/student";
+import {
+	AttendanceList,
+	AttendanceCreate,
+	AttendanceEdit,
+	AttendanceShow,
+} from "./pages/attendance";
+import {
+	GradeSheetList,
+	GradeSheetCreate,
+	GradeSheetEdit,
+	GradeSheetShow,
+} from "./pages/grade-sheet";
+import {
+	UserList,
+	UserCreate,
+	UserEdit,
+	UserShow,
+} from "./pages/user";
 import { DashboardPage } from "./pages/dashboard";
 import { LoginPage } from "./pages/login";
 import { dataProvider } from "./providers/rest-data-provider";
@@ -98,25 +122,50 @@ const AppContent = () => {
 						icon: <FrownOutlined />,
 					},
 				},
-				// {
-				// 	name: 'blogs',
-				// 	list: '/blogs',
-				// 	create: '/blogs/create',
-				// 	edit: '/blogs/edit/:id',
-				// 	show: '/blogs/:id',
-				// 	meta: {
-				// 		label: '學生管理',
-				// 		icon: <FileTextOutlined />,
-				// 	},
-				// },
-				// {
-				// 	name: 'website-settings',
-				// 	list: '/website-settings',
-				// 	meta: {
-				// 		label: '網站設置',
-				// 		icon: <SettingOutlined />,
-				// 	},
-				// },
+				{
+					name: "student",
+					list: "/student",
+					create: "/student/create",
+					edit: "/student/edit/:id",
+					show: "/student/:id",
+					meta: {
+						label: "學生管理",
+						icon: <TeamOutlined />,
+					},
+				},
+				{
+					name: "attendance",
+					list: "/attendance",
+					create: "/attendance/create",
+					edit: "/attendance/edit/:id",
+					show: "/attendance/:id",
+					meta: {
+						label: "考勤管理",
+						icon: <CheckCircleOutlined />,
+					},
+				},
+				{
+					name: "grade-sheet",
+					list: "/grade-sheet",
+					create: "/grade-sheet/create",
+					edit: "/grade-sheet/edit/:id",
+					show: "/grade-sheet/:id",
+					meta: {
+						label: "成績管理",
+						icon: <FileTextOutlined />,
+					},
+				},
+				{
+					name: "user",
+					list: "/user",
+					create: "/user/create",
+					edit: "/user/edit/:id",
+					show: "/user/:id",
+					meta: {
+						label: "使用者管理",
+						icon: <UserOutlined />,
+					},
+				},
 			]}
 		>
 			<Routes>
@@ -167,13 +216,33 @@ const AppContent = () => {
 						<Route path=":id" element={<CourseShow />} />
 					</Route>
 
-					{/* <Route path="/blog">
-						<Route index element={<BlogList />} />
+					<Route path="/student">
+						<Route index element={<StudentList />} />
+						<Route path="create" element={<StudentCreate />} />
+						<Route path="edit/:id" element={<StudentEdit />} />
+						<Route path=":id" element={<StudentShow />} />
 					</Route>
 
-					<Route path="/website-setting">
-						<Route index element={<WebsiteSettings />} />
-					</Route> */}
+					<Route path="/attendance">
+						<Route index element={<AttendanceList />} />
+						<Route path="create" element={<AttendanceCreate />} />
+						<Route path="edit/:id" element={<AttendanceEdit />} />
+						<Route path=":id" element={<AttendanceShow />} />
+					</Route>
+
+					<Route path="/grade-sheet">
+						<Route index element={<GradeSheetList />} />
+						<Route path="create" element={<GradeSheetCreate />} />
+						<Route path="edit/:id" element={<GradeSheetEdit />} />
+						<Route path=":id" element={<GradeSheetShow />} />
+					</Route>
+
+					<Route path="/user">
+						<Route index element={<UserList />} />
+						<Route path="create" element={<UserCreate />} />
+						<Route path="edit/:id" element={<UserEdit />} />
+						<Route path=":id" element={<UserShow />} />
+					</Route>
 				</Route>
 
 				<Route
