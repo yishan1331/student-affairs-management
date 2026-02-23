@@ -19,6 +19,7 @@ import {
 	CheckCircleOutlined,
 	FileTextOutlined,
 	UserOutlined,
+	DollarOutlined,
 } from "@ant-design/icons";
 
 import { authProvider } from "./providers/authProvider";
@@ -70,6 +71,18 @@ import {
 	UserEdit,
 	UserShow,
 } from "./pages/user";
+import {
+	SalaryBaseList,
+	SalaryBaseCreate,
+	SalaryBaseEdit,
+	SalaryBaseShow,
+} from "./pages/salary-base";
+import {
+	TeacherSalaryConfigList,
+	TeacherSalaryConfigCreate,
+	TeacherSalaryConfigEdit,
+	TeacherSalaryConfigShow,
+} from "./pages/teacher-salary-config";
 import { DashboardPage } from "./pages/dashboard";
 import { LoginPage } from "./pages/login";
 import { dataProvider } from "./providers/rest-data-provider";
@@ -166,6 +179,28 @@ const AppContent = () => {
 						icon: <UserOutlined />,
 					},
 				},
+				{
+					name: "salary-base",
+					list: "/salary-base",
+					create: "/salary-base/create",
+					edit: "/salary-base/edit/:id",
+					show: "/salary-base/:id",
+					meta: {
+						label: "薪資基底",
+						icon: <DollarOutlined />,
+					},
+				},
+				{
+					name: "teacher-salary-config",
+					list: "/teacher-salary-config",
+					create: "/teacher-salary-config/create",
+					edit: "/teacher-salary-config/edit/:id",
+					show: "/teacher-salary-config/:id",
+					meta: {
+						label: "薪資設定",
+						icon: <DollarOutlined />,
+					},
+				},
 			]}
 		>
 			<Routes>
@@ -242,6 +277,20 @@ const AppContent = () => {
 						<Route path="create" element={<UserCreate />} />
 						<Route path="edit/:id" element={<UserEdit />} />
 						<Route path=":id" element={<UserShow />} />
+					</Route>
+
+					<Route path="/salary-base">
+						<Route index element={<SalaryBaseList />} />
+						<Route path="create" element={<SalaryBaseCreate />} />
+						<Route path="edit/:id" element={<SalaryBaseEdit />} />
+						<Route path=":id" element={<SalaryBaseShow />} />
+					</Route>
+
+					<Route path="/teacher-salary-config">
+						<Route index element={<TeacherSalaryConfigList />} />
+						<Route path="create" element={<TeacherSalaryConfigCreate />} />
+						<Route path="edit/:id" element={<TeacherSalaryConfigEdit />} />
+						<Route path=":id" element={<TeacherSalaryConfigShow />} />
 					</Route>
 				</Route>
 

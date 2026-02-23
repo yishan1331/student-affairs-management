@@ -10,6 +10,8 @@ export const ROUTE_RESOURCE = {
 	attendance: "v1/attendance",
 	gradeSheet: "v1/grade-sheet",
 	user: "v1/user",
+	salaryBase: "v1/salary-base",
+	teacherSalaryConfig: "v1/teacher-salary-config",
 };
 export const ROUTE_PATH = {
 	course: "course",
@@ -18,4 +20,6 @@ export const ROUTE_PATH = {
 	attendance: "attendance",
 	gradeSheet: "grade-sheet",
 	user: "user",
+	salaryBase: "salary-base",
+	teacherSalaryConfig: "teacher-salary-config",
 };
