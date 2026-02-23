@@ -41,4 +41,21 @@ export class StudentService {
 			where: { id },
 		});
 	}
+
+	async exportStudents(courseId?: number) {
+		const where = courseId ? { course_id: courseId } : {};
+		return this.prisma.student.findMany({
+			where,
+			include: { course: true },
+			orderBy: { id: 'asc' },
+		});
+	}
+
+	async importStudents(students: { name: string; number: string; gender: string; course_id: number; modifier_id: number }[]) {
+		return this.prisma.$transaction(
+			students.map((student) =>
+				this.prisma.student.create({ data: student }),
+			),
+		);
+	}
 }

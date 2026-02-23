@@ -57,6 +57,15 @@ export class AttendanceService {
 		);
 	}
 
+	async exportAttendance(courseId?: number) {
+		const where = courseId ? { student: { course_id: courseId } } : {};
+		return this.prisma.attendance.findMany({
+			where,
+			include: { student: true },
+			orderBy: { date: 'desc' },
+		});
+	}
+
 	async getStatistics(course_id?: number) {
 		const where = course_id ? { student: { course_id } } : {};
 

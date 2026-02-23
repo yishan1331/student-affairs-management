@@ -7,8 +7,12 @@ import {
 	Body,
 	Param,
 	Query,
+	Res,
 	UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
+import * as ExcelJS from 'exceljs';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateBatchAttendanceDto } from './dto/create-batch-attendance.dto';
@@ -17,6 +21,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
+@ApiTags('考勤管理')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/attendance')
 export class AttendanceController {
@@ -53,6 +59,45 @@ export class AttendanceController {
 		return this.attendanceService.getStatistics(
 			courseId ? +courseId : undefined,
 		);
+	}
+
+	@Get('export')
+	async exportAttendance(@Query('course_id') courseId: string, @Res() res: Response) {
+		const attendances = await this.attendanceService.exportAttendance(
+			courseId ? +courseId : undefined,
+		);
+
+		const workbook = new ExcelJS.Workbook();
+		const worksheet = workbook.addWorksheet('考勤紀錄');
+
+		worksheet.columns = [
+			{ header: 'ID', key: 'id', width: 10 },
+			{ header: '學生姓名', key: 'student_name', width: 15 },
+			{ header: '日期', key: 'date', width: 15 },
+			{ header: '狀態', key: 'status', width: 10 },
+		];
+
+		const statusMap: Record<string, string> = {
+			attendance: '出席',
+			absent: '缺席',
+			late: '遲到',
+			excused: '請假',
+		};
+
+		attendances.forEach((record: any) => {
+			worksheet.addRow({
+				id: record.id,
+				student_name: record.student?.name || '',
+				date: new Date(record.date).toLocaleDateString(),
+				status: statusMap[record.status] || record.status,
+			});
+		});
+
+		res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		res.setHeader('Content-Disposition', 'attachment; filename=attendance.xlsx');
+
+		await workbook.xlsx.write(res);
+		res.end();
 	}
 
 	@Get(':id')

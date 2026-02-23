@@ -40,6 +40,15 @@ export class GradeSheetService {
 		});
 	}
 
+	async exportGradeSheets(courseId?: number) {
+		const where = courseId ? { student: { course_id: courseId } } : {};
+		return this.prisma.gradeSheet.findMany({
+			where,
+			include: { student: true },
+			orderBy: { exam_date: 'desc' },
+		});
+	}
+
 	async getStatistics(course_id: number) {
 		const grades = await this.prisma.gradeSheet.findMany({
 			where: { student: { course_id } },
