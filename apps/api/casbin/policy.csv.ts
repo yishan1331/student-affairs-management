@@ -76,6 +76,8 @@ p, role:admin, /api/v1/student/export, *
 p, role:admin, /api/v1/student/import, *
 p, role:admin, /api/v1/upload, *
 p, role:admin, /api/v1/upload/:publicId, *
+p, role:admin, /api/v1/audit-log, *
+p, role:admin, /api/v1/audit-log/:id, *
 
 g, role:admin, role:manager
 g, role:manager, role:staff`;

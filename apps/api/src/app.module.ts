@@ -18,10 +18,14 @@ import {
 	GLOBAL_RESPONSE_INTERCEPTOR,
 	GLOBAL_EXCEPTIONS_FILTER,
 	GLOBAL_PRISMA_EXCEPTIONS_FILTER,
+	GLOBAL_AUDIT_LOG_INTERCEPTOR,
 } from './common/providers';
 import { AuthModule } from './core/auth/auth.module';
 import { DashboardModule } from './core/dashboard/dashboard.module';
 import { UploadModule } from './core/upload/upload.module';
+import { AuditLogModule } from './core/audit-log/audit-log.module';
+import { SalaryBaseModule } from './core/salary-base/salary-base.module';
+import { TeacherSalaryConfigModule } from './core/teacher-salary-config/teacher-salary-config.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -55,6 +59,9 @@ const adapter = new StringAdapter(casbinPolicy);
 		AuthModule,
 		DashboardModule,
 		UploadModule,
+		AuditLogModule,
+		SalaryBaseModule,
+		TeacherSalaryConfigModule,
 	],
 	controllers: [],
 	providers: [
@@ -62,6 +69,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		GLOBAL_RESPONSE_INTERCEPTOR,
 		GLOBAL_EXCEPTIONS_FILTER,
 		GLOBAL_PRISMA_EXCEPTIONS_FILTER,
+		GLOBAL_AUDIT_LOG_INTERCEPTOR,
 		{
 			provide: 'APP_GUARD',
 			useClass: ThrottlerGuard,
