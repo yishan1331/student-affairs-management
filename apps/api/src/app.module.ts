@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { join } from 'path';
 import { newModelFromString, StringAdapter } from 'casbin';
 
@@ -40,6 +41,10 @@ const adapter = new StringAdapter(casbinPolicy);
 			modelPath: model,
 			policyAdapter: adapter,
 		}),
+		ThrottlerModule.forRoot([{
+			ttl: 60000,
+			limit: 60,
+		}]),
 		PrismaModule,
 		UserModule,
 		AttendanceModule,
@@ -57,6 +62,10 @@ const adapter = new StringAdapter(casbinPolicy);
 		GLOBAL_RESPONSE_INTERCEPTOR,
 		GLOBAL_EXCEPTIONS_FILTER,
 		GLOBAL_PRISMA_EXCEPTIONS_FILTER,
+		{
+			provide: 'APP_GUARD',
+			useClass: ThrottlerGuard,
+		},
 	],
 })
 export class AppModule {}
