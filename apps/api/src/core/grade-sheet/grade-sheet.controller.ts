@@ -7,15 +7,28 @@ import {
 	Body,
 	Param,
 	Query,
+	UseGuards,
 } from '@nestjs/common';
 import { GradeSheetService } from './grade-sheet.service';
 import { CreateGradeSheetDto } from './dto/create-grade-sheet.dto';
 import { UpdateGradeSheetDto } from './dto/update-grade-sheet.dto';
 import { Prisma } from '@prisma/client';
+import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
+import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
+@UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/grade-sheet')
 export class GradeSheetController {
-	constructor(private readonly gradeSheetService: GradeSheetService) {}
+	private readonly queryBuilder: PrismaQueryBuilder;
+
+	constructor(private readonly gradeSheetService: GradeSheetService) {
+		this.queryBuilder = new PrismaQueryBuilder({
+			searchableFields: [],
+			filterableFields: ['student_id'],
+			defaultSort: { id: 'desc' },
+			defaultPageSize: 10,
+		});
+	}
 
 	@Post()
 	create(@Body() createGradeSheetDto: CreateGradeSheetDto) {
@@ -23,8 +36,10 @@ export class GradeSheetController {
 	}
 
 	@Get()
-	findAll(@Query() query: Prisma.GradeSheetFindManyArgs) {
-		return this.gradeSheetService.findAll(query);
+	findAll(@Query() query: any) {
+		const prismaQuery =
+			this.queryBuilder.build<Prisma.GradeSheetFindManyArgs>(query);
+		return this.gradeSheetService.findAll(prismaQuery);
 	}
 
 	@Get(':id')

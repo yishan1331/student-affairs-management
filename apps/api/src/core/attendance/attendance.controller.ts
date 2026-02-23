@@ -7,15 +7,28 @@ import {
 	Body,
 	Param,
 	Query,
+	UseGuards,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { Prisma } from '@prisma/client';
+import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
+import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
+@UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/attendance')
 export class AttendanceController {
-	constructor(private readonly attendanceService: AttendanceService) {}
+	private readonly queryBuilder: PrismaQueryBuilder;
+
+	constructor(private readonly attendanceService: AttendanceService) {
+		this.queryBuilder = new PrismaQueryBuilder({
+			searchableFields: [],
+			filterableFields: ['student_id', 'status'],
+			defaultSort: { id: 'desc' },
+			defaultPageSize: 10,
+		});
+	}
 
 	@Post()
 	create(@Body() createAttendanceDto: CreateAttendanceDto) {
@@ -23,8 +36,10 @@ export class AttendanceController {
 	}
 
 	@Get()
-	findAll(@Query() query: Prisma.AttendanceFindManyArgs) {
-		return this.attendanceService.findAll(query);
+	findAll(@Query() query: any) {
+		const prismaQuery =
+			this.queryBuilder.build<Prisma.AttendanceFindManyArgs>(query);
+		return this.attendanceService.findAll(prismaQuery);
 	}
 
 	@Get(':id')

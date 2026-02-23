@@ -7,15 +7,28 @@ import {
 	Body,
 	Param,
 	Query,
+	UseGuards,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Prisma } from '@prisma/client';
+import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
+import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
+@UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/course')
 export class CourseController {
-	constructor(private readonly courseService: CourseService) {}
+	private readonly queryBuilder: PrismaQueryBuilder;
+
+	constructor(private readonly courseService: CourseService) {
+		this.queryBuilder = new PrismaQueryBuilder({
+			searchableFields: ['name'],
+			filterableFields: ['grade', 'school_id'],
+			defaultSort: { id: 'desc' },
+			defaultPageSize: 10,
+		});
+	}
 
 	@Post()
 	create(@Body() createCourseDto: CreateCourseDto) {
@@ -23,8 +36,10 @@ export class CourseController {
 	}
 
 	@Get()
-	findAll(@Query() query: Prisma.CourseFindManyArgs) {
-		return this.courseService.findAll(query);
+	findAll(@Query() query: any) {
+		const prismaQuery =
+			this.queryBuilder.build<Prisma.CourseFindManyArgs>(query);
+		return this.courseService.findAll(prismaQuery);
 	}
 
 	@Get(':id')

@@ -85,11 +85,18 @@ export class PrismaQueryBuilder {
 			}
 		}
 
-		// 處理可篩選欄位
+		// 處理可篩選欄位（自動識別布林值與數字）
 		if (this.options.filterableFields?.length) {
 			for (const field of this.options.filterableFields) {
 				if (query[field] !== undefined) {
-					where[field] = query[field] === 'true';
+					const value = query[field];
+					if (value === 'true' || value === 'false') {
+						where[field] = value === 'true';
+					} else if (!isNaN(Number(value))) {
+						where[field] = Number(value);
+					} else {
+						where[field] = value;
+					}
 				}
 			}
 		}
