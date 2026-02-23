@@ -20,7 +20,11 @@ p, role:staff, /api/v1/video/:id, read
 p, role:staff, /api/v1/dashboard/statistics, read
 p, role:staff, /api/v1/attendance/statistics, read
 p, role:staff, /api/v1/attendance/batch, read
+p, role:staff, /api/v1/attendance/export, read
 p, role:staff, /api/v1/grade-sheet/statistics, read
+p, role:staff, /api/v1/grade-sheet/export, read
+p, role:staff, /api/v1/student/export, read
+p, role:staff, /api/v1/upload, read
 
 p, role:manager, /api/v1/user, create
 p, role:manager, /api/v1/user/:id, update
@@ -41,6 +45,8 @@ p, role:manager, /api/v1/banner/:id, update
 p, role:manager, /api/v1/video, create
 p, role:manager, /api/v1/video/:id, update
 p, role:manager, /api/v1/attendance/batch, create
+p, role:manager, /api/v1/student/import, create
+p, role:manager, /api/v1/upload, create
 
 p, role:admin, /api/v1/user, *
 p, role:admin, /api/v1/user/:id, *
@@ -63,7 +69,13 @@ p, role:admin, /api/v1/video/:id, *
 p, role:admin, /api/v1/dashboard/statistics, *
 p, role:admin, /api/v1/attendance/statistics, *
 p, role:admin, /api/v1/attendance/batch, *
+p, role:admin, /api/v1/attendance/export, *
 p, role:admin, /api/v1/grade-sheet/statistics, *
+p, role:admin, /api/v1/grade-sheet/export, *
+p, role:admin, /api/v1/student/export, *
+p, role:admin, /api/v1/student/import, *
+p, role:admin, /api/v1/upload, *
+p, role:admin, /api/v1/upload/:publicId, *
 
 g, role:admin, role:manager
 g, role:manager, role:staff`;
