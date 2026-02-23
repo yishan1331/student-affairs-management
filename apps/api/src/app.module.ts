@@ -19,6 +19,7 @@ import {
 	GLOBAL_PRISMA_EXCEPTIONS_FILTER,
 } from './common/providers';
 import { AuthModule } from './core/auth/auth.module';
+import { DashboardModule } from './core/dashboard/dashboard.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -46,6 +47,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		SchoolModule,
 		GradeSheetModule,
 		AuthModule,
+		DashboardModule,
 	],
 	controllers: [],
 	providers: [
