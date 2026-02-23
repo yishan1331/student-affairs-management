@@ -42,6 +42,11 @@ export class GradeSheetController {
 		return this.gradeSheetService.findAll(prismaQuery);
 	}
 
+	@Get('statistics')
+	getStatistics(@Query('course_id') courseId: string) {
+		return this.gradeSheetService.getStatistics(+courseId);
+	}
+
 	@Get(':id')
 	findOne(@Param('id') id: string) {
 		return this.gradeSheetService.findOne(+id);

@@ -39,4 +39,49 @@ export class GradeSheetService {
 			where: { id },
 		});
 	}
+
+	async getStatistics(course_id: number) {
+		const grades = await this.prisma.gradeSheet.findMany({
+			where: { student: { course_id } },
+			include: { student: true },
+		});
+
+		if (grades.length === 0) {
+			return {
+				courseId: course_id,
+				totalStudents: 0,
+				averageScore: 0,
+				highestScore: 0,
+				lowestScore: 0,
+				distribution: {
+					excellent: 0,
+					good: 0,
+					average: 0,
+					passing: 0,
+					failing: 0,
+				},
+			};
+		}
+
+		const scores = grades.map((g) => g.score);
+		const distribution = {
+			excellent: scores.filter((s) => s >= 90).length,
+			good: scores.filter((s) => s >= 80 && s < 90).length,
+			average: scores.filter((s) => s >= 70 && s < 80).length,
+			passing: scores.filter((s) => s >= 60 && s < 70).length,
+			failing: scores.filter((s) => s < 60).length,
+		};
+
+		return {
+			courseId: course_id,
+			totalStudents: scores.length,
+			averageScore:
+				Math.round(
+					(scores.reduce((a, b) => a + b, 0) / scores.length) * 100,
+				) / 100,
+			highestScore: Math.max(...scores),
+			lowestScore: Math.min(...scores),
+			distribution,
+		};
+	}
 }
