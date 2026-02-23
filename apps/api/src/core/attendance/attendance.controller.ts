@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
+import { CreateBatchAttendanceDto } from './dto/create-batch-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
@@ -40,6 +41,18 @@ export class AttendanceController {
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.AttendanceFindManyArgs>(query);
 		return this.attendanceService.findAll(prismaQuery);
+	}
+
+	@Post('batch')
+	createBatch(@Body() createBatchAttendanceDto: CreateBatchAttendanceDto) {
+		return this.attendanceService.createBatch(createBatchAttendanceDto);
+	}
+
+	@Get('statistics')
+	getStatistics(@Query('course_id') courseId?: string) {
+		return this.attendanceService.getStatistics(
+			courseId ? +courseId : undefined,
+		);
 	}
 
 	@Get(':id')
