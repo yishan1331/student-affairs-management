@@ -4,11 +4,13 @@ import {
 	Input,
 	InputNumber,
 	Flex,
-	Segmented,
 	Divider,
 	Select,
+	TimePicker,
+	Checkbox,
 } from "antd";
 import type { FormProps } from "antd";
+import dayjs from "dayjs";
 
 import { useStyles } from "../editStyled";
 import { useUser } from "../../../contexts/userContext";
@@ -18,6 +20,16 @@ import {
 	ISchool,
 } from "../../../common/types/models";
 import { ROUTE_RESOURCE } from "../../../common/constants";
+
+const DAY_OF_WEEK_OPTIONS = [
+	{ label: "週一", value: "1" },
+	{ label: "週二", value: "2" },
+	{ label: "週三", value: "3" },
+	{ label: "週四", value: "4" },
+	{ label: "週五", value: "5" },
+	{ label: "週六", value: "6" },
+	{ label: "週日", value: "7" },
+];
 
 type Props = {
 	formProps: FormProps<any>;
@@ -31,6 +43,7 @@ export const CourseForm = (props: Props) => {
 		resource: ROUTE_RESOURCE.school,
 		optionLabel: "name",
 		optionValue: "id",
+		filters: [{ field: "is_active", operator: "eq", value: true }],
 	});
 
 	if (!user?.id) {
@@ -41,11 +54,21 @@ export const CourseForm = (props: Props) => {
 		<Form<ICreateCourse | IUpdateCourse>
 			{...props.formProps}
 			layout="vertical"
-			onFinish={(values) => {
-				props.formProps.onFinish?.({
+			onFinish={(values: any) => {
+				const submitValues = {
 					...values,
 					modifier_id: user.id,
-				});
+					start_time: values.start_time
+						? dayjs(values.start_time).toISOString()
+						: undefined,
+					end_time: values.end_time
+						? dayjs(values.end_time).toISOString()
+						: undefined,
+					day_of_week: Array.isArray(values.day_of_week)
+						? values.day_of_week.join(",")
+						: values.day_of_week,
+				};
+				props.formProps.onFinish?.(submitValues);
 			}}
 		>
 			<Divider
@@ -62,6 +85,7 @@ export const CourseForm = (props: Props) => {
 					rules={[
 						{
 							required: true,
+							message: "請輸入課程名稱",
 						},
 					]}
 				>
@@ -71,90 +95,113 @@ export const CourseForm = (props: Props) => {
 					label="課程描述"
 					name="description"
 					className={styles.formItem}
-					// rules={[
-					// 	{
-					// 		required: true,
-					// 	},
-					// ]}
 				>
-					<Input.TextArea rows={6} />
+					<Input.TextArea rows={3} />
 				</Form.Item>
 				<Form.Item
-					label="課程等級"
-					name="grade"
-					className={styles.formItem}
-					// rules={[
-					// 	{
-					// 		required: true,
-					// 	},
-					// ]}
-				>
-					<Input.TextArea rows={6} />
-				</Form.Item>
-				<Form.Item
-					label="課程開始時間"
-					name="start_time"
-					className={styles.formItem}
-					// rules={[
-					// 	{
-					// 		required: true,
-					// 		message: '請輸入排序',
-					// 	},
-					// ]}
-				>
-					<Input.TextArea rows={6} />
-				</Form.Item>
-				<Form.Item
-					label="學校管理"
+					label="學校"
 					name="school_id"
 					className={styles.formItem}
 					rules={[
 						{
 							required: true,
+							message: "請選擇學校",
 						},
 					]}
 				>
 					<Select
 						{...categorySelectProps}
-						style={{ width: "200px" }}
+						style={{ width: "100%" }}
 						showSearch={false}
 						placeholder="請選擇學校"
 					/>
 				</Form.Item>
 				<Form.Item
-					label="排序"
-					name="display_order"
+					label="年級"
+					name="grade"
 					className={styles.formItem}
-					initialValue={1}
+				>
+					<InputNumber
+						min={1}
+						style={{ width: "100%" }}
+						placeholder="請輸入年級"
+					/>
+				</Form.Item>
+				<Form.Item
+					label="上課星期"
+					name="day_of_week"
+					className={styles.formItem}
 					rules={[
 						{
 							required: true,
-							message: "請輸入排序",
+							message: "請選擇上課星期",
+						},
+					]}
+					getValueFromEvent={(val: string[]) => val}
+					getValueProps={(val: string) => ({
+						value:
+							typeof val === "string"
+								? val.split(",").map((d: string) => d.trim())
+								: val,
+					})}
+				>
+					<Checkbox.Group options={DAY_OF_WEEK_OPTIONS} />
+				</Form.Item>
+				<Form.Item
+					label="開始時間"
+					name="start_time"
+					className={styles.formItem}
+					rules={[
+						{
+							required: true,
+							message: "請選擇開始時間",
+						},
+					]}
+					getValueProps={(val: string) => ({
+						value: val ? dayjs(val) : undefined,
+					})}
+				>
+					<TimePicker
+						format="HH:mm"
+						style={{ width: "100%" }}
+						placeholder="請選擇開始時間"
+					/>
+				</Form.Item>
+				<Form.Item
+					label="結束時間"
+					name="end_time"
+					className={styles.formItem}
+					rules={[
+						{
+							required: true,
+							message: "請選擇結束時間",
+						},
+					]}
+					getValueProps={(val: string) => ({
+						value: val ? dayjs(val) : undefined,
+					})}
+				>
+					<TimePicker
+						format="HH:mm"
+						style={{ width: "100%" }}
+						placeholder="請選擇結束時間"
+					/>
+				</Form.Item>
+				<Form.Item
+					label="課程時長（分鐘）"
+					name="duration"
+					className={styles.formItem}
+					rules={[
+						{
+							required: true,
+							message: "請輸入課程時長",
 						},
 					]}
 				>
-					<InputNumber />
-				</Form.Item>
-				<Form.Item
-					label="啟用狀態"
-					name="is_active"
-					className={styles.formItem}
-				>
-					<Segmented
-						block
-						className={styles.segmented}
-						options={[
-							{
-								label: "啟用",
-								value: true,
-								className: "actice",
-							},
-							{
-								label: "未啟用",
-								value: false,
-								className: "inactice",
-							},
-						]}
+					<InputNumber
+						min={1}
+						style={{ width: "100%" }}
+						placeholder="請輸入課程時長（分鐘）"
 					/>
 				</Form.Item>
 			</Flex>

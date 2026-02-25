@@ -19,11 +19,15 @@ export const StudentForm = (props: Props) => {
 	const { styles } = useStyles();
 	const { user } = useUser();
 
-	const { selectProps: courseSelectProps } = useSelect<ICourse>({
+	const { query: courseQueryResult, selectProps: courseSelectProps } = useSelect<ICourse>({
 		resource: ROUTE_RESOURCE.course,
 		optionLabel: "name",
 		optionValue: "id",
 	});
+	const courseOptions = (courseQueryResult?.data?.data || []).map((c: ICourse) => ({
+		label: `${c.school?.name ? `${c.school.name} - ` : ""}${c.name}`,
+		value: c.id,
+	}));
 
 	if (!user?.id) {
 		return null;
@@ -102,6 +106,7 @@ export const StudentForm = (props: Props) => {
 				>
 					<Select
 						{...courseSelectProps}
+						options={courseOptions}
 						style={{ width: "200px" }}
 						showSearch={false}
 						placeholder="請選擇課程"

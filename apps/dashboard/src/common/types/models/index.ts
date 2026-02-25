@@ -6,3 +6,4 @@ export * from "./attendance.types";
 export * from "./grade-sheet.types";
 export * from "./user.types";
 export * from "./salary.types";
+export * from "./course-session.types";

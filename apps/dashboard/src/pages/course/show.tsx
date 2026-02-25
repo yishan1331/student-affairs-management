@@ -50,11 +50,19 @@ export const CourseShow = () => {
 	});
 	const medicalCategory = categoryData?.data;
 
+	const DAY_MAP: Record<string, string> = {
+		"1": "週一",
+		"2": "週二",
+		"3": "週三",
+		"4": "週四",
+		"5": "週五",
+		"6": "週六",
+		"7": "週日",
+	};
+
 	const dataSources: DataSource<ICourse>[] = [
 		{ label: "課程名稱", value: "name", type: "text" },
 		{ label: "描述", value: "description", type: "text" },
-		{ label: "課程等級", value: "grade", type: "text" },
-		{ label: "課程開始時間", value: "start_time", type: "text" },
 		{
 			label: "學校名稱",
 			value: "school_id",
@@ -65,7 +73,59 @@ export const CourseShow = () => {
 				);
 			},
 		},
-		{ label: "課程結束時間", value: "end_time", type: "text" },
+		{ label: "年級", value: "grade", type: "text" },
+		{
+			label: "上課星期",
+			value: "day_of_week",
+			type: "custom",
+			render: () => {
+				const days = record?.day_of_week
+					?.split(",")
+					.map((d: string) => DAY_MAP[d.trim()] || d.trim())
+					.join("、");
+				return <Typography.Text>{days}</Typography.Text>;
+			},
+		},
+		{
+			label: "開始時間",
+			value: "start_time",
+			type: "custom",
+			render: () => {
+				return (
+					<Typography.Text>
+						{record?.start_time
+							? dayjs(record.start_time).format("HH:mm")
+							: "-"}
+					</Typography.Text>
+				);
+			},
+		},
+		{
+			label: "結束時間",
+			value: "end_time",
+			type: "custom",
+			render: () => {
+				return (
+					<Typography.Text>
+						{record?.end_time
+							? dayjs(record.end_time).format("HH:mm")
+							: "-"}
+					</Typography.Text>
+				);
+			},
+		},
+		{
+			label: "課程時長",
+			value: "duration",
+			type: "custom",
+			render: () => {
+				return (
+					<Typography.Text>
+						{record?.duration ? `${record.duration} 分鐘` : "-"}
+					</Typography.Text>
+				);
+			},
+		},
 		{ label: "修改者ID", value: "modifier_id", type: "text" },
 		{
 			label: "建立時間",
@@ -74,7 +134,7 @@ export const CourseShow = () => {
 			render: () => {
 				return (
 					<Typography.Text>
-						{dayjs(record?.created_at).format("YYYY-MM-DD")}
+						{dayjs(record?.created_at).format("YYYY-MM-DD HH:mm")}
 					</Typography.Text>
 				);
 			},
@@ -86,7 +146,7 @@ export const CourseShow = () => {
 			render: () => {
 				return (
 					<Typography.Text>
-						{dayjs(record?.updated_at).format("YYYY-MM-DD")}
+						{dayjs(record?.updated_at).format("YYYY-MM-DD HH:mm")}
 					</Typography.Text>
 				);
 			},

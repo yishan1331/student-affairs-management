@@ -4,6 +4,7 @@ export const TOKEN_KEY = "SAMS";
 export const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const ROUTE_RESOURCE = {
+	schedule: "v1/course",
 	course: "v1/course",
 	school: "v1/school",
 	student: "v1/student",
@@ -11,9 +12,10 @@ export const ROUTE_RESOURCE = {
 	gradeSheet: "v1/grade-sheet",
 	user: "v1/user",
 	salaryBase: "v1/salary-base",
-	teacherSalaryConfig: "v1/teacher-salary-config",
+	courseSession: "v1/course-session",
 };
 export const ROUTE_PATH = {
+	schedule: "schedule",
 	course: "course",
 	school: "school",
 	student: "student",
@@ -21,5 +23,5 @@ export const ROUTE_PATH = {
 	gradeSheet: "grade-sheet",
 	user: "user",
 	salaryBase: "salary-base",
-	teacherSalaryConfig: "teacher-salary-config",
+	courseSession: "course-session",
 };

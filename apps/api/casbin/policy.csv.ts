@@ -5,6 +5,7 @@ p, role:staff, /api/v1/school, read
 p, role:staff, /api/v1/school/:id, read
 p, role:staff, /api/v1/course, read
 p, role:staff, /api/v1/course/:id, read
+p, role:staff, /api/v1/course/schedule, read
 p, role:staff, /api/v1/student, read
 p, role:staff, /api/v1/student/:id, read
 p, role:staff, /api/v1/attendance, read
@@ -13,9 +14,6 @@ p, role:staff, /api/v1/grade-sheet, read
 p, role:staff, /api/v1/grade-sheet/:id, read
 p, role:staff, /api/v1/salary-base, read
 p, role:staff, /api/v1/salary-base/:id, read
-p, role:staff, /api/v1/teacher-salary-config, read
-p, role:staff, /api/v1/teacher-salary-config/:id, read
-p, role:staff, /api/v1/teacher-salary-config/statistics, read
 p, role:staff, /api/v1/dashboard/statistics, read
 p, role:staff, /api/v1/attendance/statistics, read
 p, role:staff, /api/v1/attendance/batch, read
@@ -24,6 +22,10 @@ p, role:staff, /api/v1/grade-sheet/statistics, read
 p, role:staff, /api/v1/grade-sheet/export, read
 p, role:staff, /api/v1/student/export, read
 p, role:staff, /api/v1/upload, read
+p, role:staff, /api/v1/course-session, read
+p, role:staff, /api/v1/course-session/:id, read
+p, role:staff, /api/v1/course-session/salary-summary, read
+p, role:staff, /api/v1/course-session/batch-generate, read
 
 p, role:manager, /api/v1/user, create
 p, role:manager, /api/v1/user/:id, update
@@ -39,11 +41,12 @@ p, role:manager, /api/v1/grade-sheet, create
 p, role:manager, /api/v1/grade-sheet/:id, update
 p, role:manager, /api/v1/salary-base, create
 p, role:manager, /api/v1/salary-base/:id, update
-p, role:manager, /api/v1/teacher-salary-config, create
-p, role:manager, /api/v1/teacher-salary-config/:id, update
 p, role:manager, /api/v1/attendance/batch, create
 p, role:manager, /api/v1/student/import, create
 p, role:manager, /api/v1/upload, create
+p, role:manager, /api/v1/course-session, create
+p, role:manager, /api/v1/course-session/:id, update
+p, role:manager, /api/v1/course-session/batch-generate, create
 
 p, role:admin, /api/v1/user, *
 p, role:admin, /api/v1/user/:id, *
@@ -51,6 +54,7 @@ p, role:admin, /api/v1/school, *
 p, role:admin, /api/v1/school/:id, *
 p, role:admin, /api/v1/course, *
 p, role:admin, /api/v1/course/:id, *
+p, role:admin, /api/v1/course/schedule, *
 p, role:admin, /api/v1/student, *
 p, role:admin, /api/v1/student/:id, *
 p, role:admin, /api/v1/attendance, *
@@ -59,9 +63,6 @@ p, role:admin, /api/v1/grade-sheet, *
 p, role:admin, /api/v1/grade-sheet/:id, *
 p, role:admin, /api/v1/salary-base, *
 p, role:admin, /api/v1/salary-base/:id, *
-p, role:admin, /api/v1/teacher-salary-config, *
-p, role:admin, /api/v1/teacher-salary-config/:id, *
-p, role:admin, /api/v1/teacher-salary-config/statistics, *
 p, role:admin, /api/v1/dashboard/statistics, *
 p, role:admin, /api/v1/attendance/statistics, *
 p, role:admin, /api/v1/attendance/batch, *
@@ -72,6 +73,10 @@ p, role:admin, /api/v1/student/export, *
 p, role:admin, /api/v1/student/import, *
 p, role:admin, /api/v1/upload, *
 p, role:admin, /api/v1/upload/:publicId, *
+p, role:admin, /api/v1/course-session, *
+p, role:admin, /api/v1/course-session/:id, *
+p, role:admin, /api/v1/course-session/salary-summary, *
+p, role:admin, /api/v1/course-session/batch-generate, *
 p, role:admin, /api/v1/audit-log, *
 p, role:admin, /api/v1/audit-log/:id, *
 

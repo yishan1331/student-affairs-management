@@ -20,15 +20,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
 				? exception.getStatus()
 				: HttpStatus.INTERNAL_SERVER_ERROR;
 
-		const message =
-			exception instanceof HttpException
-				? exception.message
-				: 'Internal server error';
+		let message: string | string[] = 'Internal server error';
+		if (exception instanceof HttpException) {
+			const exceptionResponse = exception.getResponse();
+			if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+				message = (exceptionResponse as any).message || exception.message;
+			} else {
+				message = exception.message;
+			}
+		}
 
 		response.status(status).json({
 			statusCode: status,
 			success: false,
-			timestamp: moment().format('YYYY-MM-DD HH:mm:ss'), // 錯誤發生時間
+			timestamp: moment().format('YYYY-MM-DD HH:mm:ss'),
 			message,
 		});
 	}

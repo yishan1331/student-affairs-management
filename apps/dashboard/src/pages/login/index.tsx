@@ -34,7 +34,7 @@ export const LoginPage: React.FC = () => {
 		<div
 			style={{
 				height: "100vh",
-				backgroundImage: 'url("/images/login_bg.png")',
+				backgroundImage: 'url("/images/astrid.jpg")',
 				backgroundSize: "cover",
 				backgroundPosition: "center",
 				backgroundRepeat: "no-repeat",

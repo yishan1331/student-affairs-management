@@ -25,7 +25,7 @@ import { DashboardModule } from './core/dashboard/dashboard.module';
 import { UploadModule } from './core/upload/upload.module';
 import { AuditLogModule } from './core/audit-log/audit-log.module';
 import { SalaryBaseModule } from './core/salary-base/salary-base.module';
-import { TeacherSalaryConfigModule } from './core/teacher-salary-config/teacher-salary-config.module';
+import { CourseSessionModule } from './core/course-session/course-session.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -61,7 +61,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		UploadModule,
 		AuditLogModule,
 		SalaryBaseModule,
-		TeacherSalaryConfigModule,
+		CourseSessionModule,
 	],
 	controllers: [],
 	providers: [

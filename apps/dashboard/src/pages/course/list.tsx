@@ -8,15 +8,25 @@ import {
 	getDefaultSortOrder,
 	useSelect,
 } from "@refinedev/antd";
-import { Avatar, Flex, Space, Table, Tag, Typography } from "antd";
+import { Space, Table, Typography } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
+import dayjs from "dayjs";
 
 import { ISchool } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 import { ICourse } from "../../common/types/models/course.types";
-import { UserOutlined } from "@ant-design/icons";
+
+const DAY_MAP: Record<string, string> = {
+	"1": "週一",
+	"2": "週二",
+	"3": "週三",
+	"4": "週四",
+	"5": "週五",
+	"6": "週六",
+	"7": "週日",
+};
 
 export const CourseList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -41,6 +51,7 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 	const { selectProps: categorySelectProps, query: queryResult } =
 		useSelect<ISchool>({
 			resource: ROUTE_RESOURCE.school,
+			filters: [{ field: "is_active", operator: "eq", value: true }],
 		});
 	const medicalCategories = queryResult?.data?.data || [];
 
@@ -104,21 +115,43 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 					defaultSortOrder={getDefaultSortOrder("id", sorters)}
 				/>
 				<Table.Column dataIndex="name" title="名稱" />
-				<Table.Column dataIndex="display_order" title="排序" />
-				<Table.Column
-					dataIndex="is_active"
-					title="啟用狀態"
-					render={(value: boolean) => (
-						<Tag color={value ? "success" : "error"}>
-							{value ? "啟用" : "未啟用"}
-						</Tag>
-					)}
+				<Table.Column<ICourse>
+					title="學校"
+					render={(_: any, record: ICourse) =>
+						record.school?.name || "-"
+					}
 				/>
-				<Table.Column dataIndex="modifier_id" title="修改者ID" />
+				<Table.Column dataIndex="grade" title="年級" />
 				<Table.Column
-					dataIndex="created_at"
-					title="建立時間"
-					render={(value: string) => new Date(value).toLocaleString()}
+					dataIndex="day_of_week"
+					title="上課星期"
+					render={(value: string) =>
+						value
+							?.split(",")
+							.map((d: string) => DAY_MAP[d.trim()] || d.trim())
+							.join("、") || "-"
+					}
+				/>
+				<Table.Column
+					dataIndex="start_time"
+					title="開始時間"
+					render={(value: string) =>
+						value ? dayjs(value).format("HH:mm") : "-"
+					}
+				/>
+				<Table.Column
+					dataIndex="end_time"
+					title="結束時間"
+					render={(value: string) =>
+						value ? dayjs(value).format("HH:mm") : "-"
+					}
+				/>
+				<Table.Column
+					dataIndex="duration"
+					title="時長"
+					render={(value: number) =>
+						value ? `${value} 分鐘` : "-"
+					}
 				/>
 				<Table.Column
 					dataIndex="updated_at"

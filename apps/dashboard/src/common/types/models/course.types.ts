@@ -11,6 +11,7 @@ export interface ICourse {
 	modifier_id?: number;
 	created_at: Date;
 	updated_at: Date;
+	school?: { id: number; name: string };
 }
 
 export interface ICreateCourse {

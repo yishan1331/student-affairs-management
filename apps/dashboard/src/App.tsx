@@ -14,12 +14,17 @@ import { BrowserRouter, Route, Routes, Outlet } from "react-router";
 import {
 	MedicineBoxOutlined,
 	AppstoreOutlined,
-	FrownOutlined,
+	BookOutlined,
 	TeamOutlined,
 	CheckCircleOutlined,
 	FileTextOutlined,
 	UserOutlined,
 	DollarOutlined,
+	ScheduleOutlined,
+	FormOutlined,
+	BarChartOutlined,
+	SettingOutlined,
+	ReadOutlined,
 } from "@ant-design/icons";
 
 import { authProvider } from "./providers/authProvider";
@@ -78,12 +83,14 @@ import {
 	SalaryBaseShow,
 } from "./pages/salary-base";
 import {
-	TeacherSalaryConfigList,
-	TeacherSalaryConfigCreate,
-	TeacherSalaryConfigEdit,
-	TeacherSalaryConfigShow,
-} from "./pages/teacher-salary-config";
+	CourseSessionList,
+	CourseSessionCreate,
+	CourseSessionEdit,
+	CourseSessionShow,
+} from "./pages/course-session";
+import { SalaryOverviewList } from "./pages/salary-overview";
 import { DashboardPage } from "./pages/dashboard";
+import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
 import { dataProvider } from "./providers/rest-data-provider";
 import { UserContextProvider } from "./contexts/userContext";
@@ -114,6 +121,22 @@ const AppContent = () => {
 					},
 				},
 				{
+					name: "schedule",
+					list: "/schedule",
+					meta: {
+						label: "課表總覽",
+						icon: <ScheduleOutlined />,
+					},
+				},
+				// ── 教學管理 ──
+				{
+					name: "teaching",
+					meta: {
+						label: "教學管理",
+						icon: <BookOutlined />,
+					},
+				},
+				{
 					name: "school",
 					list: "/school",
 					create: "/school/create",
@@ -122,6 +145,7 @@ const AppContent = () => {
 					meta: {
 						label: "學校管理",
 						icon: <MedicineBoxOutlined />,
+						parent: "teaching",
 					},
 				},
 				{
@@ -132,7 +156,28 @@ const AppContent = () => {
 					show: "/course/:id",
 					meta: {
 						label: "課程管理",
-						icon: <FrownOutlined />,
+						icon: <ReadOutlined />,
+						parent: "teaching",
+					},
+				},
+				{
+					name: "course-session",
+					list: "/course-session",
+					create: "/course-session/create",
+					edit: "/course-session/edit/:id",
+					show: "/course-session/:id",
+					meta: {
+						label: "上課記錄",
+						icon: <FormOutlined />,
+						parent: "teaching",
+					},
+				},
+				// ── 學生管理 ──
+				{
+					name: "student-management",
+					meta: {
+						label: "學生管理",
+						icon: <TeamOutlined />,
 					},
 				},
 				{
@@ -142,8 +187,8 @@ const AppContent = () => {
 					edit: "/student/edit/:id",
 					show: "/student/:id",
 					meta: {
-						label: "學生管理",
-						icon: <TeamOutlined />,
+						label: "學生名冊",
+						parent: "student-management",
 					},
 				},
 				{
@@ -155,6 +200,7 @@ const AppContent = () => {
 					meta: {
 						label: "考勤管理",
 						icon: <CheckCircleOutlined />,
+						parent: "student-management",
 					},
 				},
 				{
@@ -166,6 +212,43 @@ const AppContent = () => {
 					meta: {
 						label: "成績管理",
 						icon: <FileTextOutlined />,
+						parent: "student-management",
+					},
+				},
+				// ── 薪資管理 ──
+				{
+					name: "salary-management",
+					meta: {
+						label: "薪資管理",
+						icon: <DollarOutlined />,
+					},
+				},
+				{
+					name: "salary-base",
+					list: "/salary-base",
+					create: "/salary-base/create",
+					edit: "/salary-base/edit/:id",
+					show: "/salary-base/:id",
+					meta: {
+						label: "薪資級距",
+						parent: "salary-management",
+					},
+				},
+				{
+					name: "salary-overview",
+					list: "/salary-overview",
+					meta: {
+						label: "薪資總覽",
+						icon: <BarChartOutlined />,
+						parent: "salary-management",
+					},
+				},
+				// ── 系統管理 ──
+				{
+					name: "system",
+					meta: {
+						label: "系統管理",
+						icon: <SettingOutlined />,
 					},
 				},
 				{
@@ -177,28 +260,7 @@ const AppContent = () => {
 					meta: {
 						label: "使用者管理",
 						icon: <UserOutlined />,
-					},
-				},
-				{
-					name: "salary-base",
-					list: "/salary-base",
-					create: "/salary-base/create",
-					edit: "/salary-base/edit/:id",
-					show: "/salary-base/:id",
-					meta: {
-						label: "薪資基底",
-						icon: <DollarOutlined />,
-					},
-				},
-				{
-					name: "teacher-salary-config",
-					list: "/teacher-salary-config",
-					create: "/teacher-salary-config/create",
-					edit: "/teacher-salary-config/edit/:id",
-					show: "/teacher-salary-config/:id",
-					meta: {
-						label: "薪資設定",
-						icon: <DollarOutlined />,
+						parent: "system",
 					},
 				},
 			]}
@@ -235,6 +297,10 @@ const AppContent = () => {
 				>
 					<Route path="/">
 						<Route index element={<DashboardPage />} />
+					</Route>
+
+					<Route path="/schedule">
+						<Route index element={<ScheduleList />} />
 					</Route>
 
 					<Route path="/school">
@@ -286,11 +352,15 @@ const AppContent = () => {
 						<Route path=":id" element={<SalaryBaseShow />} />
 					</Route>
 
-					<Route path="/teacher-salary-config">
-						<Route index element={<TeacherSalaryConfigList />} />
-						<Route path="create" element={<TeacherSalaryConfigCreate />} />
-						<Route path="edit/:id" element={<TeacherSalaryConfigEdit />} />
-						<Route path=":id" element={<TeacherSalaryConfigShow />} />
+					<Route path="/course-session">
+						<Route index element={<CourseSessionList />} />
+						<Route path="create" element={<CourseSessionCreate />} />
+						<Route path="edit/:id" element={<CourseSessionEdit />} />
+						<Route path=":id" element={<CourseSessionShow />} />
+					</Route>
+
+					<Route path="/salary-overview">
+						<Route index element={<SalaryOverviewList />} />
 					</Route>
 				</Route>
 

@@ -19,7 +19,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 
-@ApiTags('薪資基底')
+@ApiTags('薪資級距')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('v1/salary-base')
@@ -29,7 +29,8 @@ export class SalaryBaseController {
 	constructor(private readonly salaryBaseService: SalaryBaseService) {
 		this.queryBuilder = new PrismaQueryBuilder({
 			searchableFields: ['name'],
-			filterableFields: ['school_id', 'is_active'],
+			filterableFields: ['is_active'],
+			relationFilters: { school_id: 'schools.some.id' },
 			defaultSort: { id: 'desc' },
 			defaultPageSize: 10,
 		});

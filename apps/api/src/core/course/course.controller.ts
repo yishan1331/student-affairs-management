@@ -40,6 +40,17 @@ export class CourseController {
 		return this.courseService.create(createCourseDto);
 	}
 
+	@Get('schedule')
+	async findSchedule(@Query() query: any) {
+		const filters = {
+			school_id: query.school_id ? Number(query.school_id) : undefined,
+			grade: query.grade !== undefined ? Number(query.grade) : undefined,
+			name: query.name || undefined,
+			day_of_week: query.day_of_week || undefined,
+		};
+		return this.courseService.findSchedule(filters);
+	}
+
 	@Get()
 	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
 		const prismaQuery =

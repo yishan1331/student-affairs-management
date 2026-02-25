@@ -19,9 +19,9 @@ export class CreateCourseDto {
 	@IsString()
 	description?: string;
 
-	@IsDefined()
+	@IsOptional()
 	@IsInt()
-	grade: number;
+	grade?: number;
 
 	@IsDefined()
 	@IsInt()

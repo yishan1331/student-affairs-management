@@ -6,14 +6,13 @@ import {
 	DeleteButton,
 	CreateButton,
 	getDefaultSortOrder,
-	useSelect,
 } from "@refinedev/antd";
 import { Space, Table, Tag } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
 
-import { ISalaryBase, ISchool } from "../../common/types/models";
+import { ISalaryBase } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 
 export const SalaryBaseList = ({ children }: PropsWithChildren) => {
@@ -34,12 +33,6 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 	});
 
 	const records = tableProps.dataSource as ISalaryBase[];
-
-	const { selectProps: schoolSelectProps, query: schoolQueryResult } =
-		useSelect<ISchool>({
-			resource: ROUTE_RESOURCE.school,
-		});
-	const schools = schoolQueryResult?.data?.data || [];
 
 	return (
 		<List
@@ -74,20 +67,37 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 					defaultSortOrder={getDefaultSortOrder("id", sorters)}
 				/>
 				<Table.Column dataIndex="name" title="名稱" />
-				<Table.Column
-					dataIndex="school_id"
-					title="學校"
-					render={(value: number) => {
-						const school = schools.find(
-							(s: ISchool) => s.id === value
+				<Table.Column<ISalaryBase>
+					title="適用學校"
+					render={(_: any, record: ISalaryBase) => {
+						if (!record.schools?.length) return "-";
+						return (
+							<Space size={[0, 4]} wrap>
+								{record.schools.map((school) => (
+									<Tag key={school.id} color="blue">
+										{school.name}
+									</Tag>
+								))}
+							</Space>
 						);
-						return school?.name || value;
 					}}
 				/>
 				<Table.Column
 					dataIndex="hourly_rate"
 					title="時薪"
 					render={(value: number) => `$${value}`}
+				/>
+				<Table.Column<ISalaryBase>
+					title="人數範圍"
+					render={(_: any, record: ISalaryBase) => {
+						if (record.min_students == null && record.max_students == null) {
+							return "固定薪資";
+						}
+						const min = record.min_students ?? 0;
+						const max = record.max_students;
+						if (max == null) return `${min}人以上`;
+						return `${min}~${max}人`;
+					}}
 				/>
 				<Table.Column dataIndex="description" title="描述" />
 				<Table.Column

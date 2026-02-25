@@ -45,7 +45,7 @@ model User {
   gradesheets          GradeSheet[]
   attendances          Attendance[]
   salaryBases          SalaryBase[]
-  teacherSalaryConfigs TeacherSalaryConfig[]
+  courseSessions       CourseSession[]
   auditLogs            AuditLog[]
 }
 
@@ -61,15 +61,15 @@ model School {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  courses     Course[]
-  salaryBases SalaryBase[]
+  courses      Course[]
+  salaryBases  SalaryBase[]
 }
 
 model Course {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
-  grade       Int
+  grade       Int?
   school_id   Int
   school      School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
   start_time  DateTime
@@ -82,7 +82,7 @@ model Course {
   updated_at  DateTime @updatedAt
 
   students             Student[]
-  teacherSalaryConfigs TeacherSalaryConfig[]
+  courseSessions       CourseSession[]
 }
 
 model Student {
@@ -128,31 +128,37 @@ model GradeSheet {
 }
 
 model SalaryBase {
-  id          Int      @id @default(autoincrement())
-  name        String
-  school_id   Int
-  school      School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
-  hourly_rate Float
-  description String?
-  is_active   Boolean  @default(true)
-  modifier_id Int?
-  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String
+  hourly_rate  Float
+  min_students Int?     // 最小人數（null 表示固定薪資）
+  max_students Int?     // 最大人數（null 表示無上限）
+  description  String?
+  is_active    Boolean  @default(true)
+  modifier_id  Int?
+  modifier     User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
-  teacherSalaryConfigs TeacherSalaryConfig[]
+  schools          School[]         // 多對多：可被多個學校共用
+  courseSessions   CourseSession[]
 }
 
-model TeacherSalaryConfig {
-  id             Int        @id @default(autoincrement())
-  course_id      Int
-  course         Course     @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  salary_base_id Int
-  salaryBase     SalaryBase @relation(fields: [salary_base_id], references: [id], onDelete: Cascade)
-  modifier_id    Int?
-  modifier       User?      @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
-  created_at     DateTime   @default(now())
-  updated_at     DateTime   @updatedAt
+model CourseSession {
+  id                   Int         @id @default(autoincrement())
+  course_id            Int
+  course               Course      @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  date                 DateTime
+  actual_student_count Int         @default(0)
+  is_cancelled         Boolean     @default(false) // 是否停課
+  salary_amount        Float?      // 計算出的薪資金額
+  salary_base_id       Int?        // 匹配到的薪資級距
+  salaryBase           SalaryBase? @relation(fields: [salary_base_id], references: [id], onDelete: SetNull)
+  note                 String?
+  modifier_id          Int?
+  modifier             User?       @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at           DateTime    @default(now())
+  updated_at           DateTime    @updatedAt
 }
 
 model AuditLog {

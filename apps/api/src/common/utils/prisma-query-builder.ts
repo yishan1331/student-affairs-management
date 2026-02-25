@@ -16,6 +16,8 @@ export interface PrismaQueryBuilderOptions {
 	defaultPageSize?: number;
 	searchableFields?: string[];
 	filterableFields?: string[];
+	rangeFilterableFields?: string[]; // Fields that support _gte/_lte range operators
+	relationFilters?: Record<string, string>; // e.g. { school_id: 'course.school_id' }
 }
 
 export interface PaginatedResult<T> {
@@ -32,6 +34,8 @@ export class PrismaQueryBuilder {
 			defaultPageSize: options.defaultPageSize || 10,
 			searchableFields: options.searchableFields || [],
 			filterableFields: options.filterableFields || [],
+			rangeFilterableFields: options.rangeFilterableFields || [],
+			relationFilters: options.relationFilters || {},
 		};
 	}
 
@@ -129,6 +133,41 @@ export class PrismaQueryBuilder {
 					} else {
 						where[field] = value;
 					}
+				}
+			}
+		}
+
+		// 處理範圍篩選欄位（支援 _gte / _lte 運算符）
+		if (this.options.rangeFilterableFields?.length) {
+			for (const field of this.options.rangeFilterableFields) {
+				const gteValue = query[`${field}_gte`];
+				const lteValue = query[`${field}_lte`];
+				if (gteValue !== undefined || lteValue !== undefined) {
+					where[field] = {};
+					if (gteValue !== undefined) {
+						where[field].gte = new Date(gteValue);
+					}
+					if (lteValue !== undefined) {
+						where[field].lte = new Date(lteValue);
+					}
+				}
+			}
+		}
+
+		// 處理關聯篩選（e.g. school_id → course: { school_id: value }）
+		if (this.options.relationFilters) {
+			for (const [queryField, relationPath] of Object.entries(this.options.relationFilters)) {
+				if (query[queryField] !== undefined) {
+					const value = !isNaN(Number(query[queryField]))
+						? Number(query[queryField])
+						: query[queryField];
+					const parts = relationPath.split('.');
+					let current = where;
+					for (let i = 0; i < parts.length - 1; i++) {
+						if (!current[parts[i]]) current[parts[i]] = {};
+						current = current[parts[i]];
+					}
+					current[parts[parts.length - 1]] = value;
 				}
 			}
 		}

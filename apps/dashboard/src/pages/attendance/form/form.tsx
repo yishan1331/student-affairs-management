@@ -31,6 +31,7 @@ export const AttendanceForm = (props: Props) => {
 		resource: ROUTE_RESOURCE.student,
 		optionLabel: "name",
 		optionValue: "id",
+		filters: [{ field: "is_active", operator: "eq", value: true }],
 	});
 
 	if (!user?.id) {

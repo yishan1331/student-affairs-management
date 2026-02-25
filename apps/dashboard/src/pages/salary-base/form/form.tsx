@@ -31,6 +31,7 @@ export const SalaryBaseForm = (props: Props) => {
 		resource: ROUTE_RESOURCE.school,
 		optionLabel: "name",
 		optionValue: "id",
+		filters: [{ field: "is_active", operator: "eq", value: true }],
 	});
 
 	if (!user?.id) {
@@ -56,7 +57,7 @@ export const SalaryBaseForm = (props: Props) => {
 			/>
 			<Flex vertical>
 				<Form.Item
-					label="薪資基底名稱"
+					label="薪資級距名稱"
 					name="name"
 					className={styles.formItem}
 					rules={[
@@ -68,20 +69,22 @@ export const SalaryBaseForm = (props: Props) => {
 					<Input />
 				</Form.Item>
 				<Form.Item
-					label="學校"
-					name="school_id"
+					label="適用學校"
+					name="school_ids"
 					className={styles.formItem}
 					rules={[
 						{
 							required: true,
+							message: "請至少選擇一間學校",
 						},
 					]}
 				>
 					<Select
 						{...schoolSelectProps}
-						style={{ width: "200px" }}
+						mode="multiple"
+						style={{ width: "100%" }}
 						showSearch={false}
-						placeholder="請選擇學校"
+						placeholder="請選擇適用學校（可多選）"
 					/>
 				</Form.Item>
 				<Form.Item
@@ -95,6 +98,22 @@ export const SalaryBaseForm = (props: Props) => {
 					]}
 				>
 					<InputNumber min={0} style={{ width: "200px" }} />
+				</Form.Item>
+				<Form.Item
+					label="最少人數"
+					name="min_students"
+					className={styles.formItem}
+					tooltip="留空表示固定薪資（不依人數計算）"
+				>
+					<InputNumber min={0} style={{ width: "200px" }} placeholder="留空為固定薪資" />
+				</Form.Item>
+				<Form.Item
+					label="最多人數"
+					name="max_students"
+					className={styles.formItem}
+					tooltip="留空表示無上限"
+				>
+					<InputNumber min={0} style={{ width: "200px" }} placeholder="留空為無上限" />
 				</Form.Item>
 				<Form.Item
 					label="描述"

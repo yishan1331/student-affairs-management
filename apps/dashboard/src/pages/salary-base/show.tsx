@@ -3,13 +3,12 @@ import {
 	useParsed,
 	useCan,
 	useResource,
-	useOne,
 } from "@refinedev/core";
-import { Tag, Alert, Typography } from "antd";
+import { Tag, Alert, Typography, Space } from "antd";
 import { Show } from "@refinedev/antd";
 import dayjs from "dayjs";
 
-import { ISalaryBase, ISchool } from "../../common/types/models";
+import { ISalaryBase } from "../../common/types/models";
 import {
 	CustomBreadcrumb,
 	CustomShowHeaderButtons,
@@ -40,24 +39,24 @@ export const SalaryBaseShow = () => {
 		action: "delete",
 	});
 
-	const { data: schoolData } = useOne<ISchool>({
-		resource: ROUTE_RESOURCE.school,
-		id: record?.school_id,
-		queryOptions: {
-			enabled: !!record?.school_id,
-		},
-	});
-	const school = schoolData?.data;
-
 	const dataSources: DataSource<ISalaryBase>[] = [
-		{ label: "薪資基底名稱", value: "name", type: "text" },
+		{ label: "薪資級距名稱", value: "name", type: "text" },
 		{
-			label: "學校",
-			value: "school_id",
+			label: "適用學校",
+			value: "schools",
 			type: "custom",
 			render: () => {
+				if (!record?.schools?.length) {
+					return <Typography.Text>-</Typography.Text>;
+				}
 				return (
-					<Typography.Text>{school?.name}</Typography.Text>
+					<Space size={[0, 4]} wrap>
+						{record.schools.map((school) => (
+							<Tag key={school.id} color="blue">
+								{school.name}
+							</Tag>
+						))}
+					</Space>
 				);
 			},
 		},
@@ -69,6 +68,20 @@ export const SalaryBaseShow = () => {
 				return (
 					<Typography.Text>${record?.hourly_rate}</Typography.Text>
 				);
+			},
+		},
+		{
+			label: "人數範圍",
+			value: "min_students",
+			type: "custom",
+			render: () => {
+				if (record?.min_students == null && record?.max_students == null) {
+					return <Typography.Text>固定薪資</Typography.Text>;
+				}
+				const min = record?.min_students ?? 0;
+				const max = record?.max_students;
+				const text = max == null ? `${min}人以上` : `${min}~${max}人`;
+				return <Typography.Text>{text}</Typography.Text>;
 			},
 		},
 		{ label: "描述", value: "description", type: "text" },

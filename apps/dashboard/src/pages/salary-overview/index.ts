@@ -1,0 +1,1 @@
+export { SalaryOverviewList } from "./list";
