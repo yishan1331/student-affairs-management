@@ -53,9 +53,10 @@ export class GradeSheetService {
 		});
 	}
 
-	async getStatistics(course_id: number) {
+	async getStatistics(course_id?: number) {
+		const where = course_id ? { student: { course_id } } : {};
 		const grades = await this.prisma.gradeSheet.findMany({
-			where: { student: { course_id } },
+			where,
 			include: { student: true },
 		});
 

@@ -7,6 +7,7 @@ import {
 	IsDefined,
 	IsOptional,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateGradeSheetDto {
 	@IsDefined()
@@ -24,6 +25,7 @@ export class CreateGradeSheetDto {
 
 	@IsDefined()
 	@IsDate()
+	@Type(() => Date)
 	exam_date: Date;
 
 	@IsDefined()

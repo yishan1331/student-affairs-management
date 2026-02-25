@@ -28,10 +28,6 @@ export class CreateStudentDto {
 	course_id: number;
 
 	@IsOptional()
-	@IsInt()
-	class_id?: number;
-
-	@IsOptional()
 	@IsBoolean()
 	is_active?: boolean;
 

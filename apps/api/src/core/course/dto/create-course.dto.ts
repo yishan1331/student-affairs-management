@@ -6,6 +6,7 @@ import {
 	IsDefined,
 	IsOptional,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateCourseDto {
 	@IsDefined()
@@ -28,10 +29,12 @@ export class CreateCourseDto {
 
 	@IsDefined()
 	@IsDate()
+	@Type(() => Date)
 	start_time: Date;
 
 	@IsDefined()
 	@IsDate()
+	@Type(() => Date)
 	end_time: Date;
 
 	@IsDefined()

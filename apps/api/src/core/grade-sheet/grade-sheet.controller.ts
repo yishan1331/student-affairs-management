@@ -55,8 +55,8 @@ export class GradeSheetController {
 	}
 
 	@Get('statistics')
-	getStatistics(@Query('course_id') courseId: string) {
-		return this.gradeSheetService.getStatistics(+courseId);
+	getStatistics(@Query('course_id') courseId?: string) {
+		return this.gradeSheetService.getStatistics(courseId ? +courseId : undefined);
 	}
 
 	@Get('export')
