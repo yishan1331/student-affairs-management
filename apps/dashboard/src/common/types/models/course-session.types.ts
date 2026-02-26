@@ -24,7 +24,7 @@ export interface ICourseSession {
 export interface ICreateCourseSession {
 	course_id: number;
 	date: string;
-	actual_student_count: number;
+	actual_student_count?: number;
 	is_cancelled?: boolean;
 	note?: string;
 	modifier_id?: number;

@@ -51,7 +51,7 @@ export const CourseSessionForm = (props: Props) => {
 				props.formProps.onFinish?.({
 					...values,
 					date: values.date
-						? dayjs(values.date).toISOString()
+						? dayjs(values.date).format("YYYY-MM-DD")
 						: undefined,
 					modifier_id: user.id,
 				});
@@ -101,11 +101,6 @@ export const CourseSessionForm = (props: Props) => {
 					label="實際上課人數"
 					name="actual_student_count"
 					className={styles.formItem}
-					rules={[
-						{
-							required: true,
-						},
-					]}
 				>
 					<InputNumber min={0} style={{ width: "200px" }} />
 				</Form.Item>

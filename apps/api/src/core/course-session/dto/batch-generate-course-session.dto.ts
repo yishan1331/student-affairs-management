@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsOptional } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class BatchGenerateCourseSessionDto {
@@ -7,13 +7,25 @@ export class BatchGenerateCourseSessionDto {
 	@IsNumber({}, { each: true })
 	course_ids: number[];
 
-	@ApiProperty()
+	@ApiPropertyOptional()
+	@IsOptional()
 	@IsNumber()
-	year: number;
+	year?: number;
 
-	@ApiProperty()
+	@ApiPropertyOptional()
+	@IsOptional()
 	@IsNumber()
-	month: number; // 1-12
+	month?: number; // 1-12
+
+	@ApiPropertyOptional()
+	@IsOptional()
+	@IsDateString()
+	start_date?: string;
+
+	@ApiPropertyOptional()
+	@IsOptional()
+	@IsDateString()
+	end_date?: string;
 
 	@ApiPropertyOptional()
 	@IsOptional()

@@ -73,6 +73,11 @@ export class CourseSessionController {
 		return this.courseSessionService.batchGenerate(dto);
 	}
 
+	@Post('recalculate-salaries')
+	recalculateSalaries() {
+		return this.courseSessionService.recalculateAllSalaries();
+	}
+
 	@Get(':id')
 	findOne(@Param('id') id: string) {
 		return this.courseSessionService.findOne(+id);

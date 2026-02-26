@@ -77,6 +77,7 @@ p, role:admin, /api/v1/course-session, *
 p, role:admin, /api/v1/course-session/:id, *
 p, role:admin, /api/v1/course-session/salary-summary, *
 p, role:admin, /api/v1/course-session/batch-generate, *
+p, role:admin, /api/v1/course-session/recalculate-salaries, *
 p, role:admin, /api/v1/audit-log, *
 p, role:admin, /api/v1/audit-log/:id, *
 

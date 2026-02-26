@@ -16,9 +16,10 @@ export class CreateCourseSessionDto {
 	@IsDateString()
 	date: string;
 
-	@ApiProperty()
+	@ApiPropertyOptional()
+	@IsOptional()
 	@IsNumber()
-	actual_student_count: number;
+	actual_student_count?: number;
 
 	@ApiPropertyOptional()
 	@IsOptional()

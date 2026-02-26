@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCourseSessionDto } from './dto/create-course-session.dto';
 import { UpdateCourseSessionDto } from './dto/update-course-session.dto';
@@ -8,6 +8,14 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class CourseSessionService {
 	constructor(private prisma: PrismaService) {}
+
+	/** Normalize any date input to midnight UTC (YYYY-MM-DDT00:00:00.000Z) */
+	private toUTCMidnight(dateInput: string): Date {
+		const dateOnly = dateInput.includes('T')
+			? dateInput.slice(0, 10)
+			: dateInput;
+		return new Date(dateOnly + 'T00:00:00.000Z');
+	}
 
 	/**
 	 * Find the best matching SalaryBase tier for the given student count.
@@ -75,11 +83,16 @@ export class CourseSessionService {
 			return { salary_amount: null, salary_base_id: null };
 		}
 
-		// salary_amount = hourly_rate * (duration / 60)
-		const salaryAmount = matchedSalaryBase.hourly_rate * (course.duration / 60);
+		const isFixedSalary = matchedSalaryBase.min_students == null && matchedSalaryBase.max_students == null;
+
+		// Fixed salary: hourly_rate is the flat amount per session
+		// Variable salary: hourly_rate * (duration / 60)
+		const salaryAmount = isFixedSalary
+			? matchedSalaryBase.hourly_rate
+			: matchedSalaryBase.hourly_rate * (course.duration / 60);
 
 		return {
-			salary_amount: Math.round(salaryAmount * 100) / 100, // Round to 2 decimal places
+			salary_amount: Math.round(salaryAmount * 100) / 100,
 			salary_base_id: matchedSalaryBase.id,
 		};
 	}
@@ -91,10 +104,12 @@ export class CourseSessionService {
 		let salary_amount: number | null = null;
 		let salary_base_id: number | null = null;
 
+		const actualStudentCount = dto.actual_student_count ?? 0;
+
 		if (!isCancelled) {
 			const calculated = await this.calculateSalary(
 				dto.course_id,
-				dto.actual_student_count,
+				actualStudentCount,
 			);
 			salary_amount = calculated.salary_amount;
 			salary_base_id = calculated.salary_base_id;
@@ -103,8 +118,8 @@ export class CourseSessionService {
 		return this.prisma.courseSession.create({
 			data: {
 				course_id: dto.course_id,
-				date: new Date(dto.date),
-				actual_student_count: dto.actual_student_count,
+				date: this.toUTCMidnight(dto.date),
+				actual_student_count: actualStudentCount,
 				is_cancelled: isCancelled,
 				salary_amount,
 				salary_base_id,
@@ -119,7 +134,6 @@ export class CourseSessionService {
 	}
 
 	async findAll(query: Prisma.CourseSessionFindManyArgs) {
-		// Always append course.start_time as secondary sort
 		const primaryOrderBy = query.orderBy;
 		const secondarySort = { course: { start_time: 'asc' as const } };
 		const orderBy = primaryOrderBy
@@ -170,7 +184,7 @@ export class CourseSessionService {
 				where: { id },
 				data: {
 					...dto,
-					date: dto.date ? new Date(dto.date) : undefined,
+					date: dto.date ? this.toUTCMidnight(dto.date) : undefined,
 					is_cancelled: true,
 					salary_amount: null,
 					salary_base_id: null,
@@ -200,7 +214,7 @@ export class CourseSessionService {
 				where: { id },
 				data: {
 					...dto,
-					date: dto.date ? new Date(dto.date) : undefined,
+					date: dto.date ? this.toUTCMidnight(dto.date) : undefined,
 					is_cancelled: false,
 					salary_amount,
 					salary_base_id,
@@ -216,7 +230,7 @@ export class CourseSessionService {
 			where: { id },
 			data: {
 				...dto,
-				date: dto.date ? new Date(dto.date) : undefined,
+				date: dto.date ? this.toUTCMidnight(dto.date) : undefined,
 			},
 			include: {
 				course: { include: { school: true } },
@@ -232,6 +246,26 @@ export class CourseSessionService {
 	async batchGenerate(dto: BatchGenerateCourseSessionDto) {
 		const results: any[] = [];
 
+		// Determine date range
+		let rangeStart: Date;
+		let rangeEnd: Date;
+
+		if (dto.start_date && dto.end_date) {
+			rangeStart = this.toUTCMidnight(dto.start_date);
+			rangeEnd = this.toUTCMidnight(dto.end_date);
+		} else if (dto.year && dto.month) {
+			rangeStart = new Date(
+				Date.UTC(dto.year, dto.month - 1, 1),
+			);
+			rangeEnd = new Date(
+				Date.UTC(dto.year, dto.month, 0),
+			);
+		} else {
+			throw new BadRequestException(
+				'Either start_date/end_date or year/month must be provided',
+			);
+		}
+
 		for (const courseId of dto.course_ids) {
 			const course = await this.prisma.course.findUnique({
 				where: { id: courseId },
@@ -243,13 +277,11 @@ export class CourseSessionService {
 				.split(',')
 				.map((d) => parseInt(d.trim()));
 
-			// Generate all dates in the given month that match day_of_week
+			// Generate all dates in the given range that match day_of_week
 			// Note: day_of_week uses 1=Monday, 7=Sunday
 			// JavaScript Date.getDay() uses 0=Sunday, 1=Monday, ..., 6=Saturday
-			const year = dto.year;
-			const month = dto.month - 1; // JS months are 0-indexed
-			const firstDay = new Date(year, month, 1);
-			const lastDay = new Date(year, month + 1, 0);
+			const firstDay = rangeStart;
+			const lastDay = rangeEnd;
 
 			const dates: Date[] = [];
 			for (
@@ -285,14 +317,17 @@ export class CourseSessionService {
 				const dateStr = date.toISOString().split('T')[0];
 				if (existingDates.has(dateStr)) continue;
 
+				// Calculate salary (handles fixed salary where student count doesn't matter)
+				const { salary_amount, salary_base_id } = await this.calculateSalary(courseId, 0);
+
 				const session = await this.prisma.courseSession.create({
 					data: {
 						course_id: courseId,
 						date: date,
 						actual_student_count: 0,
 						is_cancelled: false,
-						salary_amount: null,
-						salary_base_id: null,
+						salary_amount,
+						salary_base_id,
 						note: null,
 						modifier_id: dto.modifier_id,
 					},
@@ -302,6 +337,34 @@ export class CourseSessionService {
 		}
 
 		return { created: results.length, sessions: results };
+	}
+
+	/**
+	 * Recalculate salary for all non-cancelled sessions.
+	 */
+	async recalculateAllSalaries() {
+		const sessions = await this.prisma.courseSession.findMany({
+			where: { is_cancelled: false },
+			select: { id: true, course_id: true, actual_student_count: true },
+		});
+
+		let updated = 0;
+		for (const session of sessions) {
+			const { salary_amount, salary_base_id } = await this.calculateSalary(
+				session.course_id,
+				session.actual_student_count,
+			);
+
+			if (salary_amount != null) {
+				await this.prisma.courseSession.update({
+					where: { id: session.id },
+					data: { salary_amount, salary_base_id },
+				});
+				updated++;
+			}
+		}
+
+		return { total: sessions.length, updated };
 	}
 
 	async getSalarySummary(startDate: string, endDate: string, schoolId?: number) {
