@@ -29,6 +29,10 @@ export class CreateSchoolDto {
 	address?: string;
 
 	@IsOptional()
+	@IsString()
+	color?: string;
+
+	@IsOptional()
 	@IsBoolean()
 	is_active?: boolean;
 

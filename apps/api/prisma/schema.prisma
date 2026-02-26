@@ -55,6 +55,7 @@ model School {
   name        String
   description String?
   address     String?
+  color       String?  // 自定義顏色（HEX 格式，例如 #1677ff）
   is_active   Boolean? @default(true)
   modifier_id Int?
   modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)

@@ -95,6 +95,28 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 					defaultSortOrder={getDefaultSortOrder("id", sorters)}
 				/>
 				<Table.Column dataIndex="name" title="名稱" />
+				<Table.Column
+					dataIndex="color"
+					title="代表顏色"
+					render={(value: string) =>
+						value ? (
+							<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+								<div
+									style={{
+										width: 20,
+										height: 20,
+										borderRadius: 4,
+										backgroundColor: value,
+										border: "1px solid #d9d9d9",
+									}}
+								/>
+								<span style={{ fontSize: 12, color: "#8c8c8c" }}>{value}</span>
+							</div>
+						) : (
+							<span style={{ color: "#bfbfbf" }}>未設定</span>
+						)
+					}
+				/>
 				<Table.Column dataIndex="description" title="描述" />
 				<Table.Column dataIndex="display_order" title="排序" />
 				<Table.Column

@@ -10,6 +10,7 @@ import {
 	Avatar,
 	Segmented,
 	Divider,
+	ColorPicker,
 } from "antd";
 import type { FormProps } from "antd";
 
@@ -17,6 +18,24 @@ import { UploadOutlined } from "@ant-design/icons";
 import { useStyles } from "../editStyled";
 import { useUser } from "../../../contexts/userContext";
 import { ICreateSchool, IUpdateSchool } from "../../../common/types/models";
+
+const PRESET_COLORS = [
+	"#1677ff",
+	"#52c41a",
+	"#fa8c16",
+	"#722ed1",
+	"#eb2f96",
+	"#13c2c2",
+	"#faad14",
+	"#2f54eb",
+	"#f5222d",
+	"#a0d911",
+	"#ff4d4f",
+	"#9254de",
+	"#36cfc9",
+	"#ffc53d",
+	"#597ef7",
+];
 
 // 擴展 IMedicalCategoryUpdate 類型，添加 modifier_id
 type FormValues = IUpdateSchool & {
@@ -45,8 +64,14 @@ export const SchoolForm = (props: Props) => {
 			{...props.formProps}
 			layout="vertical"
 			onFinish={(values) => {
+				const { color, ...rest } = values as any;
+				const colorHex =
+					typeof color === "string"
+						? color
+						: color?.toHexString?.() || color;
 				props.formProps.onFinish?.({
-					...values,
+					...rest,
+					color: colorHex || null,
 					modifier_id: user.id,
 				});
 			}}
@@ -89,6 +114,21 @@ export const SchoolForm = (props: Props) => {
 					className={styles.formItem}
 				>
 					<Input.TextArea rows={6} />
+				</Form.Item>
+				<Form.Item
+					label="代表顏色"
+					name="color"
+					className={styles.formItem}
+				>
+					<ColorPicker
+						showText
+						presets={[
+							{
+								label: "推薦顏色",
+								colors: PRESET_COLORS,
+							},
+						]}
+					/>
 				</Form.Item>
 				<Form.Item
 					label="啟用狀態"

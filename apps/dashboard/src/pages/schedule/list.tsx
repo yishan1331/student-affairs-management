@@ -51,7 +51,7 @@ const DAY_OPTIONS = [
 	{ label: "週日", value: "7" },
 ];
 
-const SCHOOL_COLORS = [
+const DEFAULT_SCHOOL_COLORS = [
 	"#1677ff",
 	"#52c41a",
 	"#fa8c16",
@@ -135,17 +135,24 @@ export const ScheduleList: React.FC = () => {
 		fetchSchedule();
 	}, [selectedSchool, selectedGrade]);
 
-	// 建立學校顏色映射
+	// 建立學校顏色映射（優先使用學校自定義顏色）
 	const schoolColorMap = useMemo(() => {
 		const map: Record<number, string> = {};
 		const uniqueSchoolIds = [
 			...new Set(courses.map((c) => c.school_id)),
 		];
-		uniqueSchoolIds.forEach((id, i) => {
-			map[id] = SCHOOL_COLORS[i % SCHOOL_COLORS.length];
+		let fallbackIndex = 0;
+		uniqueSchoolIds.forEach((id) => {
+			const school = schools.find((s) => s.id === id);
+			if (school?.color) {
+				map[id] = school.color;
+			} else {
+				map[id] = DEFAULT_SCHOOL_COLORS[fallbackIndex % DEFAULT_SCHOOL_COLORS.length];
+				fallbackIndex++;
+			}
 		});
 		return map;
-	}, [courses]);
+	}, [courses, schools]);
 
 	// 根據搜尋和星期篩選課程
 	const filteredCourses = useMemo(() => {

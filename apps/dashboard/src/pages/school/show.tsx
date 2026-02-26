@@ -37,6 +37,29 @@ export const SchoolShow = () => {
 	const dataSources: DataSource<ISchool>[] = [
 		{ label: "學校名稱", value: "name", type: "text" },
 		{ label: "描述", value: "description", type: "text" },
+		{
+			label: "代表顏色",
+			value: "color",
+			type: "custom",
+			render: () => {
+				return record?.color ? (
+					<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+						<div
+							style={{
+								width: 24,
+								height: 24,
+								borderRadius: 4,
+								backgroundColor: record.color,
+								border: "1px solid #d9d9d9",
+							}}
+						/>
+						<Typography.Text>{record.color}</Typography.Text>
+					</div>
+				) : (
+					<Typography.Text type="secondary">未設定</Typography.Text>
+				);
+			},
+		},
 		{ label: "排序", value: "display_order", type: "text" },
 		{
 			label: "啟用狀態",

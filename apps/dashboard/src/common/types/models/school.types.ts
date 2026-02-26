@@ -4,6 +4,7 @@ export interface ISchool {
 	name: string;
 	description?: string;
 	address?: string;
+	color?: string;
 	is_active?: boolean;
 	modifier_id?: number;
 	created_at: Date;
@@ -15,6 +16,7 @@ export interface ICreateSchool {
 	name: string;
 	description?: string;
 	address?: string;
+	color?: string;
 	is_active?: boolean;
 	modifier_id: number;
 }
@@ -24,6 +26,7 @@ export interface IUpdateSchool {
 	name?: string;
 	description?: string;
 	address?: string;
+	color?: string;
 	is_active?: boolean;
 	modifier_id?: number;
 }
