@@ -26,6 +26,9 @@ import { UploadModule } from './core/upload/upload.module';
 import { AuditLogModule } from './core/audit-log/audit-log.module';
 import { SalaryBaseModule } from './core/salary-base/salary-base.module';
 import { CourseSessionModule } from './core/course-session/course-session.module';
+import { HealthWeightModule } from './core/health-weight/health-weight.module';
+import { HealthDietModule } from './core/health-diet/health-diet.module';
+import { HealthToiletModule } from './core/health-toilet/health-toilet.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -62,6 +65,9 @@ const adapter = new StringAdapter(casbinPolicy);
 		AuditLogModule,
 		SalaryBaseModule,
 		CourseSessionModule,
+		HealthWeightModule,
+		HealthDietModule,
+		HealthToiletModule,
 	],
 	controllers: [],
 	providers: [

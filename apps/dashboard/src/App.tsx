@@ -25,6 +25,7 @@ import {
 	BarChartOutlined,
 	SettingOutlined,
 	ReadOutlined,
+	HeartOutlined,
 } from "@ant-design/icons";
 
 import { authProvider } from "./providers/authProvider";
@@ -89,6 +90,24 @@ import {
 	CourseSessionShow,
 } from "./pages/course-session";
 import { SalaryOverviewList } from "./pages/salary-overview";
+import {
+	HealthWeightList,
+	HealthWeightCreate,
+	HealthWeightEdit,
+	HealthWeightShow,
+} from "./pages/health-weight";
+import {
+	HealthDietList,
+	HealthDietCreate,
+	HealthDietEdit,
+	HealthDietShow,
+} from "./pages/health-diet";
+import {
+	HealthToiletList,
+	HealthToiletCreate,
+	HealthToiletEdit,
+	HealthToiletShow,
+} from "./pages/health-toilet";
 import { DashboardPage } from "./pages/dashboard";
 import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
@@ -243,6 +262,47 @@ const AppContent = () => {
 						parent: "salary-management",
 					},
 				},
+				// ── 健康管理 ──
+				{
+					name: "health",
+					meta: {
+						label: "健康管理",
+						icon: <HeartOutlined />,
+					},
+				},
+				{
+					name: "health-weight",
+					list: "/health-weight",
+					create: "/health-weight/create",
+					edit: "/health-weight/edit/:id",
+					show: "/health-weight/:id",
+					meta: {
+						label: "體重管理",
+						parent: "health",
+					},
+				},
+				{
+					name: "health-diet",
+					list: "/health-diet",
+					create: "/health-diet/create",
+					edit: "/health-diet/edit/:id",
+					show: "/health-diet/:id",
+					meta: {
+						label: "飲食紀錄",
+						parent: "health",
+					},
+				},
+				{
+					name: "health-toilet",
+					list: "/health-toilet",
+					create: "/health-toilet/create",
+					edit: "/health-toilet/edit/:id",
+					show: "/health-toilet/:id",
+					meta: {
+						label: "如廁紀錄",
+						parent: "health",
+					},
+				},
 				// ── 系統管理 ──
 				{
 					name: "system",
@@ -361,6 +421,27 @@ const AppContent = () => {
 
 					<Route path="/salary-overview">
 						<Route index element={<SalaryOverviewList />} />
+					</Route>
+
+					<Route path="/health-weight">
+						<Route index element={<HealthWeightList />} />
+						<Route path="create" element={<HealthWeightCreate />} />
+						<Route path="edit/:id" element={<HealthWeightEdit />} />
+						<Route path=":id" element={<HealthWeightShow />} />
+					</Route>
+
+					<Route path="/health-diet">
+						<Route index element={<HealthDietList />} />
+						<Route path="create" element={<HealthDietCreate />} />
+						<Route path="edit/:id" element={<HealthDietEdit />} />
+						<Route path=":id" element={<HealthDietShow />} />
+					</Route>
+
+					<Route path="/health-toilet">
+						<Route index element={<HealthToiletList />} />
+						<Route path="create" element={<HealthToiletCreate />} />
+						<Route path="edit/:id" element={<HealthToiletEdit />} />
+						<Route path=":id" element={<HealthToiletShow />} />
 					</Route>
 				</Route>
 
