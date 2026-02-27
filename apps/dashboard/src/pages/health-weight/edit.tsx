@@ -22,6 +22,9 @@ export const HealthWeightEdit = () => {
 		onMutationSuccess: () => {
 			dataProcessingSuccess(action, resource?.meta?.label);
 		},
+		onMutationError: (error) => {
+			console.error("HealthWeight Edit Error:", error);
+		},
 		successNotification: false,
 		errorNotification: false,
 	});

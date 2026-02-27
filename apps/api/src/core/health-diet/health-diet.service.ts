@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthDietDto } from './dto/create-health-diet.dto';
 import { UpdateHealthDietDto } from './dto/update-health-diet.dto';
@@ -18,20 +18,17 @@ export class HealthDietService {
 	}
 
 	async findAll(query: Prisma.HealthDietFindManyArgs, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			query.where = { ...query.where, user_id: userId };
-		}
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
 		return this.prisma.healthDiet.findMany({
 			...query,
+			where,
 			include: { user: { select: { id: true, username: true } } },
 		});
 	}
 
 	async count(where: Prisma.HealthDietWhereInput, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			where = { ...where, user_id: userId };
-		}
-		return this.prisma.healthDiet.count({ where });
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.healthDiet.count({ where: finalWhere });
 	}
 
 	async findOne(id: number, userId: number, isAdmin: boolean) {
@@ -39,29 +36,37 @@ export class HealthDietService {
 			where: { id },
 			include: { user: { select: { id: true, username: true } } },
 		});
-		if (record && !isAdmin && record.user_id !== userId) {
+		if (!record) {
+			throw new NotFoundException('找不到此資料');
+		}
+		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此資料');
 		}
 		return record;
 	}
 
 	async update(id: number, dto: UpdateHealthDietDto, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthDiet.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限修改此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthDiet.update({ where, data: dto });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限修改');
+			}
+			throw error;
 		}
-		return this.prisma.healthDiet.update({
-			where: { id },
-			data: dto,
-		});
 	}
 
 	async remove(id: number, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthDiet.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限刪除此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthDiet.delete({ where });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限刪除');
+			}
+			throw error;
 		}
-		return this.prisma.healthDiet.delete({ where: { id } });
 	}
 
 	async exportData(userId: number, isAdmin: boolean) {
@@ -74,10 +79,24 @@ export class HealthDietService {
 	}
 
 	async getStatistics(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
-		const records = await this.prisma.healthDiet.findMany({ where });
+		const where: Prisma.HealthDietWhereInput = isAdmin ? {} : { user_id: userId };
 
-		if (records.length === 0) {
+		const [totalRecords, mealTypeGroups, calorieStats] = await Promise.all([
+			this.prisma.healthDiet.count({ where }),
+			this.prisma.healthDiet.groupBy({
+				by: ['meal_type'],
+				where,
+				_count: true,
+			}),
+			this.prisma.healthDiet.aggregate({
+				where: { ...where, calories: { not: null } },
+				_avg: { calories: true },
+				_sum: { calories: true },
+				_count: true,
+			}),
+		]);
+
+		if (totalRecords === 0) {
 			return {
 				totalRecords: 0,
 				mealTypeDistribution: {
@@ -92,23 +111,23 @@ export class HealthDietService {
 		}
 
 		const mealTypeDistribution = {
-			breakfast: records.filter((r) => r.meal_type === 'breakfast').length,
-			lunch: records.filter((r) => r.meal_type === 'lunch').length,
-			dinner: records.filter((r) => r.meal_type === 'dinner').length,
-			snack: records.filter((r) => r.meal_type === 'snack').length,
+			breakfast: 0,
+			lunch: 0,
+			dinner: 0,
+			snack: 0,
 		};
-
-		const recordsWithCalories = records.filter((r) => r.calories != null);
-		const totalCalories = recordsWithCalories.reduce((sum, r) => sum + (r.calories || 0), 0);
+		for (const group of mealTypeGroups) {
+			mealTypeDistribution[group.meal_type] = group._count;
+		}
 
 		return {
-			totalRecords: records.length,
+			totalRecords,
 			mealTypeDistribution,
 			averageCalories:
-				recordsWithCalories.length > 0
-					? Math.round((totalCalories / recordsWithCalories.length) * 100) / 100
+				calorieStats._count > 0
+					? Math.round((calorieStats._avg.calories ?? 0) * 100) / 100
 					: 0,
-			totalCalories: Math.round(totalCalories * 100) / 100,
+			totalCalories: Math.round((calorieStats._sum.calories ?? 0) * 100) / 100,
 		};
 	}
 }

@@ -22,6 +22,9 @@ export const HealthToiletEdit = () => {
 		onMutationSuccess: () => {
 			dataProcessingSuccess(action, resource?.meta?.label);
 		},
+		onMutationError: (error) => {
+			console.error("HealthToilet Edit Error:", error);
+		},
 		successNotification: false,
 		errorNotification: false,
 	});

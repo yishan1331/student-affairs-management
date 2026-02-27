@@ -3,19 +3,14 @@ import { Tag, Alert, Typography } from "antd";
 import { Show } from "@refinedev/antd";
 import dayjs from "dayjs";
 
-import { IHealthToilet, ToiletType } from "../../common/types/models";
+import { IHealthToilet } from "../../common/types/models";
 import {
 	CustomBreadcrumb,
 	CustomShowHeaderButtons,
 	CustomShowList,
 } from "../../components";
-import { ROUTE_RESOURCE } from "../../common/constants";
+import { ROUTE_RESOURCE, TOILET_TYPE_MAP } from "../../common/constants";
 import { DataSource } from "../../common/types/types";
-
-const toiletTypeMap: Record<ToiletType, { label: string; color: string }> = {
-	[ToiletType.urination]: { label: "小便", color: "blue" },
-	[ToiletType.defecation]: { label: "大便", color: "orange" },
-};
 
 export const HealthToiletShow = () => {
 	const { id } = useParsed();
@@ -46,7 +41,7 @@ export const HealthToiletShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.date).format("YYYY-MM-DD")}
+					{record?.date ? dayjs(record.date).format("YYYY-MM-DD") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -56,7 +51,7 @@ export const HealthToiletShow = () => {
 			value: "type",
 			type: "custom",
 			render: () => {
-				const t = record?.type ? toiletTypeMap[record.type] : null;
+				const t = record?.type ? TOILET_TYPE_MAP[record.type] : null;
 				return t ? (
 					<Tag color={t.color}>{t.label}</Tag>
 				) : (
@@ -88,7 +83,7 @@ export const HealthToiletShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.created_at).format("YYYY-MM-DD HH:mm")}
+					{record?.created_at ? dayjs(record.created_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -98,7 +93,7 @@ export const HealthToiletShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.updated_at).format("YYYY-MM-DD HH:mm")}
+					{record?.updated_at ? dayjs(record.updated_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},

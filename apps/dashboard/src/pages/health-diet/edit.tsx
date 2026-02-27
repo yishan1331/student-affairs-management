@@ -22,6 +22,9 @@ export const HealthDietEdit = () => {
 		onMutationSuccess: () => {
 			dataProcessingSuccess(action, resource?.meta?.label);
 		},
+		onMutationError: (error) => {
+			console.error("HealthDiet Edit Error:", error);
+		},
 		successNotification: false,
 		errorNotification: false,
 	});

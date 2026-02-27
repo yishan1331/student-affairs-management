@@ -23,7 +23,7 @@ export const HealthWeightForm = (props: Props) => {
 				const weight = values.weight;
 				const height = values.height;
 				let bmi: number | undefined;
-				if (weight && height) {
+				if (weight && height && height > 0) {
 					bmi =
 						Math.round(
 							(weight / ((height / 100) * (height / 100))) * 100
@@ -43,7 +43,7 @@ export const HealthWeightForm = (props: Props) => {
 					label="日期"
 					name="date"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇日期" }]}
 					getValueProps={(value) => ({
 						value: value ? dayjs(value) : undefined,
 					})}
@@ -54,11 +54,11 @@ export const HealthWeightForm = (props: Props) => {
 					label="體重 (kg)"
 					name="weight"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請輸入體重" }]}
 				>
 					<InputNumber
 						style={{ width: "200px" }}
-						min={0}
+						min={0.1}
 						max={500}
 						step={0.1}
 						precision={1}
@@ -72,7 +72,7 @@ export const HealthWeightForm = (props: Props) => {
 				>
 					<InputNumber
 						style={{ width: "200px" }}
-						min={0}
+						min={1}
 						max={300}
 						step={0.1}
 						precision={1}

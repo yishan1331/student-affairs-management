@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthWeightDto } from './dto/create-health-weight.dto';
 import { UpdateHealthWeightDto } from './dto/update-health-weight.dto';
@@ -18,20 +18,17 @@ export class HealthWeightService {
 	}
 
 	async findAll(query: Prisma.HealthWeightFindManyArgs, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			query.where = { ...query.where, user_id: userId };
-		}
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
 		return this.prisma.healthWeight.findMany({
 			...query,
+			where,
 			include: { user: { select: { id: true, username: true } } },
 		});
 	}
 
 	async count(where: Prisma.HealthWeightWhereInput, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			where = { ...where, user_id: userId };
-		}
-		return this.prisma.healthWeight.count({ where });
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.healthWeight.count({ where: finalWhere });
 	}
 
 	async findOne(id: number, userId: number, isAdmin: boolean) {
@@ -39,29 +36,37 @@ export class HealthWeightService {
 			where: { id },
 			include: { user: { select: { id: true, username: true } } },
 		});
-		if (record && !isAdmin && record.user_id !== userId) {
+		if (!record) {
+			throw new NotFoundException('找不到此資料');
+		}
+		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此資料');
 		}
 		return record;
 	}
 
 	async update(id: number, dto: UpdateHealthWeightDto, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthWeight.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限修改此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthWeight.update({ where, data: dto });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限修改');
+			}
+			throw error;
 		}
-		return this.prisma.healthWeight.update({
-			where: { id },
-			data: dto,
-		});
 	}
 
 	async remove(id: number, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthWeight.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限刪除此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthWeight.delete({ where });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限刪除');
+			}
+			throw error;
 		}
-		return this.prisma.healthWeight.delete({ where: { id } });
 	}
 
 	async exportData(userId: number, isAdmin: boolean) {
@@ -75,12 +80,23 @@ export class HealthWeightService {
 
 	async getStatistics(userId: number, isAdmin: boolean) {
 		const where = isAdmin ? {} : { user_id: userId };
-		const records = await this.prisma.healthWeight.findMany({
-			where,
-			orderBy: { date: 'asc' },
-		});
 
-		if (records.length === 0) {
+		const [aggregate, totalRecords, records] = await Promise.all([
+			this.prisma.healthWeight.aggregate({
+				where,
+				_avg: { weight: true },
+				_min: { weight: true },
+				_max: { weight: true },
+			}),
+			this.prisma.healthWeight.count({ where }),
+			this.prisma.healthWeight.findMany({
+				where,
+				select: { date: true, weight: true, bmi: true },
+				orderBy: { date: 'asc' },
+			}),
+		]);
+
+		if (totalRecords === 0) {
 			return {
 				totalRecords: 0,
 				latestWeight: null,
@@ -92,17 +108,15 @@ export class HealthWeightService {
 			};
 		}
 
-		const weights = records.map((r) => r.weight);
 		const latest = records[records.length - 1];
 
 		return {
-			totalRecords: records.length,
+			totalRecords,
 			latestWeight: latest.weight,
 			latestBmi: latest.bmi,
-			averageWeight:
-				Math.round((weights.reduce((a, b) => a + b, 0) / weights.length) * 100) / 100,
-			minWeight: Math.min(...weights),
-			maxWeight: Math.max(...weights),
+			averageWeight: Math.round((aggregate._avg.weight ?? 0) * 100) / 100,
+			minWeight: aggregate._min.weight ?? 0,
+			maxWeight: aggregate._max.weight ?? 0,
 			trend: records.map((r) => ({
 				date: r.date,
 				weight: r.weight,

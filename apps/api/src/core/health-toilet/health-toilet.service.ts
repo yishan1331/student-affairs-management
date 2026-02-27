@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthToiletDto } from './dto/create-health-toilet.dto';
 import { UpdateHealthToiletDto } from './dto/update-health-toilet.dto';
@@ -18,20 +18,17 @@ export class HealthToiletService {
 	}
 
 	async findAll(query: Prisma.HealthToiletFindManyArgs, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			query.where = { ...query.where, user_id: userId };
-		}
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
 		return this.prisma.healthToilet.findMany({
 			...query,
+			where,
 			include: { user: { select: { id: true, username: true } } },
 		});
 	}
 
 	async count(where: Prisma.HealthToiletWhereInput, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			where = { ...where, user_id: userId };
-		}
-		return this.prisma.healthToilet.count({ where });
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.healthToilet.count({ where: finalWhere });
 	}
 
 	async findOne(id: number, userId: number, isAdmin: boolean) {
@@ -39,29 +36,37 @@ export class HealthToiletService {
 			where: { id },
 			include: { user: { select: { id: true, username: true } } },
 		});
-		if (record && !isAdmin && record.user_id !== userId) {
+		if (!record) {
+			throw new NotFoundException('找不到此資料');
+		}
+		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此資料');
 		}
 		return record;
 	}
 
 	async update(id: number, dto: UpdateHealthToiletDto, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthToilet.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限修改此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthToilet.update({ where, data: dto });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限修改');
+			}
+			throw error;
 		}
-		return this.prisma.healthToilet.update({
-			where: { id },
-			data: dto,
-		});
 	}
 
 	async remove(id: number, userId: number, isAdmin: boolean) {
-		const record = await this.prisma.healthToilet.findUnique({ where: { id } });
-		if (record && !isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限刪除此資料');
+		const where = isAdmin ? { id } : { id, user_id: userId };
+		try {
+			return await this.prisma.healthToilet.delete({ where });
+		} catch (error) {
+			if (error?.code === 'P2025') {
+				throw new NotFoundException('找不到此資料或無權限刪除');
+			}
+			throw error;
 		}
-		return this.prisma.healthToilet.delete({ where: { id } });
 	}
 
 	async exportData(userId: number, isAdmin: boolean) {
@@ -74,10 +79,19 @@ export class HealthToiletService {
 	}
 
 	async getStatistics(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
-		const records = await this.prisma.healthToilet.findMany({ where });
+		const where: Prisma.HealthToiletWhereInput = isAdmin ? {} : { user_id: userId };
 
-		if (records.length === 0) {
+		const [totalRecords, typeGroups, normalCount] = await Promise.all([
+			this.prisma.healthToilet.count({ where }),
+			this.prisma.healthToilet.groupBy({
+				by: ['type'],
+				where,
+				_count: true,
+			}),
+			this.prisma.healthToilet.count({ where: { ...where, is_normal: true } }),
+		]);
+
+		if (totalRecords === 0) {
 			return {
 				totalRecords: 0,
 				typeDistribution: {
@@ -90,18 +104,18 @@ export class HealthToiletService {
 		}
 
 		const typeDistribution = {
-			urination: records.filter((r) => r.type === 'urination').length,
-			defecation: records.filter((r) => r.type === 'defecation').length,
+			urination: 0,
+			defecation: 0,
 		};
-
-		const normalCount = records.filter((r) => r.is_normal).length;
-		const abnormalCount = records.length - normalCount;
+		for (const group of typeGroups) {
+			typeDistribution[group.type] = group._count;
+		}
 
 		return {
-			totalRecords: records.length,
+			totalRecords,
 			typeDistribution,
-			normalRate: Math.round((normalCount / records.length) * 10000) / 100,
-			abnormalCount,
+			normalRate: Math.round((normalCount / totalRecords) * 10000) / 100,
+			abnormalCount: totalRecords - normalCount,
 		};
 	}
 }

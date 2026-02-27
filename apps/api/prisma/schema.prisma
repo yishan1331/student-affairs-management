@@ -188,6 +188,8 @@ model HealthWeight {
   note       String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([user_id, date])
 }
 
 model HealthDiet {
@@ -202,6 +204,8 @@ model HealthDiet {
   note       String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([user_id, date])
 }
 
 model HealthToilet {
@@ -215,6 +219,8 @@ model HealthToilet {
   note       String?
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
+
+  @@index([user_id, date])
 }
 
 model AuditLog {

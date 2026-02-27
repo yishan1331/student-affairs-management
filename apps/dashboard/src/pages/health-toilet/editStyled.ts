@@ -29,14 +29,14 @@ export const useStyles = createStyles(({ token }) => {
 			borderBottom: `1px solid ${token.colorBorderSecondary}`,
 		},
 		segmented: {
-			'.inactice': {
+			'.inactive': {
 				'&.ant-segmented-item-selected': {
 					backgroundColor: red[1],
 					borderColor: red[3],
 					color: red[7],
 				},
 			},
-			'.actice': {
+			'.active': {
 				'&.ant-segmented-item-selected': {
 					backgroundColor: green[1],
 					borderColor: green[3],

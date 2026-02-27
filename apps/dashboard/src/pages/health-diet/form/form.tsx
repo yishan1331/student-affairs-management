@@ -41,7 +41,7 @@ export const HealthDietForm = (props: Props) => {
 					label="日期"
 					name="date"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇日期" }]}
 					getValueProps={(value) => ({
 						value: value ? dayjs(value) : undefined,
 					})}
@@ -52,7 +52,7 @@ export const HealthDietForm = (props: Props) => {
 					label="餐別"
 					name="meal_type"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇餐別" }]}
 				>
 					<Select
 						style={{ width: "200px" }}
@@ -64,7 +64,7 @@ export const HealthDietForm = (props: Props) => {
 					label="食物名稱"
 					name="food_name"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請輸入食物名稱" }]}
 				>
 					<Input
 						style={{ maxWidth: "400px" }}

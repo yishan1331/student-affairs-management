@@ -13,14 +13,7 @@ import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
 
 import { IHealthDiet, MealType } from "../../common/types/models";
-import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
-
-const mealTypeMap: Record<MealType, { label: string; color: string }> = {
-	[MealType.breakfast]: { label: "早餐", color: "orange" },
-	[MealType.lunch]: { label: "午餐", color: "green" },
-	[MealType.dinner]: { label: "晚餐", color: "blue" },
-	[MealType.snack]: { label: "點心", color: "purple" },
-};
+import { ROUTE_PATH, ROUTE_RESOURCE, MEAL_TYPE_MAP } from "../../common/constants";
 
 export const HealthDietList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -76,6 +69,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 				<Table.Column
 					dataIndex="date"
 					title="日期"
+					sorter
 					render={(value: string) =>
 						new Date(value).toLocaleDateString()
 					}
@@ -84,7 +78,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 					dataIndex="meal_type"
 					title="餐別"
 					render={(value: MealType) => {
-						const m = mealTypeMap[value];
+						const m = MEAL_TYPE_MAP[value];
 						return m ? (
 							<Tag color={m.color}>{m.label}</Tag>
 						) : (

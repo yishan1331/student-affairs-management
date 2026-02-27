@@ -28,8 +28,6 @@ p, role:staff, /api/v1/course-session/salary-summary, read
 p, role:staff, /api/v1/course-session/batch-generate, read
 p, role:staff, /api/v1/health-weight, read
 p, role:staff, /api/v1/health-weight, create
-p, role:staff, /api/v1/health-weight, update
-p, role:staff, /api/v1/health-weight, delete
 p, role:staff, /api/v1/health-weight/:id, read
 p, role:staff, /api/v1/health-weight/:id, update
 p, role:staff, /api/v1/health-weight/:id, delete
@@ -37,8 +35,6 @@ p, role:staff, /api/v1/health-weight/statistics, read
 p, role:staff, /api/v1/health-weight/export, read
 p, role:staff, /api/v1/health-diet, read
 p, role:staff, /api/v1/health-diet, create
-p, role:staff, /api/v1/health-diet, update
-p, role:staff, /api/v1/health-diet, delete
 p, role:staff, /api/v1/health-diet/:id, read
 p, role:staff, /api/v1/health-diet/:id, update
 p, role:staff, /api/v1/health-diet/:id, delete
@@ -46,8 +42,6 @@ p, role:staff, /api/v1/health-diet/statistics, read
 p, role:staff, /api/v1/health-diet/export, read
 p, role:staff, /api/v1/health-toilet, read
 p, role:staff, /api/v1/health-toilet, create
-p, role:staff, /api/v1/health-toilet, update
-p, role:staff, /api/v1/health-toilet, delete
 p, role:staff, /api/v1/health-toilet/:id, read
 p, role:staff, /api/v1/health-toilet/:id, update
 p, role:staff, /api/v1/health-toilet/:id, delete

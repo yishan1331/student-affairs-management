@@ -69,6 +69,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 				<Table.Column
 					dataIndex="date"
 					title="日期"
+					sorter
 					render={(value: string) =>
 						new Date(value).toLocaleDateString()
 					}
@@ -76,7 +77,8 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 				<Table.Column
 					dataIndex="weight"
 					title="體重 (kg)"
-					render={(value: number) => value?.toFixed(1)}
+					sorter
+					render={(value: number) => value?.toFixed(1) ?? "-"}
 				/>
 				<Table.Column
 					dataIndex="height"
@@ -99,7 +101,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 				/>
 				<Table.Column
 					dataIndex="created_at"
-					title="紀錄時間"
+					title="建立時間"
 					render={(value: string) =>
 						new Date(value).toLocaleString()
 					}

@@ -41,7 +41,7 @@ export const HealthWeightShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.date).format("YYYY-MM-DD")}
+					{record?.date ? dayjs(record.date).format("YYYY-MM-DD") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -51,7 +51,7 @@ export const HealthWeightShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{record?.weight?.toFixed(1)}
+					{record?.weight?.toFixed(1) ?? "-"}
 				</Typography.Text>
 			),
 		},
@@ -91,7 +91,7 @@ export const HealthWeightShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.created_at).format("YYYY-MM-DD HH:mm")}
+					{record?.created_at ? dayjs(record.created_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -101,7 +101,7 @@ export const HealthWeightShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.updated_at).format("YYYY-MM-DD HH:mm")}
+					{record?.updated_at ? dayjs(record.updated_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},

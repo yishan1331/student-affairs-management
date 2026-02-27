@@ -42,7 +42,7 @@ export const HealthToiletForm = (props: Props) => {
 					label="日期"
 					name="date"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇日期" }]}
 					getValueProps={(value) => ({
 						value: value ? dayjs(value) : undefined,
 					})}
@@ -53,7 +53,7 @@ export const HealthToiletForm = (props: Props) => {
 					label="時間"
 					name="time"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇時間" }]}
 					getValueProps={(value) => ({
 						value: value ? dayjs(value, "HH:mm") : undefined,
 					})}
@@ -67,7 +67,7 @@ export const HealthToiletForm = (props: Props) => {
 					label="類型"
 					name="type"
 					className={styles.formItem}
-					rules={[{ required: true }]}
+					rules={[{ required: true, message: "請選擇類型" }]}
 				>
 					<Select
 						style={{ width: "200px" }}

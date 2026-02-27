@@ -13,12 +13,7 @@ import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
 
 import { IHealthToilet, ToiletType } from "../../common/types/models";
-import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
-
-const toiletTypeMap: Record<ToiletType, { label: string; color: string }> = {
-	[ToiletType.urination]: { label: "小便", color: "blue" },
-	[ToiletType.defecation]: { label: "大便", color: "orange" },
-};
+import { ROUTE_PATH, ROUTE_RESOURCE, TOILET_TYPE_MAP } from "../../common/constants";
 
 export const HealthToiletList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -74,6 +69,7 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 				<Table.Column
 					dataIndex="date"
 					title="日期"
+					sorter
 					render={(value: string) =>
 						new Date(value).toLocaleDateString()
 					}
@@ -83,7 +79,7 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 					dataIndex="type"
 					title="類型"
 					render={(value: ToiletType) => {
-						const t = toiletTypeMap[value];
+						const t = TOILET_TYPE_MAP[value];
 						return t ? (
 							<Tag color={t.color}>{t.label}</Tag>
 						) : (

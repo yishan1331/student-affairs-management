@@ -3,21 +3,14 @@ import { Tag, Alert, Typography } from "antd";
 import { Show } from "@refinedev/antd";
 import dayjs from "dayjs";
 
-import { IHealthDiet, MealType } from "../../common/types/models";
+import { IHealthDiet } from "../../common/types/models";
 import {
 	CustomBreadcrumb,
 	CustomShowHeaderButtons,
 	CustomShowList,
 } from "../../components";
-import { ROUTE_RESOURCE } from "../../common/constants";
+import { ROUTE_RESOURCE, MEAL_TYPE_MAP } from "../../common/constants";
 import { DataSource } from "../../common/types/types";
-
-const mealTypeMap: Record<MealType, { label: string; color: string }> = {
-	[MealType.breakfast]: { label: "早餐", color: "orange" },
-	[MealType.lunch]: { label: "午餐", color: "green" },
-	[MealType.dinner]: { label: "晚餐", color: "blue" },
-	[MealType.snack]: { label: "點心", color: "purple" },
-};
 
 export const HealthDietShow = () => {
 	const { id } = useParsed();
@@ -48,7 +41,7 @@ export const HealthDietShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.date).format("YYYY-MM-DD")}
+					{record?.date ? dayjs(record.date).format("YYYY-MM-DD") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -58,7 +51,7 @@ export const HealthDietShow = () => {
 			type: "custom",
 			render: () => {
 				const m = record?.meal_type
-					? mealTypeMap[record.meal_type]
+					? MEAL_TYPE_MAP[record.meal_type]
 					: null;
 				return m ? (
 					<Tag color={m.color}>{m.label}</Tag>
@@ -100,7 +93,7 @@ export const HealthDietShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.created_at).format("YYYY-MM-DD HH:mm")}
+					{record?.created_at ? dayjs(record.created_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},
@@ -110,7 +103,7 @@ export const HealthDietShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{dayjs(record?.updated_at).format("YYYY-MM-DD HH:mm")}
+					{record?.updated_at ? dayjs(record.updated_at).format("YYYY-MM-DD HH:mm") : "-"}
 				</Typography.Text>
 			),
 		},
