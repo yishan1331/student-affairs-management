@@ -13,6 +13,9 @@ export const ROUTE_RESOURCE = {
 	user: "v1/user",
 	salaryBase: "v1/salary-base",
 	courseSession: "v1/course-session",
+	healthWeight: "v1/health-weight",
+	healthDiet: "v1/health-diet",
+	healthToilet: "v1/health-toilet",
 };
 export const ROUTE_PATH = {
 	schedule: "schedule",
@@ -24,4 +27,7 @@ export const ROUTE_PATH = {
 	user: "user",
 	salaryBase: "salary-base",
 	courseSession: "course-session",
+	healthWeight: "health-weight",
+	healthDiet: "health-diet",
+	healthToilet: "health-toilet",
 };

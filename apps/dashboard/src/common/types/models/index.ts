@@ -7,3 +7,6 @@ export * from "./grade-sheet.types";
 export * from "./user.types";
 export * from "./salary.types";
 export * from "./course-session.types";
+export * from "./health-weight.types";
+export * from "./health-diet.types";
+export * from "./health-toilet.types";

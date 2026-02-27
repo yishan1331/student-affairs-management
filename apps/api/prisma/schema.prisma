@@ -28,6 +28,18 @@ enum AttendanceStatus {
   excused
 }
 
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
+enum ToiletType {
+  urination
+  defecation
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   account    String   @unique
@@ -47,6 +59,9 @@ model User {
   salaryBases          SalaryBase[]
   courseSessions       CourseSession[]
   auditLogs            AuditLog[]
+  healthWeights        HealthWeight[]
+  healthDiets          HealthDiet[]
+  healthToilets        HealthToilet[]
 }
 
 model School {
@@ -160,6 +175,46 @@ model CourseSession {
   modifier             User?       @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at           DateTime    @default(now())
   updated_at           DateTime    @updatedAt
+}
+
+model HealthWeight {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  date       DateTime
+  weight     Float    // 體重（公斤）
+  height     Float?   // 身高（公分）
+  bmi        Float?   // BMI 值
+  note       String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model HealthDiet {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  date       DateTime
+  meal_type  MealType // 餐別
+  food_name  String   // 食物名稱
+  amount     String?  // 份量描述
+  calories   Float?   // 卡路里
+  note       String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model HealthToilet {
+  id         Int        @id @default(autoincrement())
+  user_id    Int
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  date       DateTime
+  time       String     // 時間（如 "10:30"）
+  type       ToiletType // 類型
+  is_normal  Boolean    @default(true) // 是否正常
+  note       String?
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
 }
 
 model AuditLog {
