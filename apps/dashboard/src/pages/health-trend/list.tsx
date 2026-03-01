@@ -20,6 +20,7 @@ import {
 	BarChartOutlined,
 	ArrowUpOutlined,
 	ArrowDownOutlined,
+	MedicineBoxOutlined,
 } from "@ant-design/icons";
 import { DualAxes, Column, Pie } from "@ant-design/charts";
 import dayjs, { Dayjs } from "dayjs";
@@ -78,6 +79,35 @@ interface ToiletTrendResponse {
 	endDate: string;
 	data: ToiletTrendDataItem[];
 	summary: ToiletTrendSummary;
+}
+
+// ===== 症狀趨勢型別 =====
+
+interface SymptomTrendDataItem {
+	date: string;
+	total: number;
+	severeCount: number;
+	symptomTypes: Record<string, number>;
+}
+
+interface SymptomTrendSummary {
+	totalRecords: number;
+	totalFrequency: number;
+	avgDaily: number;
+	severeCount: number;
+	severeRate: number;
+	recurringCount: number;
+	recurringRate: number;
+	topSymptoms: { type: string; count: number }[];
+	severityDistribution: Record<string, number>;
+}
+
+interface SymptomTrendResponse {
+	period: string;
+	startDate: string;
+	endDate: string;
+	data: SymptomTrendDataItem[];
+	summary: SymptomTrendSummary;
 }
 
 // ===== 共用期間控制列 =====
@@ -447,6 +477,212 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> 
 	);
 };
 
+// ===== 症狀趨勢 Tab =====
+
+const symptomTypeLabels: Record<string, string> = {
+	vomiting: "嘔吐",
+	coughing: "咳嗽",
+	diarrhea: "腹瀉",
+	skin_issue: "皮膚異常",
+	eye_issue: "眼睛異常",
+	ear_issue: "耳朵異常",
+	appetite_loss: "食慾不振",
+	lethargy: "精神不佳",
+	breathing_issue: "呼吸異常",
+	limping: "跛行",
+	scratching: "抓癢",
+	sneezing: "打噴嚏",
+	fever: "發燒",
+	other: "其他",
+};
+
+const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
+	period,
+	date,
+	petId,
+}) => {
+	const [trendData, setTrendData] = useState<SymptomTrendResponse | null>(
+		null
+	);
+	const [loading, setLoading] = useState(false);
+
+	const fetchTrend = useCallback(async () => {
+		setLoading(true);
+		try {
+			const params: any = { period, date: date.toISOString() };
+			params.pet_id = petId != null ? petId : "null";
+			const res = await apiClient.get("/v1/health-symptom/trend", {
+				params,
+			});
+			setTrendData(res.data?.data || res.data);
+		} catch {
+			console.error("Failed to fetch symptom trend");
+		} finally {
+			setLoading(false);
+		}
+	}, [period, date, petId]);
+
+	useEffect(() => {
+		fetchTrend();
+	}, [fetchTrend]);
+
+	const summary = trendData?.summary;
+
+	// Column chart data: daily symptom frequency
+	const columnData = (trendData?.data || []).map((d) => ({
+		date: d.date,
+		count: d.total,
+	}));
+
+	// Pie chart: severity distribution
+	const severityPieData = summary
+		? [
+				{ type: "輕微", value: summary.severityDistribution.mild || 0 },
+				{ type: "中度", value: summary.severityDistribution.moderate || 0 },
+				{ type: "嚴重", value: summary.severityDistribution.severe || 0 },
+			]
+		: [];
+
+	// Pie chart: top symptom types distribution
+	const symptomTypePieData = summary
+		? summary.topSymptoms.map((s) => ({
+				type: symptomTypeLabels[s.type] || s.type,
+				value: s.count,
+			}))
+		: [];
+
+	const columnConfig: any = {
+		data: columnData,
+		xField: "date",
+		yField: "count",
+		color: "#ff7a45",
+		axis: { y: { title: "次數" } },
+	};
+
+	const severityPieConfig: any = {
+		data: severityPieData,
+		angleField: "value",
+		colorField: "type",
+		color: ["#52c41a", "#faad14", "#ff4d4f"],
+		innerRadius: 0.6,
+		label: {
+			text: (d: any) => `${d.type}: ${d.value}`,
+			position: "outside",
+		},
+		legend: { position: "bottom" as const },
+	};
+
+	const symptomPieConfig: any = {
+		data: symptomTypePieData,
+		angleField: "value",
+		colorField: "type",
+		innerRadius: 0.6,
+		label: {
+			text: (d: any) => `${d.type}: ${d.value}`,
+			position: "outside",
+		},
+		legend: { position: "bottom" as const },
+	};
+
+	if (loading) {
+		return (
+			<div style={{ textAlign: "center", padding: 60 }}>
+				<Spin size="large" />
+			</div>
+		);
+	}
+
+	const hasData = (trendData?.data || []).some((d) => d.total > 0);
+
+	return (
+		<>
+			{summary && (
+				<Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+					<Col xs={12} sm={6}>
+						<Card>
+							<Statistic
+								title="總紀錄數"
+								value={summary.totalRecords}
+								suffix="筆"
+							/>
+						</Card>
+					</Col>
+					<Col xs={12} sm={6}>
+						<Card>
+							<Statistic
+								title="每日平均"
+								value={summary.avgDaily}
+								suffix="次"
+								precision={1}
+							/>
+						</Card>
+					</Col>
+					<Col xs={12} sm={6}>
+						<Card>
+							<Statistic
+								title="嚴重比例"
+								value={summary.severeRate}
+								suffix="%"
+								precision={1}
+								valueStyle={{
+									color:
+										summary.severeRate > 20
+											? "#cf1322"
+											: "#3f8600",
+								}}
+							/>
+						</Card>
+					</Col>
+					<Col xs={12} sm={6}>
+						<Card>
+							<Statistic
+								title="反覆發生比例"
+								value={summary.recurringRate}
+								suffix="%"
+								precision={1}
+								valueStyle={{
+									color:
+										summary.recurringRate > 30
+											? "#cf1322"
+											: undefined,
+								}}
+							/>
+						</Card>
+					</Col>
+				</Row>
+			)}
+
+			{!hasData ? (
+				<Card>
+					<Empty description="此期間無症狀紀錄" />
+				</Card>
+			) : (
+				<>
+					<Card title="每日症狀次數" style={{ marginBottom: 16 }}>
+						<Column {...columnConfig} height={400} />
+					</Card>
+					<Row gutter={[16, 16]}>
+						<Col xs={24} lg={12}>
+							<Card title="嚴重程度分布">
+								<Pie {...severityPieConfig} height={300} />
+							</Card>
+						</Col>
+						<Col xs={24} lg={12}>
+							<Card title="常見症狀 TOP 3">
+								{symptomTypePieData.length > 0 ? (
+									<Pie {...symptomPieConfig} height={300} />
+								) : (
+									<Empty description="無資料" />
+								)}
+							</Card>
+						</Col>
+					</Row>
+				</>
+			)}
+		</>
+	);
+};
+
 // ===== 主頁面 =====
 
 export const HealthTrendList: React.FC = () => {
@@ -527,6 +763,17 @@ export const HealthTrendList: React.FC = () => {
 						),
 						children: (
 							<ToiletTrendTab period={period} date={date} petId={petId} />
+						),
+					},
+					{
+						key: "symptom",
+						label: (
+							<span>
+								<MedicineBoxOutlined /> 症狀趨勢
+							</span>
+						),
+						children: (
+							<SymptomTrendTab period={period} date={date} petId={petId} />
 						),
 					},
 				]}

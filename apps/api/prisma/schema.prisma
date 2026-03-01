@@ -50,6 +50,29 @@ enum PetType {
   other
 }
 
+enum SymptomType {
+  vomiting
+  coughing
+  diarrhea
+  skin_issue
+  eye_issue
+  ear_issue
+  appetite_loss
+  lethargy
+  breathing_issue
+  limping
+  scratching
+  sneezing
+  fever
+  other
+}
+
+enum Severity {
+  mild
+  moderate
+  severe
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   account    String   @unique
@@ -72,6 +95,7 @@ model User {
   healthWeights        HealthWeight[]
   healthDiets          HealthDiet[]
   healthToilets        HealthToilet[]
+  healthSymptoms       HealthSymptom[]
   pets                 Pet[]
 }
 
@@ -207,6 +231,7 @@ model Pet {
   healthWeights  HealthWeight[]
   healthDiets    HealthDiet[]
   healthToilets  HealthToilet[]
+  healthSymptoms HealthSymptom[]
 
   @@index([user_id])
 }
@@ -259,6 +284,28 @@ model HealthToilet {
   note       String?
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
+
+  @@index([user_id, pet_id, date])
+}
+
+model HealthSymptom {
+  id                Int         @id @default(autoincrement())
+  user_id           Int
+  user              User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id            Int?
+  pet               Pet?        @relation(fields: [pet_id], references: [id], onDelete: Cascade)
+  date              DateTime
+  time              String      // 時間（如 "10:30"）
+  symptom_type      SymptomType
+  severity          Severity
+  frequency         Int         @default(1) // 發生次數
+  duration_minutes  Int?        // 持續時間（分鐘）
+  body_part         String?     // 身體部位
+  is_recurring      Boolean     @default(false)
+  description       String?     // 詳細描述
+  note              String?
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
 
   @@index([user_id, pet_id, date])
 }

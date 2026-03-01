@@ -31,6 +31,7 @@ import {
 	SlidersOutlined,
 	DashboardOutlined,
 	CoffeeOutlined,
+	MedicineBoxOutlined,
 } from "@ant-design/icons";
 import Icon from "@ant-design/icons";
 
@@ -134,6 +135,12 @@ import {
 	HealthToiletEdit,
 	HealthToiletShow,
 } from "./pages/health-toilet";
+import {
+	HealthSymptomList,
+	HealthSymptomCreate,
+	HealthSymptomEdit,
+	HealthSymptomShow,
+} from "./pages/health-symptom";
 import { HealthTrendList } from "./pages/health-trend";
 import { PetList, PetCreate, PetEdit, PetShow } from "./pages/pet";
 import { DashboardPage } from "./pages/dashboard";
@@ -337,6 +344,18 @@ const AppContent = () => {
 					},
 				},
 				{
+					name: "health-symptom",
+					list: "/health-symptom",
+					create: "/health-symptom/create",
+					edit: "/health-symptom/edit/:id",
+					show: "/health-symptom/:id",
+					meta: {
+						label: "症狀紀錄",
+						icon: <MedicineBoxOutlined />,
+						parent: "health",
+					},
+				},
+				{
 					name: "health-trend",
 					list: "/health-trend",
 					meta: {
@@ -496,6 +515,13 @@ const AppContent = () => {
 						<Route path="create" element={<HealthToiletCreate />} />
 						<Route path="edit/:id" element={<HealthToiletEdit />} />
 						<Route path=":id" element={<HealthToiletShow />} />
+					</Route>
+
+					<Route path="/health-symptom">
+						<Route index element={<HealthSymptomList />} />
+						<Route path="create" element={<HealthSymptomCreate />} />
+						<Route path="edit/:id" element={<HealthSymptomEdit />} />
+						<Route path=":id" element={<HealthSymptomShow />} />
 					</Route>
 
 					<Route path="/pet">

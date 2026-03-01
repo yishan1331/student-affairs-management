@@ -29,6 +29,7 @@ import { CourseSessionModule } from './core/course-session/course-session.module
 import { HealthWeightModule } from './core/health-weight/health-weight.module';
 import { HealthDietModule } from './core/health-diet/health-diet.module';
 import { HealthToiletModule } from './core/health-toilet/health-toilet.module';
+import { HealthSymptomModule } from './core/health-symptom/health-symptom.module';
 import { PetModule } from './core/pet/pet.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
@@ -69,6 +70,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		HealthWeightModule,
 		HealthDietModule,
 		HealthToiletModule,
+		HealthSymptomModule,
 		PetModule,
 	],
 	controllers: [],

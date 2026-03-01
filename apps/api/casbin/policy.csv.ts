@@ -47,6 +47,14 @@ p, role:staff, /api/v1/health-toilet/:id, update
 p, role:staff, /api/v1/health-toilet/:id, delete
 p, role:staff, /api/v1/health-toilet/statistics, read
 p, role:staff, /api/v1/health-toilet/export, read
+p, role:staff, /api/v1/health-symptom, read
+p, role:staff, /api/v1/health-symptom, create
+p, role:staff, /api/v1/health-symptom/:id, read
+p, role:staff, /api/v1/health-symptom/:id, update
+p, role:staff, /api/v1/health-symptom/:id, delete
+p, role:staff, /api/v1/health-symptom/statistics, read
+p, role:staff, /api/v1/health-symptom/trend, read
+p, role:staff, /api/v1/health-symptom/export, read
 p, role:staff, /api/v1/pet, read
 p, role:staff, /api/v1/pet, create
 p, role:staff, /api/v1/pet/:id, read
@@ -120,6 +128,11 @@ p, role:admin, /api/v1/health-toilet, *
 p, role:admin, /api/v1/health-toilet/:id, *
 p, role:admin, /api/v1/health-toilet/statistics, *
 p, role:admin, /api/v1/health-toilet/export, *
+p, role:admin, /api/v1/health-symptom, *
+p, role:admin, /api/v1/health-symptom/:id, *
+p, role:admin, /api/v1/health-symptom/statistics, *
+p, role:admin, /api/v1/health-symptom/trend, *
+p, role:admin, /api/v1/health-symptom/export, *
 p, role:admin, /api/v1/pet, *
 p, role:admin, /api/v1/pet/:id, *
 p, role:admin, /api/v1/pet/my-pets, *

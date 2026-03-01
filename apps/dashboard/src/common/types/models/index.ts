@@ -11,3 +11,4 @@ export * from "./health-weight.types";
 export * from "./health-diet.types";
 export * from "./health-toilet.types";
 export * from "./pet.types";
+export * from "./health-symptom.types";
