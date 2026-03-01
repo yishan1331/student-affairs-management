@@ -3,7 +3,6 @@ import {
 	useTranslate,
 	useLogout,
 	useTitle,
-	CanAccess,
 	type ITreeMenu,
 	useIsExistAuthentication,
 	useRouterContext,
@@ -97,22 +96,13 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 
 			if (children.length > 0) {
 				return (
-					<CanAccess
+					<Menu.SubMenu
 						key={item.key}
-						resource={name}
-						action="list"
-						params={{
-							resource: item,
-						}}
+						icon={icon ?? <UnorderedListOutlined />}
+						title={label}
 					>
-						<Menu.SubMenu
-							key={item.key}
-							icon={icon ?? <UnorderedListOutlined />}
-							title={label}
-						>
-							{renderTreeView(children, selectedKey)}
-						</Menu.SubMenu>
-					</CanAccess>
+						{renderTreeView(children, selectedKey)}
+					</Menu.SubMenu>
 				);
 			}
 			const isSelected = key === selectedKey;
@@ -127,27 +117,18 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 					: {};
 
 			return (
-				<CanAccess
+				<Menu.Item
 					key={item.key}
-					resource={name}
-					action="list"
-					params={{
-						resource: item,
-					}}
+					icon={icon ?? (isRoute && <UnorderedListOutlined />)}
+					style={linkStyle}
 				>
-					<Menu.Item
-						key={item.key}
-						icon={icon ?? (isRoute && <UnorderedListOutlined />)}
-						style={linkStyle}
-					>
-						<Link to={route ?? ''} style={linkStyle}>
-							{label}
-						</Link>
-						{!siderCollapsed && isSelected && (
-							<div className="ant-menu-tree-arrow" />
-						)}
-					</Menu.Item>
-				</CanAccess>
+					<Link to={route ?? ''} style={linkStyle}>
+						{label}
+					</Link>
+					{!siderCollapsed && isSelected && (
+						<div className="ant-menu-tree-arrow" />
+					)}
+				</Menu.Item>
 			);
 		});
 	};
