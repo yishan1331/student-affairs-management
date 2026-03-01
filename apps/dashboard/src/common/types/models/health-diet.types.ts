@@ -8,6 +8,7 @@ export enum MealType {
 export interface IHealthDiet {
 	id: number;
 	user_id: number;
+	pet_id?: number;
 	date: Date;
 	meal_type: MealType;
 	food_name: string;
@@ -20,6 +21,11 @@ export interface IHealthDiet {
 		id: number;
 		username: string;
 	};
+	pet?: {
+		id: number;
+		name: string;
+		type: string;
+	};
 }
 
 export interface ICreateHealthDiet {
@@ -29,6 +35,7 @@ export interface ICreateHealthDiet {
 	amount?: string;
 	calories?: number;
 	note?: string;
+	pet_id?: number;
 }
 
 export interface IUpdateHealthDiet {
@@ -38,4 +45,5 @@ export interface IUpdateHealthDiet {
 	amount?: string;
 	calories?: number;
 	note?: string;
+	pet_id?: number;
 }

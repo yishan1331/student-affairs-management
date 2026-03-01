@@ -8,6 +8,7 @@ import {
 	IUpdateHealthToilet,
 	ToiletType,
 } from "../../../common/types/models";
+import { HealthSubjectSelector } from "../../../components";
 
 type Props = {
 	formProps: FormProps<any>;
@@ -34,10 +35,18 @@ export const HealthToiletForm = (props: Props) => {
 					time: values.time
 						? dayjs(values.time).format("HH:mm")
 						: undefined,
+					pet_id: values.pet_id ?? undefined,
 				});
 			}}
 		>
 			<Flex vertical>
+				<Form.Item
+					label="記錄對象"
+					name="pet_id"
+					className={styles.formItem}
+				>
+					<HealthSubjectSelector formMode />
+				</Form.Item>
 				<Form.Item
 					label="日期"
 					name="date"

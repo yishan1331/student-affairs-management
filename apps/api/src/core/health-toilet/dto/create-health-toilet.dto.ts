@@ -2,6 +2,7 @@ import {
 	IsDate,
 	IsEnum,
 	IsBoolean,
+	IsNumber,
 	IsString,
 	IsDefined,
 	IsOptional,
@@ -34,4 +35,8 @@ export class CreateHealthToiletDto {
 	@IsOptional()
 	@IsString()
 	note?: string;
+
+	@IsOptional()
+	@IsNumber()
+	pet_id?: number;
 }

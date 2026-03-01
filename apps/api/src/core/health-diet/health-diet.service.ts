@@ -9,6 +9,14 @@ export class HealthDietService {
 	constructor(private prisma: PrismaService) {}
 
 	async create(userId: number, dto: CreateHealthDietDto) {
+		if (dto.pet_id) {
+			const pet = await this.prisma.pet.findFirst({
+				where: { id: dto.pet_id, user_id: userId },
+			});
+			if (!pet) {
+				throw new ForbiddenException('此寵物不存在或不屬於您');
+			}
+		}
 		return this.prisma.healthDiet.create({
 			data: {
 				...dto,
@@ -22,7 +30,10 @@ export class HealthDietService {
 		return this.prisma.healthDiet.findMany({
 			...query,
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 	}
 
@@ -34,7 +45,10 @@ export class HealthDietService {
 	async findOne(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.healthDiet.findUnique({
 			where: { id },
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 		if (!record) {
 			throw new NotFoundException('找不到此資料');
@@ -69,17 +83,26 @@ export class HealthDietService {
 		}
 	}
 
-	async exportData(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
+	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthDietWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 		return this.prisma.healthDiet.findMany({
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 			orderBy: { date: 'desc' },
 		});
 	}
 
-	async getStatistics(userId: number, isAdmin: boolean) {
-		const where: Prisma.HealthDietWhereInput = isAdmin ? {} : { user_id: userId };
+	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthDietWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 
 		const [totalRecords, mealTypeGroups, calorieStats] = await Promise.all([
 			this.prisma.healthDiet.count({ where }),

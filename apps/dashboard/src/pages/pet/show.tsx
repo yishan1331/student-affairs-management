@@ -3,90 +3,101 @@ import { Tag, Alert, Typography } from "antd";
 import { Show } from "@refinedev/antd";
 import dayjs from "dayjs";
 
-import { IHealthDiet } from "../../common/types/models";
+import { IPet, PetType } from "../../common/types/models";
 import {
 	CustomBreadcrumb,
 	CustomShowHeaderButtons,
 	CustomShowList,
 } from "../../components";
-import { ROUTE_RESOURCE, MEAL_TYPE_MAP } from "../../common/constants";
+import { ROUTE_RESOURCE, PET_TYPE_MAP, PET_GENDER_MAP } from "../../common/constants";
 import { DataSource } from "../../common/types/types";
 
-export const HealthDietShow = () => {
+export const PetShow = () => {
 	const { id } = useParsed();
 	const { query } = useShow({
-		resource: ROUTE_RESOURCE.healthDiet,
+		resource: ROUTE_RESOURCE.pet,
 		id,
 	});
 
 	const { data, isFetching, isError, error } = query;
-	const record = data?.data as IHealthDiet;
+	const record = data?.data as IPet;
 
 	const { resource } = useResource();
 
 	const { data: canEdit } = useCan({
-		resource: ROUTE_RESOURCE.healthDiet,
+		resource: ROUTE_RESOURCE.pet,
 		action: "edit",
 	});
 
 	const { data: canDelete } = useCan({
-		resource: ROUTE_RESOURCE.healthDiet,
+		resource: ROUTE_RESOURCE.pet,
 		action: "delete",
 	});
 
-	const dataSources: DataSource<IHealthDiet>[] = [
+	const dataSources: DataSource<IPet>[] = [
+		{ label: "名稱", value: "name", type: "text" },
 		{
-			label: "記錄對象",
-			value: "pet_id",
-			type: "custom",
-			render: () => (
-				<Typography.Text>
-					{record?.pet ? `${record.pet.name}` : "我自己"}
-				</Typography.Text>
-			),
-		},
-		{
-			label: "日期",
-			value: "date",
-			type: "custom",
-			render: () => (
-				<Typography.Text>
-					{record?.date ? dayjs(record.date).format("YYYY-MM-DD") : "-"}
-				</Typography.Text>
-			),
-		},
-		{
-			label: "餐別",
-			value: "meal_type",
+			label: "種類",
+			value: "type",
 			type: "custom",
 			render: () => {
-				const m = record?.meal_type
-					? MEAL_TYPE_MAP[record.meal_type]
-					: null;
-				return m ? (
-					<Tag color={m.color}>{m.label}</Tag>
+				const t = record?.type ? PET_TYPE_MAP[record.type] : null;
+				return t ? (
+					<Tag color={t.color}>{t.label}</Tag>
 				) : (
-					<Typography.Text>{record?.meal_type}</Typography.Text>
+					<Typography.Text>{record?.type}</Typography.Text>
 				);
 			},
 		},
-		{ label: "食物名稱", value: "food_name", type: "text" },
 		{
-			label: "份量",
-			value: "amount",
+			label: "品種",
+			value: "breed",
 			type: "custom",
 			render: () => (
-				<Typography.Text>{record?.amount || "-"}</Typography.Text>
+				<Typography.Text>{record?.breed || "-"}</Typography.Text>
 			),
 		},
 		{
-			label: "卡路里",
-			value: "calories",
+			label: "性別",
+			value: "gender",
+			type: "custom",
+			render: () => {
+				const g = record?.gender ? PET_GENDER_MAP[record.gender] : null;
+				return g ? (
+					<Tag color={g.color}>{g.label}</Tag>
+				) : (
+					<Typography.Text>-</Typography.Text>
+				);
+			},
+		},
+		{
+			label: "生日",
+			value: "birthday",
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{record?.calories != null ? record.calories : "-"}
+					{record?.birthday ? dayjs(record.birthday).format("YYYY-MM-DD") : "-"}
 				</Typography.Text>
+			),
+		},
+		{
+			label: "體重 (kg)",
+			value: "weight",
+			type: "custom",
+			render: () => (
+				<Typography.Text>
+					{record?.weight ? record.weight.toFixed(1) : "-"}
+				</Typography.Text>
+			),
+		},
+		{
+			label: "狀態",
+			value: "is_active",
+			type: "custom",
+			render: () => (
+				<Tag color={record?.is_active ? "success" : "default"}>
+					{record?.is_active ? "啟用" : "停用"}
+				</Tag>
 			),
 		},
 		{
@@ -173,7 +184,7 @@ export const HealthDietShow = () => {
 						...refreshButtonProps,
 						onClick: () => query.refetch(),
 					}}
-					resource={ROUTE_RESOURCE.healthDiet}
+					resource={ROUTE_RESOURCE.pet}
 				/>
 			)}
 		>

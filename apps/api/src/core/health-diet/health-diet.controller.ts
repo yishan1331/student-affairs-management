@@ -38,7 +38,7 @@ export class HealthDietController {
 	constructor(private readonly healthDietService: HealthDietService) {
 		this.queryBuilder = new PrismaQueryBuilder({
 			searchableFields: ['food_name'],
-			filterableFields: ['user_id', 'meal_type'],
+			filterableFields: ['user_id', 'meal_type', 'pet_id'],
 			rangeFilterableFields: ['date'],
 			defaultSort: { date: 'desc' },
 			defaultPageSize: 10,
@@ -71,17 +71,20 @@ export class HealthDietController {
 	}
 
 	@Get('statistics')
-	getStatistics(@Req() req: Request) {
+	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthDietService.getStatistics(user.id, user.role === 'admin');
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
+		return this.healthDietService.getStatistics(user.id, user.role === 'admin', petId);
 	}
 
 	@Get('export')
-	async exportData(@Req() req: Request, @Res() res: Response) {
+	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
 		const records = await this.healthDietService.exportData(
 			user.id,
 			user.role === 'admin',
+			petId,
 		);
 
 		const workbook = new ExcelJS.Workbook();

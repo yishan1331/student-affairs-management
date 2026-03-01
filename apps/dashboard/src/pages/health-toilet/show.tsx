@@ -36,6 +36,16 @@ export const HealthToiletShow = () => {
 
 	const dataSources: DataSource<IHealthToilet>[] = [
 		{
+			label: "記錄對象",
+			value: "pet_id",
+			type: "custom",
+			render: () => (
+				<Typography.Text>
+					{record?.pet ? `${record.pet.name}` : "我自己"}
+				</Typography.Text>
+			),
+		},
+		{
 			label: "日期",
 			value: "date",
 			type: "custom",

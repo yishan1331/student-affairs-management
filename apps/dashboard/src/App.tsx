@@ -28,6 +28,15 @@ import {
 	HeartOutlined,
 	LineChartOutlined,
 } from "@ant-design/icons";
+import Icon from "@ant-design/icons";
+
+// 貓掌自訂 SVG 圖示
+const PawSvg = () => (
+	<svg viewBox="0 0 1024 1024" width="1.5em" height="1.5em" fill="currentColor">
+		<path d="M512 640c-88 0-160 56-160 136 0 80 72 136 160 136s160-56 160-136c0-80-72-136-160-136zm-224-128c-44 0-80 44-80 96s36 96 80 96 80-44 80-96-36-96-80-96zm448 0c-44 0-80 44-80 96s36 96 80 96 80-44 80-96-36-96-80-96zm-336-224c-44 0-80 44-80 96s36 96 80 96 80-44 80-96-36-96-80-96zm224 0c-44 0-80 44-80 96s36 96 80 96 80-44 80-96-36-96-80-96z" />
+	</svg>
+);
+const PawOutlined = (props: any) => <Icon component={PawSvg} {...props} />;
 
 import { authProvider } from "./providers/authProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
@@ -110,6 +119,7 @@ import {
 	HealthToiletShow,
 } from "./pages/health-toilet";
 import { HealthTrendList } from "./pages/health-trend";
+import { PetList, PetCreate, PetEdit, PetShow } from "./pages/pet";
 import { DashboardPage } from "./pages/dashboard";
 import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
@@ -334,6 +344,18 @@ const AppContent = () => {
 						parent: "system",
 					},
 				},
+				{
+					name: "pet",
+					list: "/pet",
+					create: "/pet/create",
+					edit: "/pet/edit/:id",
+					show: "/pet/:id",
+					meta: {
+						label: "寵物管理",
+						icon: <PawOutlined />,
+						parent: "system",
+					},
+				},
 			]}
 		>
 			<Routes>
@@ -453,6 +475,13 @@ const AppContent = () => {
 						<Route path="create" element={<HealthToiletCreate />} />
 						<Route path="edit/:id" element={<HealthToiletEdit />} />
 						<Route path=":id" element={<HealthToiletShow />} />
+					</Route>
+
+					<Route path="/pet">
+						<Route index element={<PetList />} />
+						<Route path="create" element={<PetCreate />} />
+						<Route path="edit/:id" element={<PetEdit />} />
+						<Route path=":id" element={<PetShow />} />
 					</Route>
 
 					<Route path="/health-trend">

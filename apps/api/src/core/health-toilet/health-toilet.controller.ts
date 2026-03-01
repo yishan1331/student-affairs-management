@@ -36,7 +36,7 @@ export class HealthToiletController {
 	constructor(private readonly healthToiletService: HealthToiletService) {
 		this.queryBuilder = new PrismaQueryBuilder({
 			searchableFields: [],
-			filterableFields: ['user_id', 'type', 'is_normal'],
+			filterableFields: ['user_id', 'type', 'is_normal', 'pet_id'],
 			rangeFilterableFields: ['date'],
 			defaultSort: { date: 'desc' },
 			defaultPageSize: 10,
@@ -69,9 +69,10 @@ export class HealthToiletController {
 	}
 
 	@Get('statistics')
-	getStatistics(@Req() req: Request) {
+	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthToiletService.getStatistics(user.id, user.role === 'admin');
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
+		return this.healthToiletService.getStatistics(user.id, user.role === 'admin', petId);
 	}
 
 	@Get('trend')
@@ -79,15 +80,18 @@ export class HealthToiletController {
 		const user = req.user as any;
 		const period = query.period || 'week';
 		const date = query.date || new Date().toISOString();
-		return this.healthToiletService.getTrend(user.id, user.role === 'admin', period, date);
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
+		return this.healthToiletService.getTrend(user.id, user.role === 'admin', period, date, petId);
 	}
 
 	@Get('export')
-	async exportData(@Req() req: Request, @Res() res: Response) {
+	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
 		const records = await this.healthToiletService.exportData(
 			user.id,
 			user.role === 'admin',
+			petId,
 		);
 
 		const workbook = new ExcelJS.Workbook();

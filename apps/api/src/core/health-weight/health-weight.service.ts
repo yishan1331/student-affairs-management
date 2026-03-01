@@ -9,6 +9,14 @@ export class HealthWeightService {
 	constructor(private prisma: PrismaService) {}
 
 	async create(userId: number, dto: CreateHealthWeightDto) {
+		if (dto.pet_id) {
+			const pet = await this.prisma.pet.findFirst({
+				where: { id: dto.pet_id, user_id: userId },
+			});
+			if (!pet) {
+				throw new ForbiddenException('此寵物不存在或不屬於您');
+			}
+		}
 		return this.prisma.healthWeight.create({
 			data: {
 				...dto,
@@ -22,7 +30,10 @@ export class HealthWeightService {
 		return this.prisma.healthWeight.findMany({
 			...query,
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 	}
 
@@ -34,7 +45,10 @@ export class HealthWeightService {
 	async findOne(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.healthWeight.findUnique({
 			where: { id },
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 		if (!record) {
 			throw new NotFoundException('找不到此資料');
@@ -69,16 +83,22 @@ export class HealthWeightService {
 		}
 	}
 
-	async exportData(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
+	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthWeightWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 		return this.prisma.healthWeight.findMany({
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 			orderBy: { date: 'desc' },
 		});
 	}
 
-	async getTrend(userId: number, isAdmin: boolean, period: string, date: string) {
+	async getTrend(userId: number, isAdmin: boolean, period: string, date: string, petId?: number | null) {
 		// 使用純字串日期計算避免時區問題
 		const baseDate = new Date(date);
 		const y = baseDate.getFullYear();
@@ -111,6 +131,7 @@ export class HealthWeightService {
 
 		const where = {
 			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
 			date: { gte: startDate, lte: endDate },
 		};
 
@@ -192,8 +213,11 @@ export class HealthWeightService {
 		return dates;
 	}
 
-	async getStatistics(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
+	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthWeightWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 
 		const [aggregate, totalRecords, records] = await Promise.all([
 			this.prisma.healthWeight.aggregate({

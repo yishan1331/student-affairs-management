@@ -10,15 +10,17 @@ import {
 import { Space, Table, Tag } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
-import { type PropsWithChildren } from "react";
+import { type PropsWithChildren, useState } from "react";
 
 import { IHealthToilet, ToiletType } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE, TOILET_TYPE_MAP } from "../../common/constants";
+import { HealthSubjectSelector } from "../../components";
 
 export const HealthToiletList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
 	const { pathname } = useLocation();
 	const { createUrl } = useNavigation();
+	const [petId, setPetId] = useState<number | undefined>(undefined);
 
 	const { resource } = useResource();
 
@@ -30,6 +32,11 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 				order: "desc",
 			},
 		],
+		filters: {
+			permanent: [
+				{ field: "pet_id", operator: "eq", value: petId !== undefined ? petId : "null" },
+			],
+		},
 	});
 
 	const records = tableProps.dataSource as IHealthToilet[];
@@ -60,6 +67,7 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 				</CreateButton>,
 			]}
 		>
+			<HealthSubjectSelector value={petId} onChange={setPetId} />
 			<Table {...tableProps} dataSource={records} rowKey="id">
 				<Table.Column
 					dataIndex="id"

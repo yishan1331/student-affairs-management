@@ -7,6 +7,7 @@ import {
 	ICreateHealthWeight,
 	IUpdateHealthWeight,
 } from "../../../common/types/models";
+import { HealthSubjectSelector } from "../../../components";
 
 type Props = {
 	formProps: FormProps<any>;
@@ -35,10 +36,18 @@ export const HealthWeightForm = (props: Props) => {
 						? dayjs(values.date).format("YYYY-MM-DD")
 						: undefined,
 					bmi,
+					pet_id: values.pet_id ?? undefined,
 				});
 			}}
 		>
 			<Flex vertical>
+				<Form.Item
+					label="記錄對象"
+					name="pet_id"
+					className={styles.formItem}
+				>
+					<HealthSubjectSelector formMode />
+				</Form.Item>
 				<Form.Item
 					label="日期"
 					name="date"

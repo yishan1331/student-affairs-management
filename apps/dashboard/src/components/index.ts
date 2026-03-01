@@ -6,3 +6,4 @@ export { CustomDrawer } from './drawer';
 export { CustomBreadcrumb } from './breadcrumb';
 export { CustomShowHeaderButtons } from './show-header-buttons';
 export { CustomShowList } from './show-list';
+export { HealthSubjectSelector } from './HealthSubjectSelector';

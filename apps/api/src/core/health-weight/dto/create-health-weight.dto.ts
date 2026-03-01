@@ -28,4 +28,8 @@ export class CreateHealthWeightDto {
 	@IsOptional()
 	@IsString()
 	note?: string;
+
+	@IsOptional()
+	@IsNumber()
+	pet_id?: number;
 }

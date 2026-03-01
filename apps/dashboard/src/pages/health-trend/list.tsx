@@ -24,6 +24,7 @@ import {
 import { DualAxes, Column, Pie } from "@ant-design/charts";
 import dayjs, { Dayjs } from "dayjs";
 import apiClient from "../../services/api/apiClient";
+import { HealthSubjectSelector } from "../../components";
 
 const { Title } = Typography;
 
@@ -139,9 +140,10 @@ const PeriodControls: React.FC<{
 
 // ===== 體重趨勢 Tab =====
 
-const WeightTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
+const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
 	period,
 	date,
+	petId,
 }) => {
 	const [trendData, setTrendData] = useState<WeightTrendResponse | null>(
 		null
@@ -151,8 +153,10 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
 	const fetchTrend = useCallback(async () => {
 		setLoading(true);
 		try {
+			const params: any = { period, date: date.toISOString() };
+			params.pet_id = petId != null ? petId : "null";
 			const res = await apiClient.get("/v1/health-weight/trend", {
-				params: { period, date: date.toISOString() },
+				params,
 			});
 			setTrendData(res.data?.data || res.data);
 		} catch {
@@ -160,7 +164,7 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [period, date]);
+	}, [period, date, petId]);
 
 	useEffect(() => {
 		fetchTrend();
@@ -290,9 +294,10 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
 
 // ===== 如廁趨勢 Tab =====
 
-const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
+const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
 	period,
 	date,
+	petId,
 }) => {
 	const [trendData, setTrendData] = useState<ToiletTrendResponse | null>(
 		null
@@ -302,8 +307,10 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
 	const fetchTrend = useCallback(async () => {
 		setLoading(true);
 		try {
+			const params: any = { period, date: date.toISOString() };
+			params.pet_id = petId != null ? petId : "null";
 			const res = await apiClient.get("/v1/health-toilet/trend", {
-				params: { period, date: date.toISOString() },
+				params,
 			});
 			setTrendData(res.data?.data || res.data);
 		} catch {
@@ -311,7 +318,7 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs }> = ({
 		} finally {
 			setLoading(false);
 		}
-	}, [period, date]);
+	}, [period, date, petId]);
 
 	useEffect(() => {
 		fetchTrend();
@@ -447,6 +454,7 @@ export const HealthTrendList: React.FC = () => {
 	const [date, setDate] = useState<Dayjs>(dayjs());
 	const [periodLabel, setPeriodLabel] = useState("");
 	const [activeTab, setActiveTab] = useState("weight");
+	const [petId, setPetId] = useState<number | undefined>(undefined);
 
 	// 期間標籤由子元件回傳不太方便，改為自行計算
 	useEffect(() => {
@@ -485,6 +493,8 @@ export const HealthTrendList: React.FC = () => {
 				<LineChartOutlined /> 健康趨勢分析
 			</Title>
 
+			<HealthSubjectSelector value={petId} onChange={setPetId} />
+
 			<PeriodControls
 				period={period}
 				setPeriod={setPeriod}
@@ -505,7 +515,7 @@ export const HealthTrendList: React.FC = () => {
 							</span>
 						),
 						children: (
-							<WeightTrendTab period={period} date={date} />
+							<WeightTrendTab period={period} date={date} petId={petId} />
 						),
 					},
 					{
@@ -516,7 +526,7 @@ export const HealthTrendList: React.FC = () => {
 							</span>
 						),
 						children: (
-							<ToiletTrendTab period={period} date={date} />
+							<ToiletTrendTab period={period} date={date} petId={petId} />
 						),
 					},
 				]}

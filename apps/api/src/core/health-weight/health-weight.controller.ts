@@ -31,7 +31,7 @@ export class HealthWeightController {
 	constructor(private readonly healthWeightService: HealthWeightService) {
 		this.queryBuilder = new PrismaQueryBuilder({
 			searchableFields: [],
-			filterableFields: ['user_id'],
+			filterableFields: ['user_id', 'pet_id'],
 			rangeFilterableFields: ['date'],
 			defaultSort: { date: 'desc' },
 			defaultPageSize: 10,
@@ -64,9 +64,10 @@ export class HealthWeightController {
 	}
 
 	@Get('statistics')
-	getStatistics(@Req() req: Request) {
+	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthWeightService.getStatistics(user.id, user.role === 'admin');
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
+		return this.healthWeightService.getStatistics(user.id, user.role === 'admin', petId);
 	}
 
 	@Get('trend')
@@ -74,15 +75,18 @@ export class HealthWeightController {
 		const user = req.user as any;
 		const period = query.period || 'week';
 		const date = query.date || new Date().toISOString();
-		return this.healthWeightService.getTrend(user.id, user.role === 'admin', period, date);
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
+		return this.healthWeightService.getTrend(user.id, user.role === 'admin', period, date, petId);
 	}
 
 	@Get('export')
-	async exportData(@Req() req: Request, @Res() res: Response) {
+	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
+		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
 		const records = await this.healthWeightService.exportData(
 			user.id,
 			user.role === 'admin',
+			petId,
 		);
 
 		const workbook = new ExcelJS.Workbook();

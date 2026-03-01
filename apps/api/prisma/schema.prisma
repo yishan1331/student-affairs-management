@@ -40,6 +40,16 @@ enum ToiletType {
   defecation
 }
 
+enum PetType {
+  dog
+  cat
+  bird
+  fish
+  hamster
+  rabbit
+  other
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   account    String   @unique
@@ -62,6 +72,7 @@ model User {
   healthWeights        HealthWeight[]
   healthDiets          HealthDiet[]
   healthToilets        HealthToilet[]
+  pets                 Pet[]
 }
 
 model School {
@@ -177,10 +188,35 @@ model CourseSession {
   updated_at           DateTime    @updatedAt
 }
 
+model Pet {
+  id         Int       @id @default(autoincrement())
+  name       String
+  type       PetType
+  breed      String?
+  gender     String?   // male / female / unknown
+  birthday   DateTime?
+  weight     Float?
+  avatar_url String?
+  note       String?
+  is_active  Boolean   @default(true)
+  user_id    Int
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  healthWeights  HealthWeight[]
+  healthDiets    HealthDiet[]
+  healthToilets  HealthToilet[]
+
+  @@index([user_id])
+}
+
 model HealthWeight {
   id         Int      @id @default(autoincrement())
   user_id    Int
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id     Int?
+  pet        Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
   date       DateTime
   weight     Float    // 體重（公斤）
   height     Float?   // 身高（公分）
@@ -189,13 +225,15 @@ model HealthWeight {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index([user_id, date])
+  @@index([user_id, pet_id, date])
 }
 
 model HealthDiet {
   id         Int      @id @default(autoincrement())
   user_id    Int
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id     Int?
+  pet        Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
   date       DateTime
   meal_type  MealType // 餐別
   food_name  String   // 食物名稱
@@ -205,13 +243,15 @@ model HealthDiet {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index([user_id, date])
+  @@index([user_id, pet_id, date])
 }
 
 model HealthToilet {
   id         Int        @id @default(autoincrement())
   user_id    Int
   user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id     Int?
+  pet        Pet?       @relation(fields: [pet_id], references: [id], onDelete: Cascade)
   date       DateTime
   time       String     // 時間（如 "10:30"）
   type       ToiletType // 類型
@@ -220,7 +260,7 @@ model HealthToilet {
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
 
-  @@index([user_id, date])
+  @@index([user_id, pet_id, date])
 }
 
 model AuditLog {

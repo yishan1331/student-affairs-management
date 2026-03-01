@@ -9,6 +9,14 @@ export class HealthToiletService {
 	constructor(private prisma: PrismaService) {}
 
 	async create(userId: number, dto: CreateHealthToiletDto) {
+		if (dto.pet_id) {
+			const pet = await this.prisma.pet.findFirst({
+				where: { id: dto.pet_id, user_id: userId },
+			});
+			if (!pet) {
+				throw new ForbiddenException('此寵物不存在或不屬於您');
+			}
+		}
 		return this.prisma.healthToilet.create({
 			data: {
 				...dto,
@@ -22,7 +30,10 @@ export class HealthToiletService {
 		return this.prisma.healthToilet.findMany({
 			...query,
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 	}
 
@@ -34,7 +45,10 @@ export class HealthToiletService {
 	async findOne(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.healthToilet.findUnique({
 			where: { id },
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 		});
 		if (!record) {
 			throw new NotFoundException('找不到此資料');
@@ -69,16 +83,22 @@ export class HealthToiletService {
 		}
 	}
 
-	async exportData(userId: number, isAdmin: boolean) {
-		const where = isAdmin ? {} : { user_id: userId };
+	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthToiletWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 		return this.prisma.healthToilet.findMany({
 			where,
-			include: { user: { select: { id: true, username: true } } },
+			include: {
+				user: { select: { id: true, username: true } },
+				pet: { select: { id: true, name: true, type: true } },
+			},
 			orderBy: { date: 'desc' },
 		});
 	}
 
-	async getTrend(userId: number, isAdmin: boolean, period: string, date: string) {
+	async getTrend(userId: number, isAdmin: boolean, period: string, date: string, petId?: number | null) {
 		const baseDate = new Date(date);
 		const y = baseDate.getFullYear();
 		const m = baseDate.getMonth();
@@ -109,6 +129,7 @@ export class HealthToiletService {
 
 		const where: Prisma.HealthToiletWhereInput = {
 			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
 			date: { gte: startDate, lte: endDate },
 		};
 
@@ -198,8 +219,11 @@ export class HealthToiletService {
 		return dates;
 	}
 
-	async getStatistics(userId: number, isAdmin: boolean) {
-		const where: Prisma.HealthToiletWhereInput = isAdmin ? {} : { user_id: userId };
+	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
+		const where: Prisma.HealthToiletWhereInput = {
+			...(isAdmin ? {} : { user_id: userId }),
+			...(petId !== undefined ? { pet_id: petId } : {}),
+		};
 
 		const [totalRecords, typeGroups, normalCount] = await Promise.all([
 			this.prisma.healthToilet.count({ where }),

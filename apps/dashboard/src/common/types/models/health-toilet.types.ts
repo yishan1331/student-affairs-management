@@ -6,6 +6,7 @@ export enum ToiletType {
 export interface IHealthToilet {
 	id: number;
 	user_id: number;
+	pet_id?: number;
 	date: Date;
 	time: string;
 	type: ToiletType;
@@ -17,6 +18,11 @@ export interface IHealthToilet {
 		id: number;
 		username: string;
 	};
+	pet?: {
+		id: number;
+		name: string;
+		type: string;
+	};
 }
 
 export interface ICreateHealthToilet {
@@ -25,6 +31,7 @@ export interface ICreateHealthToilet {
 	type: ToiletType;
 	is_normal?: boolean;
 	note?: string;
+	pet_id?: number;
 }
 
 export interface IUpdateHealthToilet {
@@ -33,4 +40,5 @@ export interface IUpdateHealthToilet {
 	type?: ToiletType;
 	is_normal?: boolean;
 	note?: string;
+	pet_id?: number;
 }

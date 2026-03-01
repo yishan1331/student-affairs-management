@@ -47,6 +47,13 @@ p, role:staff, /api/v1/health-toilet/:id, update
 p, role:staff, /api/v1/health-toilet/:id, delete
 p, role:staff, /api/v1/health-toilet/statistics, read
 p, role:staff, /api/v1/health-toilet/export, read
+p, role:staff, /api/v1/pet, read
+p, role:staff, /api/v1/pet, create
+p, role:staff, /api/v1/pet/:id, read
+p, role:staff, /api/v1/pet/:id, update
+p, role:staff, /api/v1/pet/:id, delete
+p, role:staff, /api/v1/pet/my-pets, read
+p, role:staff, /api/v1/pet/export, read
 
 p, role:manager, /api/v1/user, create
 p, role:manager, /api/v1/user/:id, update
@@ -113,6 +120,10 @@ p, role:admin, /api/v1/health-toilet, *
 p, role:admin, /api/v1/health-toilet/:id, *
 p, role:admin, /api/v1/health-toilet/statistics, *
 p, role:admin, /api/v1/health-toilet/export, *
+p, role:admin, /api/v1/pet, *
+p, role:admin, /api/v1/pet/:id, *
+p, role:admin, /api/v1/pet/my-pets, *
+p, role:admin, /api/v1/pet/export, *
 
 g, role:admin, role:manager
 g, role:manager, role:staff`;

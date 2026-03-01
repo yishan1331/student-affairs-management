@@ -10,36 +10,29 @@ import {
 import { Space, Table, Tag } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
-import { type PropsWithChildren, useState } from "react";
+import { type PropsWithChildren } from "react";
 
-import { IHealthDiet, MealType } from "../../common/types/models";
-import { ROUTE_PATH, ROUTE_RESOURCE, MEAL_TYPE_MAP } from "../../common/constants";
-import { HealthSubjectSelector } from "../../components";
+import { IPet, PetType } from "../../common/types/models";
+import { ROUTE_PATH, ROUTE_RESOURCE, PET_TYPE_MAP, PET_GENDER_MAP } from "../../common/constants";
 
-export const HealthDietList = ({ children }: PropsWithChildren) => {
+export const PetList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
 	const { pathname } = useLocation();
 	const { createUrl } = useNavigation();
-	const [petId, setPetId] = useState<number | undefined>(undefined);
 
 	const { resource } = useResource();
 
-	const { tableProps, sorters } = useTable<IHealthDiet>({
-		resource: ROUTE_RESOURCE.healthDiet,
+	const { tableProps, sorters } = useTable<IPet>({
+		resource: ROUTE_RESOURCE.pet,
 		initialSorter: [
 			{
-				field: "date",
+				field: "created_at",
 				order: "desc",
 			},
 		],
-		filters: {
-			permanent: [
-				{ field: "pet_id", operator: "eq", value: petId !== undefined ? petId : "null" },
-			],
-		},
 	});
 
-	const records = tableProps.dataSource as IHealthDiet[];
+	const records = tableProps.dataSource as IPet[];
 
 	return (
 		<List
@@ -52,7 +45,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 					style={{ marginLeft: 8 }}
 					onClick={() => {
 						return go({
-							to: `${createUrl(ROUTE_PATH.healthDiet)}`,
+							to: `${createUrl(ROUTE_PATH.pet)}`,
 							query: {
 								to: pathname,
 							},
@@ -63,58 +56,65 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 						});
 					}}
 				>
-					新增資料
+					新增寵物
 				</CreateButton>,
 			]}
 		>
-			<HealthSubjectSelector value={petId} onChange={setPetId} />
 			<Table {...tableProps} dataSource={records} rowKey="id">
 				<Table.Column
 					dataIndex="id"
 					title="ID"
 					defaultSortOrder={getDefaultSortOrder("id", sorters)}
 				/>
+				<Table.Column dataIndex="name" title="名稱" />
 				<Table.Column
-					dataIndex="date"
-					title="日期"
-					sorter
-					render={(value: string) =>
-						new Date(value).toLocaleDateString()
-					}
-				/>
-				<Table.Column
-					dataIndex="meal_type"
-					title="餐別"
-					render={(value: MealType) => {
-						const m = MEAL_TYPE_MAP[value];
-						return m ? (
-							<Tag color={m.color}>{m.label}</Tag>
+					dataIndex="type"
+					title="種類"
+					render={(value: PetType) => {
+						const t = PET_TYPE_MAP[value];
+						return t ? (
+							<Tag color={t.color}>{t.label}</Tag>
 						) : (
 							value
 						);
 					}}
 				/>
-				<Table.Column dataIndex="food_name" title="食物名稱" />
 				<Table.Column
-					dataIndex="amount"
-					title="份量"
+					dataIndex="breed"
+					title="品種"
 					render={(value: string) => value || "-"}
 				/>
 				<Table.Column
-					dataIndex="calories"
-					title="卡路里"
-					render={(value: number) =>
-						value != null ? value : "-"
+					dataIndex="gender"
+					title="性別"
+					render={(value: string) => {
+						const g = value ? PET_GENDER_MAP[value] : null;
+						return g ? (
+							<Tag color={g.color}>{g.label}</Tag>
+						) : (
+							"-"
+						);
+					}}
+				/>
+				<Table.Column
+					dataIndex="birthday"
+					title="生日"
+					render={(value: string) =>
+						value ? new Date(value).toLocaleDateString() : "-"
 					}
 				/>
 				<Table.Column
-					dataIndex="note"
-					title="備註"
-					render={(value: string) => value || "-"}
+					dataIndex="is_active"
+					title="狀態"
+					render={(value: boolean) => (
+						<Tag color={value ? "success" : "default"}>
+							{value ? "啟用" : "停用"}
+						</Tag>
+					)}
 				/>
-				<Table.Column<IHealthDiet>
+				<Table.Column<IPet>
 					title="操作"
-					render={(_: any, record: IHealthDiet) => (
+					render={(_: any, record: IPet) => (
 						<Space>
 							<ShowButton
 								hideText
@@ -127,7 +127,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 								recordItemId={record.id}
 							/>
 							<DeleteButton
-								resource={ROUTE_RESOURCE.healthDiet}
+								resource={ROUTE_RESOURCE.pet}
 								hideText
 								size="small"
 								recordItemId={record.id}

@@ -121,12 +121,14 @@ export class PrismaQueryBuilder {
 			}
 		}
 
-		// 處理可篩選欄位（自動識別布林值與數字）
+		// 處理可篩選欄位（自動識別布林值、數字、null）
 		if (this.options.filterableFields?.length) {
 			for (const field of this.options.filterableFields) {
 				if (query[field] !== undefined) {
 					const value = query[field];
-					if (value === 'true' || value === 'false') {
+					if (value === 'null') {
+						where[field] = null;
+					} else if (value === 'true' || value === 'false') {
 						where[field] = value === 'true';
 					} else if (!isNaN(Number(value))) {
 						where[field] = Number(value);

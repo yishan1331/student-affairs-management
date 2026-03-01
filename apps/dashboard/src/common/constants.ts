@@ -1,4 +1,4 @@
-import { MealType, ToiletType } from "./types/models";
+import { MealType, ToiletType, PetType } from "./types/models";
 
 export const TOKEN_KEY = "SAMS";
 
@@ -19,6 +19,24 @@ export const TOILET_TYPE_MAP: Record<ToiletType, { label: string; color: string 
 	[ToiletType.defecation]: { label: "大便", color: "orange" },
 };
 
+// 寵物管理 - 寵物類型對照
+export const PET_TYPE_MAP: Record<PetType, { label: string; color: string }> = {
+	[PetType.dog]: { label: "狗", color: "orange" },
+	[PetType.cat]: { label: "貓", color: "purple" },
+	[PetType.bird]: { label: "鳥", color: "cyan" },
+	[PetType.fish]: { label: "魚", color: "blue" },
+	[PetType.hamster]: { label: "倉鼠", color: "gold" },
+	[PetType.rabbit]: { label: "兔", color: "pink" },
+	[PetType.other]: { label: "其他", color: "default" },
+};
+
+// 寵物管理 - 性別對照
+export const PET_GENDER_MAP: Record<string, { label: string; color: string }> = {
+	male: { label: "公", color: "blue" },
+	female: { label: "母", color: "magenta" },
+	unknown: { label: "未知", color: "default" },
+};
+
 export const ROUTE_RESOURCE = {
 	schedule: "v1/course",
 	course: "v1/course",
@@ -33,6 +51,7 @@ export const ROUTE_RESOURCE = {
 	healthDiet: "v1/health-diet",
 	healthToilet: "v1/health-toilet",
 	healthTrend: "v1/health-weight",
+	pet: "v1/pet",
 };
 export const ROUTE_PATH = {
 	schedule: "schedule",
@@ -48,4 +67,5 @@ export const ROUTE_PATH = {
 	healthDiet: "health-diet",
 	healthToilet: "health-toilet",
 	healthTrend: "health-trend",
+	pet: "pet",
 };
