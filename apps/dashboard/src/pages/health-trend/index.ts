@@ -1,0 +1,1 @@
+export { HealthTrendList } from "./list";

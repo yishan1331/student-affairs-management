@@ -26,6 +26,7 @@ import {
 	SettingOutlined,
 	ReadOutlined,
 	HeartOutlined,
+	LineChartOutlined,
 } from "@ant-design/icons";
 
 import { authProvider } from "./providers/authProvider";
@@ -108,6 +109,7 @@ import {
 	HealthToiletEdit,
 	HealthToiletShow,
 } from "./pages/health-toilet";
+import { HealthTrendList } from "./pages/health-trend";
 import { DashboardPage } from "./pages/dashboard";
 import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
@@ -303,6 +305,15 @@ const AppContent = () => {
 						parent: "health",
 					},
 				},
+				{
+					name: "health-trend",
+					list: "/health-trend",
+					meta: {
+						label: "健康趨勢",
+						icon: <LineChartOutlined />,
+						parent: "health",
+					},
+				},
 				// ── 系統管理 ──
 				{
 					name: "system",
@@ -442,6 +453,10 @@ const AppContent = () => {
 						<Route path="create" element={<HealthToiletCreate />} />
 						<Route path="edit/:id" element={<HealthToiletEdit />} />
 						<Route path=":id" element={<HealthToiletShow />} />
+					</Route>
+
+					<Route path="/health-trend">
+						<Route index element={<HealthTrendList />} />
 					</Route>
 				</Route>
 

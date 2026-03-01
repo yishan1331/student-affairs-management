@@ -32,6 +32,7 @@ export const ROUTE_RESOURCE = {
 	healthWeight: "v1/health-weight",
 	healthDiet: "v1/health-diet",
 	healthToilet: "v1/health-toilet",
+	healthTrend: "v1/health-weight",
 };
 export const ROUTE_PATH = {
 	schedule: "schedule",
@@ -46,4 +47,5 @@ export const ROUTE_PATH = {
 	healthWeight: "health-weight",
 	healthDiet: "health-diet",
 	healthToilet: "health-toilet",
+	healthTrend: "health-trend",
 };

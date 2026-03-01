@@ -69,6 +69,14 @@ export class HealthWeightController {
 		return this.healthWeightService.getStatistics(user.id, user.role === 'admin');
 	}
 
+	@Get('trend')
+	getTrend(@Query() query: any, @Req() req: Request) {
+		const user = req.user as any;
+		const period = query.period || 'week';
+		const date = query.date || new Date().toISOString();
+		return this.healthWeightService.getTrend(user.id, user.role === 'admin', period, date);
+	}
+
 	@Get('export')
 	async exportData(@Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;

@@ -78,6 +78,120 @@ export class HealthWeightService {
 		});
 	}
 
+	async getTrend(userId: number, isAdmin: boolean, period: string, date: string) {
+		// 使用純字串日期計算避免時區問題
+		const baseDate = new Date(date);
+		const y = baseDate.getFullYear();
+		const m = baseDate.getMonth();
+		const d = baseDate.getDate();
+
+		let startStr: string;
+		let endStr: string;
+
+		if (period === 'day') {
+			const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+			startStr = ds;
+			endStr = ds;
+		} else if (period === 'month') {
+			const lastDay = new Date(y, m + 1, 0).getDate();
+			startStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+			endStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+		} else {
+			// week
+			const day = baseDate.getDay();
+			const diffToMonday = day === 0 ? -6 : 1 - day;
+			const mon = new Date(y, m, d + diffToMonday);
+			const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+			startStr = `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, '0')}-${String(mon.getDate()).padStart(2, '0')}`;
+			endStr = `${sun.getFullYear()}-${String(sun.getMonth() + 1).padStart(2, '0')}-${String(sun.getDate()).padStart(2, '0')}`;
+		}
+
+		const startDate = new Date(`${startStr}T00:00:00.000Z`);
+		const endDate = new Date(`${endStr}T23:59:59.999Z`);
+
+		const where = {
+			...(isAdmin ? {} : { user_id: userId }),
+			date: { gte: startDate, lte: endDate },
+		};
+
+		const records = await this.prisma.healthWeight.findMany({
+			where,
+			select: { date: true, weight: true, bmi: true },
+			orderBy: { date: 'asc' },
+		});
+
+		let data: { date: string; weight: number | null; bmi: number | null; count: number }[];
+
+		if (period === 'day') {
+			data = records.map((r) => ({
+				date: r.date.toISOString(),
+				weight: r.weight,
+				bmi: r.bmi,
+				count: 1,
+			}));
+		} else {
+			// 按日分組
+			const grouped: Record<string, { totalWeight: number; totalBmi: number; count: number; bmiCount: number }> = {};
+			for (const r of records) {
+				const key = r.date.toISOString().slice(0, 10);
+				if (!grouped[key]) {
+					grouped[key] = { totalWeight: 0, totalBmi: 0, count: 0, bmiCount: 0 };
+				}
+				grouped[key].totalWeight += r.weight;
+				grouped[key].count += 1;
+				if (r.bmi != null) {
+					grouped[key].totalBmi += r.bmi;
+					grouped[key].bmiCount += 1;
+				}
+			}
+
+			// 生成日期列表
+			data = [];
+			const allDates = this.generateDateRange(startStr, endStr);
+			for (const key of allDates) {
+				const g = grouped[key];
+				data.push({
+					date: key,
+					weight: g ? Math.round((g.totalWeight / g.count) * 100) / 100 : null,
+					bmi: g && g.bmiCount > 0 ? Math.round((g.totalBmi / g.bmiCount) * 100) / 100 : null,
+					count: g ? g.count : 0,
+				});
+			}
+		}
+
+		const validWeights = data.filter((d) => d.weight !== null).map((d) => d.weight as number);
+		const summary = validWeights.length > 0
+			? {
+				avgWeight: Math.round((validWeights.reduce((a, b) => a + b, 0) / validWeights.length) * 100) / 100,
+				minWeight: Math.min(...validWeights),
+				maxWeight: Math.max(...validWeights),
+				weightChange: validWeights.length >= 2
+					? Math.round((validWeights[validWeights.length - 1] - validWeights[0]) * 100) / 100
+					: 0,
+			}
+			: { avgWeight: 0, minWeight: 0, maxWeight: 0, weightChange: 0 };
+
+		return {
+			period,
+			startDate: startStr,
+			endDate: endStr,
+			data,
+			summary,
+		};
+	}
+
+	private generateDateRange(startStr: string, endStr: string): string[] {
+		const dates: string[] = [];
+		const [sy, sm, sd] = startStr.split('-').map(Number);
+		const end = new Date(Date.UTC(Number(endStr.split('-')[0]), Number(endStr.split('-')[1]) - 1, Number(endStr.split('-')[2])));
+		const cursor = new Date(Date.UTC(sy, sm - 1, sd));
+		while (cursor <= end) {
+			dates.push(cursor.toISOString().slice(0, 10));
+			cursor.setUTCDate(cursor.getUTCDate() + 1);
+		}
+		return dates;
+	}
+
 	async getStatistics(userId: number, isAdmin: boolean) {
 		const where = isAdmin ? {} : { user_id: userId };
 
