@@ -5,6 +5,7 @@ export interface ISchool {
 	description?: string;
 	address?: string;
 	color?: string;
+	display_order?: number;
 	is_active?: boolean;
 	modifier_id?: number;
 	created_at: Date;

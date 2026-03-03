@@ -24,7 +24,7 @@ import {
 import { useSearchParams } from "react-router";
 import { CustomDrawer } from "../../../components/drawer";
 import { UploadOutlined } from "@ant-design/icons";
-import { ISchoolUpdate } from "../../../common/types/models";
+import { IUpdateSchool } from "../../../common/types/models";
 import { useStyles } from "../editStyled";
 import { useDrawerClose } from "../../../hooks/useDrawerClose";
 import { useGlobalNotification } from "../../../hooks/useGlobalNotification";
@@ -46,7 +46,7 @@ export const SchoolDrawerForm = (props: Props) => {
 	const { user } = useUser();
 
 	const { drawerProps, formProps, close, saveButtonProps, formLoading } =
-		useDrawerForm<ISchoolUpdate>({
+		useDrawerForm<IUpdateSchool>({
 			resource: "v1/school",
 			id,
 			action: props.action,

@@ -1,7 +1,7 @@
 import { Edit, SaveButton, useForm } from "@refinedev/antd";
 import { useParsed, useResource } from "@refinedev/core";
 
-import { ISchoolUpdate } from "../../common/types/models";
+import { IUpdateSchool } from "../../common/types/models";
 import { SchoolForm } from "./form/form";
 import { ROUTE_RESOURCE } from "../../common/constants";
 import { CustomBreadcrumb } from "../../components";
@@ -14,7 +14,7 @@ export const SchoolEdit = () => {
 
 	const action = "修改";
 
-	const { formProps, saveButtonProps } = useForm<ISchoolUpdate>({
+	const { formProps, saveButtonProps } = useForm<IUpdateSchool>({
 		resource: ROUTE_RESOURCE.school,
 		id,
 		action: "edit",

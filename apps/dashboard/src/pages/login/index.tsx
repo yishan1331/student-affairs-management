@@ -8,7 +8,7 @@ import { useGlobalMessage } from "../../hooks/useGlobalMessage";
 import { showMessage } from "../../utils/message";
 
 // 檢查是否為測試環境
-const isTestEnvironment = process.env.NODE_ENV !== "production";
+const isTestEnvironment = import.meta.env.MODE !== "production";
 
 export const LoginPage: React.FC = () => {
 	const [form] = Form.useForm();
