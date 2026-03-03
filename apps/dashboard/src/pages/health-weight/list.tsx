@@ -7,7 +7,7 @@ import {
 	CreateButton,
 	getDefaultSortOrder,
 } from "@refinedev/antd";
-import { Space, Table } from "antd";
+import { Grid, Space, Table } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren, useState } from "react";
@@ -41,6 +41,9 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 
 	const records = tableProps.dataSource as IHealthWeight[];
 
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -68,12 +71,14 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
-			<Table {...tableProps} dataSource={records} rowKey="id">
-				<Table.Column
-					dataIndex="id"
-					title="ID"
-					defaultSortOrder={getDefaultSortOrder("id", sorters)}
-				/>
+			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="id"
+						title="ID"
+						defaultSortOrder={getDefaultSortOrder("id", sorters)}
+					/>
+				)}
 				<Table.Column
 					dataIndex="date"
 					title="日期"
@@ -107,31 +112,33 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 					title="備註"
 					render={(value: string) => value || "-"}
 				/>
-				<Table.Column
-					dataIndex="created_at"
-					title="建立時間"
-					render={(value: string) =>
-						new Date(value).toLocaleString()
-					}
-				/>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="created_at"
+						title="建立時間"
+						render={(value: string) =>
+							new Date(value).toLocaleString()
+						}
+					/>
+				)}
 				<Table.Column<IHealthWeight>
 					title="操作"
 					render={(_: any, record: IHealthWeight) => (
 						<Space>
 							<ShowButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<EditButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<DeleteButton
 								resource={ROUTE_RESOURCE.healthWeight}
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 								confirmTitle={`確認要刪除嗎？`}
 								confirmOkText={`確認`}

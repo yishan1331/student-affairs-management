@@ -30,6 +30,7 @@ import {
 	Calendar,
 	Badge,
 	Segmented,
+	Grid,
 } from "antd";
 import {
 	PlusOutlined,
@@ -96,6 +97,9 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	const [quickCreateLoading, setQuickCreateLoading] = useState(false);
 	const [quickCreateForm] = Form.useForm();
 	const sessionClickedRef = useRef(false);
+
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
 
 	// 計算月份篩選的日期範圍
 	const monthStart = selectedMonth.startOf("month").format("YYYY-MM-DD");
@@ -496,7 +500,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 			{/* 表格模式 */}
 			{viewMode === "table" && (
-				<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 1200 }}>
+				<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 					<Table.Column
 						dataIndex="id"
 						title="ID"
@@ -642,18 +646,18 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 								/>
 								<ShowButton
 									hideText
-									size="small"
+									size={isMobile ? "middle" : "small"}
 									recordItemId={record.id}
 								/>
 								<EditButton
 									hideText
-									size="small"
+									size={isMobile ? "middle" : "small"}
 									recordItemId={record.id}
 								/>
 								<DeleteButton
 									resource={ROUTE_RESOURCE.courseSession}
 									hideText
-									size="small"
+									size={isMobile ? "middle" : "small"}
 									recordItemId={record.id}
 									confirmTitle="確認要刪除嗎？"
 									confirmOkText="確認"

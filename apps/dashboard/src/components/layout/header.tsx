@@ -4,6 +4,7 @@ import {
 	Layout as AntdLayout,
 	Avatar,
 	Button,
+	Grid,
 	Space,
 	theme,
 	Typography,
@@ -25,6 +26,8 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 	const { data: user } = useGetIdentity<IUser>();
 	const { mode, setMode } = useContext(ColorModeContext);
 	const { setUser } = useUser();
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = typeof breakpoint.lg === 'undefined' ? false : !breakpoint.lg;
 
 	useEffect(() => {
 		if (user) {
@@ -37,7 +40,7 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 		display: 'flex',
 		justifyContent: 'flex-end',
 		alignItems: 'center',
-		padding: '0px 24px',
+		padding: isMobile ? '0px 12px 0px 48px' : '0px 24px',
 		height: '64px',
 	};
 
@@ -59,15 +62,12 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 					}}
 					size="large"
 				/>
-				<Space style={{ marginLeft: '10px' }} size="small">
+				<Space style={{ marginLeft: isMobile ? '4px' : '10px' }} size="small">
 					<Avatar
 						style={{ backgroundColor: 'var(--primary-btn-color)' }}
 						icon={<UserOutlined />}
 					/>
-					{user?.username && <Text strong>{user.username}</Text>}
-					{/* {user?.avatar && (
-						<Avatar src={user?.avatar} alt={user?.name} />
-					)} */}
+					{!isMobile && user?.username && <Text strong>{user.username}</Text>}
 				</Space>
 			</Space>
 		</AntdLayout.Header>

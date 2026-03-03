@@ -7,7 +7,7 @@ import {
 	CreateButton,
 	getDefaultSortOrder,
 } from "@refinedev/antd";
-import { Space, Table, Tag } from "antd";
+import { Grid, Space, Table, Tag } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren, useState } from "react";
@@ -41,6 +41,9 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 
 	const records = tableProps.dataSource as IHealthSymptom[];
 
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -68,12 +71,14 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
-			<Table {...tableProps} dataSource={records} rowKey="id">
-				<Table.Column
-					dataIndex="id"
-					title="ID"
-					defaultSortOrder={getDefaultSortOrder("id", sorters)}
-				/>
+			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="id"
+						title="ID"
+						defaultSortOrder={getDefaultSortOrder("id", sorters)}
+					/>
+				)}
 				<Table.Column
 					dataIndex="date"
 					title="日期"
@@ -117,11 +122,13 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 					title="持續時間"
 					render={(value: number | null) => value ? `${value} 分鐘` : "-"}
 				/>
-				<Table.Column
-					dataIndex="body_part"
-					title="身體部位"
-					render={(value: string) => value || "-"}
-				/>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="body_part"
+						title="身體部位"
+						render={(value: string) => value || "-"}
+					/>
+				)}
 				<Table.Column
 					dataIndex="is_recurring"
 					title="反覆發生"
@@ -131,29 +138,31 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 						</Tag>
 					)}
 				/>
-				<Table.Column
-					dataIndex="note"
-					title="備註"
-					render={(value: string) => value || "-"}
-				/>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="note"
+						title="備註"
+						render={(value: string) => value || "-"}
+					/>
+				)}
 				<Table.Column<IHealthSymptom>
 					title="操作"
 					render={(_: any, record: IHealthSymptom) => (
 						<Space>
 							<ShowButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<EditButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<DeleteButton
 								resource={ROUTE_RESOURCE.healthSymptom}
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 								confirmTitle={`確認要刪除嗎？`}
 								confirmOkText={`確認`}

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
 	Card,
 	Col,
+	Grid,
 	Row,
 	Radio,
 	DatePicker,
@@ -127,8 +128,8 @@ const PeriodControls: React.FC<{
 
 	return (
 		<Card style={{ marginBottom: 16 }}>
-			<Row gutter={[16, 16]} align="middle">
-				<Col>
+			<Row gutter={[12, 12]} align="middle">
+				<Col xs={24} sm="auto">
 					<Radio.Group
 						value={period}
 						onChange={(e) => setPeriod(e.target.value)}
@@ -140,7 +141,7 @@ const PeriodControls: React.FC<{
 						<Radio.Button value="month">月</Radio.Button>
 					</Radio.Group>
 				</Col>
-				<Col>
+				<Col xs={24} sm="auto">
 					<Space>
 						<Button
 							icon={<LeftOutlined />}
@@ -158,7 +159,7 @@ const PeriodControls: React.FC<{
 						/>
 					</Space>
 				</Col>
-				<Col>
+				<Col xs={24} sm="auto">
 					<Typography.Text type="secondary">
 						{periodLabel}
 					</Typography.Text>
@@ -170,10 +171,11 @@ const PeriodControls: React.FC<{
 
 // ===== 體重趨勢 Tab =====
 
-const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
+const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; isMobile: boolean }> = ({
 	period,
 	date,
 	petId,
+	isMobile,
 }) => {
 	const [trendData, setTrendData] = useState<WeightTrendResponse | null>(
 		null
@@ -315,7 +317,7 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> 
 				</Card>
 			) : (
 				<Card title="體重 / BMI 趨勢">
-					<DualAxes {...dualAxesConfig} height={400} />
+					<DualAxes {...dualAxesConfig} height={isMobile ? 280 : 400} />
 				</Card>
 			)}
 		</>
@@ -324,10 +326,11 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> 
 
 // ===== 如廁趨勢 Tab =====
 
-const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
+const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; isMobile: boolean }> = ({
 	period,
 	date,
 	petId,
+	isMobile,
 }) => {
 	const [trendData, setTrendData] = useState<ToiletTrendResponse | null>(
 		null
@@ -463,12 +466,12 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> 
 				<Row gutter={[16, 16]}>
 					<Col xs={24} lg={16}>
 						<Card title="每日如廁次數">
-							<Column {...columnConfig} height={400} />
+							<Column {...columnConfig} height={isMobile ? 280 : 400} />
 						</Card>
 					</Col>
 					<Col xs={24} lg={8}>
 						<Card title="正常 / 異常比例">
-							<Pie {...pieConfig} height={400} />
+							<Pie {...pieConfig} height={isMobile ? 280 : 400} />
 						</Card>
 					</Col>
 				</Row>
@@ -496,10 +499,11 @@ const symptomTypeLabels: Record<string, string> = {
 	other: "其他",
 };
 
-const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }> = ({
+const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; isMobile: boolean }> = ({
 	period,
 	date,
 	petId,
+	isMobile,
 }) => {
 	const [trendData, setTrendData] = useState<SymptomTrendResponse | null>(
 		null
@@ -659,18 +663,18 @@ const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }>
 			) : (
 				<>
 					<Card title="每日症狀次數" style={{ marginBottom: 16 }}>
-						<Column {...columnConfig} height={400} />
+						<Column {...columnConfig} height={isMobile ? 280 : 400} />
 					</Card>
 					<Row gutter={[16, 16]}>
 						<Col xs={24} lg={12}>
 							<Card title="嚴重程度分布">
-								<Pie {...severityPieConfig} height={300} />
+								<Pie {...severityPieConfig} height={isMobile ? 250 : 300} />
 							</Card>
 						</Col>
 						<Col xs={24} lg={12}>
 							<Card title="常見症狀 TOP 3">
 								{symptomTypePieData.length > 0 ? (
-									<Pie {...symptomPieConfig} height={300} />
+									<Pie {...symptomPieConfig} height={isMobile ? 250 : 300} />
 								) : (
 									<Empty description="無資料" />
 								)}
@@ -686,6 +690,8 @@ const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number }>
 // ===== 主頁面 =====
 
 export const HealthTrendList: React.FC = () => {
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
 	const [period, setPeriod] = useState<Period>("week");
 	const [date, setDate] = useState<Dayjs>(dayjs());
 	const [periodLabel, setPeriodLabel] = useState("");
@@ -751,7 +757,7 @@ export const HealthTrendList: React.FC = () => {
 							</span>
 						),
 						children: (
-							<WeightTrendTab period={period} date={date} petId={petId} />
+							<WeightTrendTab period={period} date={date} petId={petId} isMobile={isMobile} />
 						),
 					},
 					{
@@ -762,7 +768,7 @@ export const HealthTrendList: React.FC = () => {
 							</span>
 						),
 						children: (
-							<ToiletTrendTab period={period} date={date} petId={petId} />
+							<ToiletTrendTab period={period} date={date} petId={petId} isMobile={isMobile} />
 						),
 					},
 					{
@@ -773,7 +779,7 @@ export const HealthTrendList: React.FC = () => {
 							</span>
 						),
 						children: (
-							<SymptomTrendTab period={period} date={date} petId={petId} />
+							<SymptomTrendTab period={period} date={date} petId={petId} isMobile={isMobile} />
 						),
 					},
 				]}

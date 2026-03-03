@@ -7,7 +7,7 @@ import {
 	CreateButton,
 	getDefaultSortOrder,
 } from "@refinedev/antd";
-import { Space, Table, Tag } from "antd";
+import { Grid, Space, Table, Tag } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
@@ -41,6 +41,9 @@ export const AttendanceList = ({ children }: PropsWithChildren) => {
 
 	const records = tableProps.dataSource as IAttendance[];
 
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -67,12 +70,14 @@ export const AttendanceList = ({ children }: PropsWithChildren) => {
 				</CreateButton>,
 			]}
 		>
-			<Table {...tableProps} dataSource={records} rowKey="id">
-				<Table.Column
-					dataIndex="id"
-					title="ID"
-					defaultSortOrder={getDefaultSortOrder("id", sorters)}
-				/>
+			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="id"
+						title="ID"
+						defaultSortOrder={getDefaultSortOrder("id", sorters)}
+					/>
+				)}
 				<Table.Column dataIndex="student_id" title="學生ID" />
 				<Table.Column
 					dataIndex="date"
@@ -93,39 +98,45 @@ export const AttendanceList = ({ children }: PropsWithChildren) => {
 						);
 					}}
 				/>
-				<Table.Column dataIndex="modifier_id" title="修改者ID" />
-				<Table.Column
-					dataIndex="created_at"
-					title="建立時間"
-					render={(value: string) =>
-						new Date(value).toLocaleString()
-					}
-				/>
-				<Table.Column
-					dataIndex="updated_at"
-					title="更新時間"
-					render={(value: string) =>
-						new Date(value).toLocaleString()
-					}
-				/>
+				{!isMobile && (
+					<Table.Column dataIndex="modifier_id" title="修改者ID" />
+				)}
+				{!isMobile && (
+					<Table.Column
+						dataIndex="created_at"
+						title="建立時間"
+						render={(value: string) =>
+							new Date(value).toLocaleString()
+						}
+					/>
+				)}
+				{!isMobile && (
+					<Table.Column
+						dataIndex="updated_at"
+						title="更新時間"
+						render={(value: string) =>
+							new Date(value).toLocaleString()
+						}
+					/>
+				)}
 				<Table.Column<IAttendance>
 					title="操作"
 					render={(_: any, record: IAttendance) => (
 						<Space>
 							<ShowButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<EditButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<DeleteButton
 								resource={ROUTE_RESOURCE.attendance}
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 								confirmTitle={`確認要刪除嗎？`}
 								confirmOkText={`確認`}

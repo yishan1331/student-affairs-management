@@ -173,15 +173,18 @@ export const SalaryOverviewList: React.FC = () => {
 		},
 	];
 
-	const expandedRowRender = (record: ISalarySummaryCourse) => {
+	const expandedRowRenderWithScroll = (record: ISalarySummaryCourse) => {
 		return (
-			<Table
-				columns={sessionColumns}
-				dataSource={record.sessions}
-				rowKey={(session) => `${record.courseId}-${session.date}`}
-				pagination={false}
-				size="small"
-			/>
+			<div style={{ overflowX: "auto" }}>
+				<Table
+					columns={sessionColumns}
+					dataSource={record.sessions}
+					rowKey={(session) => `${record.courseId}-${session.date}`}
+					pagination={false}
+					size="small"
+					scroll={{ x: 'max-content' }}
+				/>
+			</div>
 		);
 	};
 
@@ -304,8 +307,9 @@ export const SalaryOverviewList: React.FC = () => {
 							dataSource={school.courses}
 							rowKey="courseId"
 							pagination={false}
+							scroll={{ x: 'max-content' }}
 							expandable={{
-								expandedRowRender,
+								expandedRowRender: expandedRowRenderWithScroll,
 								rowExpandable: (record) =>
 									record.sessions && record.sessions.length > 0,
 							}}

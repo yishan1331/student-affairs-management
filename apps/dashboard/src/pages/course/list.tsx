@@ -8,7 +8,7 @@ import {
 	getDefaultSortOrder,
 	useSelect,
 } from "@refinedev/antd";
-import { Space, Table, Typography } from "antd";
+import { Grid, Space, Table, Typography } from "antd";
 import { useGo, useNavigation, useResource } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
@@ -54,6 +54,9 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 			filters: [{ field: "is_active", operator: "eq", value: true }],
 		});
 	const medicalCategories = queryResult?.data?.data || [];
+
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
 
 	return (
 		<List
@@ -108,12 +111,14 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 				</Form>
 			</Card> */}
 
-			<Table {...tableProps} dataSource={records} rowKey="id">
-				<Table.Column
-					dataIndex="id"
-					title="ID"
-					defaultSortOrder={getDefaultSortOrder("id", sorters)}
-				/>
+			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="id"
+						title="ID"
+						defaultSortOrder={getDefaultSortOrder("id", sorters)}
+					/>
+				)}
 				<Table.Column dataIndex="name" title="名稱" />
 				<Table.Column<ICourse>
 					title="學校"
@@ -146,36 +151,40 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 						value ? dayjs(value).format("HH:mm") : "-"
 					}
 				/>
-				<Table.Column
-					dataIndex="duration"
-					title="時長"
-					render={(value: number) =>
-						value ? `${value} 分鐘` : "-"
-					}
-				/>
-				<Table.Column
-					dataIndex="updated_at"
-					title="更新時間"
-					render={(value: string) => new Date(value).toLocaleString()}
-				/>
+				{!isMobile && (
+					<Table.Column
+						dataIndex="duration"
+						title="時長"
+						render={(value: number) =>
+							value ? `${value} 分鐘` : "-"
+						}
+					/>
+				)}
+				{!isMobile && (
+					<Table.Column
+						dataIndex="updated_at"
+						title="更新時間"
+						render={(value: string) => new Date(value).toLocaleString()}
+					/>
+				)}
 				<Table.Column<ICourse>
 					title="操作"
 					render={(_: any, record: ICourse) => (
 						<Space>
 							<ShowButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<EditButton
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 							/>
 							<DeleteButton
 								resource={ROUTE_RESOURCE.course}
 								hideText
-								size="small"
+								size={isMobile ? "middle" : "small"}
 								recordItemId={record.id}
 								confirmTitle={`確認要刪除嗎？`}
 								confirmOkText={`確認`}
