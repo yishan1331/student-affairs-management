@@ -13,6 +13,9 @@ import {
 	Empty,
 	Space,
 	Button,
+	Grid,
+	Segmented,
+	theme,
 } from "antd";
 import {
 	ScheduleOutlined,
@@ -78,6 +81,9 @@ const minutesToTime = (minutes: number): string => {
 };
 
 export const ScheduleList: React.FC = () => {
+	const { token } = theme.useToken();
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
 	const go = useGo();
 	const [courses, setCourses] = useState<IScheduleCourse[]>([]);
 	const [schools, setSchools] = useState<ISchool[]>([]);
@@ -95,6 +101,7 @@ export const ScheduleList: React.FC = () => {
 		"6",
 	]);
 	const [searchName, setSearchName] = useState("");
+	const [mobileActiveDay, setMobileActiveDay] = useState("1");
 
 	// 取得學校列表
 	useEffect(() => {
@@ -233,6 +240,320 @@ export const ScheduleList: React.FC = () => {
 	const ROW_HEIGHT_PER_30MIN = 48; // 每 30 分鐘的像素高度
 	const gridHeight = (totalMinutes / 30) * ROW_HEIGHT_PER_30MIN;
 
+	// 渲染單日課表欄位（mobile 和 desktop 共用）
+	const renderDayColumn = (day: string) => (
+		<div
+			key={day}
+			style={{
+				position: "relative",
+				height: gridHeight,
+				borderRight: `1px solid ${token.colorBorderSecondary}`,
+			}}
+		>
+			{/* 格線 */}
+			{timeSlots.map((slot) => (
+				<div
+					key={slot}
+					style={{
+						position: "absolute",
+						top:
+							((slot - timeRange.min) /
+								totalMinutes) *
+							gridHeight,
+						left: 0,
+						right: 0,
+						height: ROW_HEIGHT_PER_30MIN,
+						borderTop: `1px solid ${token.colorBorderSecondary}`,
+					}}
+				/>
+			))}
+
+			{/* 課程色塊 */}
+			{coursesByDay[day]?.map((course) => {
+				const startMin = timeToMinutes(course.start_time);
+				const endMin = timeToMinutes(course.end_time);
+				const top =
+					((startMin - timeRange.min) / totalMinutes) * gridHeight;
+				const height =
+					((endMin - startMin) / totalMinutes) * gridHeight;
+				const bgColor =
+					schoolColorMap[course.school_id] || "#1677ff";
+
+				return (
+					<Tooltip
+						key={`${course.id}-${day}`}
+						title={
+							<div>
+								<div>
+									<b>{course.name}</b>
+								</div>
+								<div>
+									學校：{course.school?.name}
+								</div>
+								<div>
+									時間：{minutesToTime(startMin)} ~{" "}
+									{minutesToTime(endMin)}
+								</div>
+								<div>
+									時長：{course.duration} 分鐘
+								</div>
+								<div>年級：{course.grade}</div>
+							</div>
+						}
+					>
+						<div
+							onClick={() =>
+								go({
+									to: `/course/${course.id}`,
+									type: "push",
+								})
+							}
+							style={{
+								position: "absolute",
+								top: top + 1,
+								left: 4,
+								right: 4,
+								height: Math.max(height - 2, 20),
+								background: bgColor,
+								borderRadius: 6,
+								padding: "6px 10px",
+								color: "#fff",
+								fontSize: 14,
+								lineHeight: "1.5",
+								overflow: "hidden",
+								cursor: "pointer",
+								boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+								transition:
+									"transform 0.15s, box-shadow 0.15s",
+								zIndex: 1,
+								display: "flex",
+								flexDirection: "column",
+								justifyContent: "center",
+								alignItems: "center",
+								textAlign: "center",
+							}}
+							onMouseEnter={(e) => {
+								(
+									e.currentTarget as HTMLDivElement
+								).style.transform = "scale(1.02)";
+								(
+									e.currentTarget as HTMLDivElement
+								).style.boxShadow =
+									"0 3px 8px rgba(0,0,0,0.25)";
+							}}
+							onMouseLeave={(e) => {
+								(
+									e.currentTarget as HTMLDivElement
+								).style.transform = "scale(1)";
+								(
+									e.currentTarget as HTMLDivElement
+								).style.boxShadow =
+									"0 1px 3px rgba(0,0,0,0.15)";
+							}}
+						>
+							<div
+								style={{
+									fontWeight: 600,
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									width: "100%",
+									textAlign: "center",
+								}}
+							>
+								{course.name}
+							</div>
+							{height > 36 && (
+								<div
+									style={{
+										fontSize: 13,
+										opacity: 0.9,
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										width: "100%",
+										textAlign: "center",
+									}}
+								>
+									{course.school?.name}
+								</div>
+							)}
+							{height > 52 && (
+								<div
+									style={{
+										fontSize: 12,
+										opacity: 0.8,
+										textAlign: "center",
+									}}
+								>
+									{minutesToTime(startMin)}~
+									{minutesToTime(endMin)}
+								</div>
+							)}
+						</div>
+					</Tooltip>
+				);
+			})}
+		</div>
+	);
+
+	// 渲染時間軸欄位（共用）
+	const renderTimeColumn = () => (
+		<div
+			style={{
+				borderRight: `1px solid ${token.colorBorderSecondary}`,
+				position: "relative",
+				height: gridHeight,
+			}}
+		>
+			{timeSlots.map((slot) => (
+				<div
+					key={slot}
+					style={{
+						position: "absolute",
+						top:
+							((slot - timeRange.min) / totalMinutes) *
+							gridHeight,
+						left: 0,
+						right: 0,
+						padding: "2px 6px",
+						fontSize: 12,
+						color: token.colorTextSecondary,
+						borderTop: `1px solid ${token.colorBorderSecondary}`,
+						height: ROW_HEIGHT_PER_30MIN,
+					}}
+				>
+					{minutesToTime(slot)}
+				</div>
+			))}
+		</div>
+	);
+
+	// Mobile 課表
+	const renderMobileSchedule = () => {
+		const dayCourses = coursesByDay[mobileActiveDay] || [];
+
+		return (
+			<div style={{ paddingBottom: 60 }}>
+				{/* 星期切換 */}
+				<Segmented
+					block
+					value={mobileActiveDay}
+					onChange={(val) => setMobileActiveDay(val as string)}
+					options={selectedDays.map((d) => ({
+						label: DAY_MAP[d],
+						value: d,
+					}))}
+					style={{ marginBottom: 12 }}
+				/>
+
+				{dayCourses.length === 0 ? (
+					<Empty
+						description={`${DAY_MAP[mobileActiveDay]} 沒有課程`}
+						style={{ padding: "40px 0" }}
+					/>
+				) : (
+					<div
+						style={{
+							display: "grid",
+							gridTemplateColumns: "54px 1fr",
+						}}
+					>
+						{/* 表頭 */}
+						<div
+							style={{
+								borderBottom: `2px solid ${token.colorBorderSecondary}`,
+								borderRight: `1px solid ${token.colorBorderSecondary}`,
+								padding: "8px 4px",
+								textAlign: "center",
+								fontWeight: 600,
+								background: token.colorBgLayout,
+								color: token.colorText,
+								position: "sticky",
+								top: 0,
+								zIndex: 2,
+								fontSize: 12,
+							}}
+						>
+							時間
+						</div>
+						<div
+							style={{
+								borderBottom: `2px solid ${token.colorBorderSecondary}`,
+								padding: "8px",
+								textAlign: "center",
+								fontWeight: 600,
+								background: token.colorBgLayout,
+								color: token.colorText,
+								position: "sticky",
+								top: 0,
+								zIndex: 2,
+							}}
+						>
+							{DAY_MAP[mobileActiveDay]}
+						</div>
+
+						{/* 時間軸 + 課程 */}
+						{renderTimeColumn()}
+						{renderDayColumn(mobileActiveDay)}
+					</div>
+				)}
+			</div>
+		);
+	};
+
+	// Desktop 課表
+	const renderDesktopSchedule = () => (
+		<div style={{ overflowX: "auto" }}>
+			<div
+				style={{
+					display: "grid",
+					gridTemplateColumns: `80px repeat(${selectedDays.length}, 1fr)`,
+					minWidth: selectedDays.length * 140 + 80,
+				}}
+			>
+				{/* 表頭 */}
+				<div
+					style={{
+						borderBottom: `2px solid ${token.colorBorderSecondary}`,
+						borderRight: `1px solid ${token.colorBorderSecondary}`,
+						padding: "12px 8px",
+						textAlign: "center",
+						fontWeight: 600,
+						background: token.colorBgLayout,
+						color: token.colorText,
+						position: "sticky",
+						top: 0,
+						zIndex: 2,
+					}}
+				>
+					時間
+				</div>
+				{selectedDays.map((day) => (
+					<div
+						key={day}
+						style={{
+							borderBottom: `2px solid ${token.colorBorderSecondary}`,
+							borderRight: `1px solid ${token.colorBorderSecondary}`,
+							padding: "12px 8px",
+							textAlign: "center",
+							fontWeight: 600,
+							background: token.colorBgLayout,
+							color: token.colorText,
+							position: "sticky",
+							top: 0,
+							zIndex: 2,
+						}}
+					>
+						{DAY_MAP[day]}
+					</div>
+				))}
+
+				{/* 時間軸 + 課程格子 */}
+				{renderTimeColumn()}
+				{selectedDays.map((day) => renderDayColumn(day))}
+			</div>
+		</div>
+	);
+
 	return (
 		<div>
 			<Title level={3}>
@@ -296,18 +617,20 @@ export const ScheduleList: React.FC = () => {
 						</Button>
 					</Col>
 				</Row>
-				<Row style={{ marginTop: 12 }}>
-					<Col span={24}>
-						<Text strong style={{ marginRight: 8 }}>
-							顯示星期：
-						</Text>
-						<Checkbox.Group
-							options={DAY_OPTIONS}
-							value={selectedDays}
-							onChange={(vals) => setSelectedDays(vals as string[])}
-						/>
-					</Col>
-				</Row>
+				{!isMobile && (
+					<Row style={{ marginTop: 12 }}>
+						<Col span={24}>
+							<Text strong style={{ marginRight: 8 }}>
+								顯示星期：
+							</Text>
+							<Checkbox.Group
+								options={DAY_OPTIONS}
+								value={selectedDays}
+								onChange={(vals) => setSelectedDays(vals as string[])}
+							/>
+						</Col>
+					</Row>
+				)}
 			</Card>
 
 			{/* 學校圖例 */}
@@ -344,261 +667,10 @@ export const ScheduleList: React.FC = () => {
 				<Card>
 					<Empty description="目前沒有符合條件的課程" />
 				</Card>
+			) : isMobile ? (
+				renderMobileSchedule()
 			) : (
-				<Card bodyStyle={{ padding: 0, overflow: "auto" }}>
-					<div
-						style={{
-							display: "grid",
-							gridTemplateColumns: `80px repeat(${selectedDays.length}, 1fr)`,
-							minWidth: selectedDays.length * 140 + 80,
-						}}
-					>
-						{/* 表頭 */}
-						<div
-							style={{
-								borderBottom: "2px solid #d9d9d9",
-								borderRight: "1px solid #f0f0f0",
-								padding: "12px 8px",
-								textAlign: "center",
-								fontWeight: 600,
-								background: "#fafafa",
-								position: "sticky",
-								top: 0,
-								zIndex: 2,
-							}}
-						>
-							時間
-						</div>
-						{selectedDays.map((day) => (
-							<div
-								key={day}
-								style={{
-									borderBottom: "2px solid #d9d9d9",
-									borderRight: "1px solid #f0f0f0",
-									padding: "12px 8px",
-									textAlign: "center",
-									fontWeight: 600,
-									background: "#fafafa",
-									position: "sticky",
-									top: 0,
-									zIndex: 2,
-								}}
-							>
-								{DAY_MAP[day]}
-							</div>
-						))}
-
-						{/* 時間軸 + 課程格子 */}
-						<div
-							style={{
-								borderRight: "1px solid #f0f0f0",
-								position: "relative",
-								height: gridHeight,
-							}}
-						>
-							{timeSlots.map((slot) => (
-								<div
-									key={slot}
-									style={{
-										position: "absolute",
-										top:
-											((slot - timeRange.min) /
-												totalMinutes) *
-											gridHeight,
-										left: 0,
-										right: 0,
-										padding: "2px 6px",
-										fontSize: 12,
-										color: "#8c8c8c",
-										borderTop: "1px solid #f0f0f0",
-										height: ROW_HEIGHT_PER_30MIN,
-									}}
-								>
-									{minutesToTime(slot)}
-								</div>
-							))}
-						</div>
-
-						{selectedDays.map((day) => (
-							<div
-								key={day}
-								style={{
-									position: "relative",
-									height: gridHeight,
-									borderRight: "1px solid #f0f0f0",
-								}}
-							>
-								{/* 格線 */}
-								{timeSlots.map((slot) => (
-									<div
-										key={slot}
-										style={{
-											position: "absolute",
-											top:
-												((slot - timeRange.min) /
-													totalMinutes) *
-												gridHeight,
-											left: 0,
-											right: 0,
-											height: ROW_HEIGHT_PER_30MIN,
-											borderTop: "1px solid #f0f0f0",
-										}}
-									/>
-								))}
-
-								{/* 課程色塊 */}
-								{coursesByDay[day]?.map((course) => {
-									const startMin = timeToMinutes(
-										course.start_time,
-									);
-									const endMin = timeToMinutes(
-										course.end_time,
-									);
-									const top =
-										((startMin - timeRange.min) /
-											totalMinutes) *
-										gridHeight;
-									const height =
-										((endMin - startMin) / totalMinutes) *
-										gridHeight;
-									const bgColor =
-										schoolColorMap[course.school_id] ||
-										"#1677ff";
-
-									return (
-										<Tooltip
-											key={`${course.id}-${day}`}
-											title={
-												<div>
-													<div>
-														<b>{course.name}</b>
-													</div>
-													<div>
-														學校：
-														{course.school?.name}
-													</div>
-													<div>
-														時間：
-														{minutesToTime(
-															startMin,
-														)}{" "}
-														~{" "}
-														{minutesToTime(endMin)}
-													</div>
-													<div>
-														時長：{course.duration}{" "}
-														分鐘
-													</div>
-													<div>
-														年級：{course.grade}
-													</div>
-												</div>
-											}
-										>
-											<div
-												onClick={() =>
-													go({
-														to: `/course/${course.id}`,
-														type: "push",
-													})
-												}
-												style={{
-													position: "absolute",
-													top: top + 1,
-													left: 4,
-													right: 4,
-													height:
-														Math.max(height - 2, 20),
-													background: bgColor,
-													borderRadius: 6,
-													padding: "6px 10px",
-													color: "#fff",
-													fontSize: 14,
-													lineHeight: "1.5",
-													overflow: "hidden",
-													cursor: "pointer",
-													boxShadow:
-														"0 1px 3px rgba(0,0,0,0.15)",
-													transition:
-														"transform 0.15s, box-shadow 0.15s",
-													zIndex: 1,
-													display: "flex",
-													flexDirection: "column",
-													justifyContent: "center",
-													alignItems: "center",
-													textAlign: "center",
-												}}
-												onMouseEnter={(e) => {
-													(
-														e.currentTarget as HTMLDivElement
-													).style.transform =
-														"scale(1.02)";
-													(
-														e.currentTarget as HTMLDivElement
-													).style.boxShadow =
-														"0 3px 8px rgba(0,0,0,0.25)";
-												}}
-												onMouseLeave={(e) => {
-													(
-														e.currentTarget as HTMLDivElement
-													).style.transform =
-														"scale(1)";
-													(
-														e.currentTarget as HTMLDivElement
-													).style.boxShadow =
-														"0 1px 3px rgba(0,0,0,0.15)";
-												}}
-											>
-												<div
-													style={{
-														fontWeight: 600,
-														overflow: "hidden",
-														textOverflow:
-															"ellipsis",
-														width: "100%",
-														textAlign: "center",
-													}}
-												>
-													{course.name}
-												</div>
-												{height > 36 && (
-													<div
-														style={{
-															fontSize: 13,
-															opacity: 0.9,
-															overflow: "hidden",
-															textOverflow:
-																"ellipsis",
-															width: "100%",
-															textAlign: "center",
-														}}
-													>
-														{course.school?.name}
-													</div>
-												)}
-												{height > 52 && (
-													<div
-														style={{
-															fontSize: 12,
-															opacity: 0.8,
-															textAlign: "center",
-														}}
-													>
-														{minutesToTime(
-															startMin,
-														)}
-														~
-														{minutesToTime(endMin)}
-													</div>
-												)}
-											</div>
-										</Tooltip>
-									);
-								})}
-							</div>
-						))}
-					</div>
-				</Card>
+				renderDesktopSchedule()
 			)}
 		</div>
 	);
