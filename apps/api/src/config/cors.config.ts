@@ -1,6 +1,9 @@
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
-const whitelist = ['https://student-management-system-dashboard.vercel.app'];
+const whitelist = [
+	'https://astrid-app.vercel.app',
+	'http://localhost:5173',
+];
 
 export const corsOptions: CorsOptions = {
 	origin: (origin, callback) => {
