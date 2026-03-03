@@ -5,17 +5,22 @@ const whitelist = [
 	'http://localhost:5173',
 ];
 
+// 允許 Vercel preview deployment URLs (e.g. astrid-xxx-yishan1331s-projects.vercel.app)
+const isAllowedOrigin = (origin: string): boolean => {
+	if (whitelist.includes(origin)) return true;
+	if (/^https:\/\/astrid-.*\.vercel\.app$/.test(origin)) return true;
+	return false;
+};
+
 export const corsOptions: CorsOptions = {
 	origin: (origin, callback) => {
 		// 如果沒有 origin（例如 curl 或同源請求），允許
 		if (!origin) return callback(null, true);
 
-		if (whitelist.includes(origin)) {
+		if (isAllowedOrigin(origin)) {
 			return callback(null, true);
 		}
 
-		// ⚠️ fallback：如果在 serverless 中不穩，可以開 origin: true 改這裡
-		// return callback(null, true); // ← 若想放行所有 request 可打開這行
 		return callback(new Error(`CORS blocked for origin: ${origin}`));
 	},
 	credentials: true,
