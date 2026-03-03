@@ -7,11 +7,12 @@ import {
 	Body,
 	Param,
 	Query,
+	Req,
 	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { SalaryBaseService } from './salary-base.service';
 import { CreateSalaryBaseDto } from './dto/create-salary-base.dto';
 import { UpdateSalaryBaseDto } from './dto/update-salary-base.dto';
@@ -42,29 +43,37 @@ export class SalaryBaseController {
 	}
 
 	@Get()
-	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
+	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const prismaQuery = this.queryBuilder.build<Prisma.SalaryBaseFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.salaryBaseService.findAll(prismaQuery),
-			this.salaryBaseService.count(where),
+			this.salaryBaseService.findAll(prismaQuery, user.id, isAdmin),
+			this.salaryBaseService.count(where, user.id, isAdmin),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.salaryBaseService.findOne(+id);
+	findOne(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.salaryBaseService.findOne(+id, user.id, isAdmin);
 	}
 
 	@Put(':id')
-	update(@Param('id') id: string, @Body() dto: UpdateSalaryBaseDto) {
-		return this.salaryBaseService.update(+id, dto);
+	update(@Param('id') id: string, @Body() dto: UpdateSalaryBaseDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.salaryBaseService.update(+id, dto, user.id, isAdmin);
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.salaryBaseService.remove(+id);
+	remove(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.salaryBaseService.remove(+id, user.id, isAdmin);
 	}
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCourseSessionDto } from './dto/create-course-session.dto';
 import { UpdateCourseSessionDto } from './dto/update-course-session.dto';
@@ -133,8 +133,13 @@ export class CourseSessionService {
 		});
 	}
 
-	async findAll(query: Prisma.CourseSessionFindManyArgs) {
-		const primaryOrderBy = query.orderBy;
+	async findAll(query: Prisma.CourseSessionFindManyArgs, userId: number, isAdmin: boolean) {
+		const finalQuery = {
+			...query,
+			where: isAdmin ? query.where : { ...query.where, user_id: userId },
+		};
+
+		const primaryOrderBy = finalQuery.orderBy;
 		const secondarySort = { course: { start_time: 'asc' as const } };
 		const orderBy = primaryOrderBy
 			? (Array.isArray(primaryOrderBy)
@@ -143,7 +148,7 @@ export class CourseSessionService {
 			: [{ date: 'asc' as const }, secondarySort];
 
 		return this.prisma.courseSession.findMany({
-			...query,
+			...finalQuery,
 			orderBy,
 			include: {
 				course: { include: { school: true } },
@@ -152,21 +157,32 @@ export class CourseSessionService {
 		});
 	}
 
-	async count(where: Prisma.CourseSessionWhereInput) {
-		return this.prisma.courseSession.count({ where });
+	async count(where: Prisma.CourseSessionWhereInput, userId: number, isAdmin: boolean) {
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.courseSession.count({ where: finalWhere });
 	}
 
-	async findOne(id: number) {
-		return this.prisma.courseSession.findUnique({
+	async findOne(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.courseSession.findUnique({
 			where: { id },
 			include: {
 				course: { include: { school: true } },
 				salaryBase: true,
 			},
 		});
+
+		if (!record) {
+			throw new NotFoundException('找不到該課程節次');
+		}
+
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限存取此課程節次');
+		}
+
+		return record;
 	}
 
-	async update(id: number, dto: UpdateCourseSessionDto) {
+	async update(id: number, dto: UpdateCourseSessionDto, userId: number, isAdmin: boolean) {
 		// Get existing record for fallback values
 		const existing = await this.prisma.courseSession.findUnique({
 			where: { id },
@@ -174,6 +190,10 @@ export class CourseSessionService {
 
 		if (!existing) {
 			throw new NotFoundException(`CourseSession with id ${id} not found`);
+		}
+
+		if (!isAdmin && existing.user_id !== userId) {
+			throw new ForbiddenException('無權限修改此課程節次');
 		}
 
 		const isCancelled = dto.is_cancelled ?? existing.is_cancelled;
@@ -239,7 +259,19 @@ export class CourseSessionService {
 		});
 	}
 
-	async remove(id: number) {
+	async remove(id: number, userId: number, isAdmin: boolean) {
+		const existing = await this.prisma.courseSession.findUnique({
+			where: { id },
+		});
+
+		if (!existing) {
+			throw new NotFoundException('找不到該課程節次');
+		}
+
+		if (!isAdmin && existing.user_id !== userId) {
+			throw new ForbiddenException('無權限刪除此課程節次');
+		}
+
 		return this.prisma.courseSession.delete({ where: { id } });
 	}
 
@@ -367,7 +399,7 @@ export class CourseSessionService {
 		return { total: sessions.length, updated };
 	}
 
-	async getSalarySummary(startDate: string, endDate: string, schoolId?: number) {
+	async getSalarySummary(startDate: string, endDate: string, schoolId: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.CourseSessionWhereInput = {
 			date: {
 				gte: new Date(startDate),
@@ -375,6 +407,10 @@ export class CourseSessionService {
 			},
 			is_cancelled: false, // Exclude cancelled sessions from salary totals
 		};
+
+		if (!isAdmin) {
+			where.user_id = userId;
+		}
 
 		if (schoolId) {
 			where.course = { school_id: schoolId };

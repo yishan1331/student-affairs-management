@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -14,15 +14,18 @@ export class CourseService {
 		});
 	}
 
-	async findAll(query: Prisma.CourseFindManyArgs) {
+	async findAll(query: Prisma.CourseFindManyArgs, userId: number, isAdmin: boolean) {
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
 		return this.prisma.course.findMany({
 			...query,
+			where,
 			include: { school: true },
 		});
 	}
 
-	async count(where: Prisma.CourseWhereInput) {
-		return this.prisma.course.count({ where });
+	async count(where: Prisma.CourseWhereInput, userId: number, isAdmin: boolean) {
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.course.count({ where: finalWhere });
 	}
 
 	async findSchedule(filters: {
@@ -30,9 +33,12 @@ export class CourseService {
 		grade?: number;
 		name?: string;
 		day_of_week?: string;
-	}) {
+	}, userId: number, isAdmin: boolean) {
 		const where: Prisma.CourseWhereInput = {};
 
+		if (!isAdmin) {
+			where.user_id = userId;
+		}
 		if (filters.school_id) {
 			where.school_id = filters.school_id;
 		}
@@ -53,24 +59,39 @@ export class CourseService {
 		});
 	}
 
-	async findOne(id: number) {
-		return this.prisma.course.findUnique({
+	async findOne(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.course.findUnique({
 			where: { id },
 			include: {
 				school: true,
 				students: true,
 			},
 		});
+		if (!record) throw new NotFoundException('找不到該課程');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限存取此課程');
+		}
+		return record;
 	}
 
-	async update(id: number, updateCourseDto: UpdateCourseDto) {
+	async update(id: number, updateCourseDto: UpdateCourseDto, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.course.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該課程');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限修改此課程');
+		}
 		return this.prisma.course.update({
 			where: { id },
 			data: updateCourseDto,
 		});
 	}
 
-	async remove(id: number) {
+	async remove(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.course.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該課程');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限刪除此課程');
+		}
 		return this.prisma.course.delete({
 			where: { id },
 		});

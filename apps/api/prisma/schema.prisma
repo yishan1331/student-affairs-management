@@ -84,19 +84,39 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  schools              School[]
-  courses              Course[]
-  students             Student[]
-  gradesheets          GradeSheet[]
-  attendances          Attendance[]
-  salaryBases          SalaryBase[]
-  courseSessions       CourseSession[]
+  // 擁有的資料 (user_id 關聯)
+  ownedSchools         School[]         @relation("SchoolOwner")
+  ownedCourses         Course[]         @relation("CourseOwner")
+  ownedStudents        Student[]        @relation("StudentOwner")
+  ownedGradeSheets     GradeSheet[]     @relation("GradeSheetOwner")
+  ownedAttendances     Attendance[]     @relation("AttendanceOwner")
+  ownedSalaryBases     SalaryBase[]     @relation("SalaryBaseOwner")
+  ownedCourseSessions  CourseSession[]  @relation("CourseSessionOwner")
+
+  // 修改紀錄 (modifier_id 關聯)
+  modifiedSchools      School[]         @relation("SchoolModifier")
+  modifiedCourses      Course[]         @relation("CourseModifier")
+  modifiedStudents     Student[]        @relation("StudentModifier")
+  modifiedGradeSheets  GradeSheet[]     @relation("GradeSheetModifier")
+  modifiedAttendances  Attendance[]     @relation("AttendanceModifier")
+  modifiedSalaryBases  SalaryBase[]     @relation("SalaryBaseModifier")
+  modifiedCourseSessions CourseSession[] @relation("CourseSessionModifier")
+
+  // Pet & Health 擁有 (user_id 關聯)
+  pets                 Pet[]            @relation("PetOwner")
+  healthWeights        HealthWeight[]   @relation("HealthWeightOwner")
+  healthDiets          HealthDiet[]     @relation("HealthDietOwner")
+  healthToilets        HealthToilet[]   @relation("HealthToiletOwner")
+  healthSymptoms       HealthSymptom[]  @relation("HealthSymptomOwner")
+
+  // Pet & Health 修改紀錄 (modifier_id 關聯)
+  modifiedPets         Pet[]            @relation("PetModifier")
+  modifiedHealthWeights  HealthWeight[] @relation("HealthWeightModifier")
+  modifiedHealthDiets    HealthDiet[]   @relation("HealthDietModifier")
+  modifiedHealthToilets  HealthToilet[] @relation("HealthToiletModifier")
+  modifiedHealthSymptoms HealthSymptom[] @relation("HealthSymptomModifier")
+
   auditLogs            AuditLog[]
-  healthWeights        HealthWeight[]
-  healthDiets          HealthDiet[]
-  healthToilets        HealthToilet[]
-  healthSymptoms       HealthSymptom[]
-  pets                 Pet[]
 }
 
 model School {
@@ -107,13 +127,17 @@ model School {
   address     String?
   color       String?  // 自定義顏色（HEX 格式，例如 #1677ff）
   is_active   Boolean? @default(true)
+  user_id     Int?
+  user        User?    @relation("SchoolOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
-  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier    User?    @relation("SchoolModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   courses      Course[]
   salaryBases  SalaryBase[]
+
+  @@index([user_id])
 }
 
 model Course {
@@ -127,13 +151,17 @@ model Course {
   end_time    DateTime
   day_of_week String // 例如："1,3,5" 表示週一、三、五
   duration    Int // 課程持續時間（分鐘）
+  user_id     Int?
+  user        User?    @relation("CourseOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
-  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier    User?    @relation("CourseModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   students             Student[]
   courseSessions       CourseSession[]
+
+  @@index([user_id])
 }
 
 model Student {
@@ -144,13 +172,17 @@ model Student {
   course_id   Int
   course      Course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
   is_active   Boolean? @default(true)
+  user_id     Int?
+  user        User?    @relation("StudentOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
-  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier    User?    @relation("StudentModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   attendances Attendance[]
   gradesheets GradeSheet[]
+
+  @@index([user_id])
 }
 
 model Attendance {
@@ -159,10 +191,14 @@ model Attendance {
   student     Student          @relation(fields: [student_id], references: [id], onDelete: Cascade)
   date        DateTime
   status      AttendanceStatus
+  user_id     Int?
+  user        User?            @relation("AttendanceOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
-  modifier    User?            @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier    User?            @relation("AttendanceModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime         @default(now())
   updated_at  DateTime         @updatedAt
+
+  @@index([user_id])
 }
 
 model GradeSheet {
@@ -172,10 +208,14 @@ model GradeSheet {
   score       Float
   description String?
   exam_date   DateTime
+  user_id     Int?
+  user        User?    @relation("GradeSheetOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
-  modifier    User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier    User?    @relation("GradeSheetModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([user_id])
 }
 
 model SalaryBase {
@@ -186,13 +226,17 @@ model SalaryBase {
   max_students Int?     // 最大人數（null 表示無上限）
   description  String?
   is_active    Boolean  @default(true)
+  user_id      Int?
+  user         User?    @relation("SalaryBaseOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id  Int?
-  modifier     User?    @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier     User?    @relation("SalaryBaseModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 
   schools          School[]         // 多對多：可被多個學校共用
   courseSessions   CourseSession[]
+
+  @@index([user_id])
 }
 
 model CourseSession {
@@ -206,27 +250,33 @@ model CourseSession {
   salary_base_id       Int?        // 匹配到的薪資級距
   salaryBase           SalaryBase? @relation(fields: [salary_base_id], references: [id], onDelete: SetNull)
   note                 String?
+  user_id              Int?
+  user                 User?       @relation("CourseSessionOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id          Int?
-  modifier             User?       @relation(fields: [modifier_id], references: [id], onDelete: SetNull)
+  modifier             User?       @relation("CourseSessionModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at           DateTime    @default(now())
   updated_at           DateTime    @updatedAt
+
+  @@index([user_id])
 }
 
 model Pet {
-  id         Int       @id @default(autoincrement())
-  name       String
-  type       PetType
-  breed      String?
-  gender     String?   // male / female / unknown
-  birthday   DateTime?
-  weight     Float?
-  avatar_url String?
-  note       String?
-  is_active  Boolean   @default(true)
-  user_id    Int
-  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  name        String
+  type        PetType
+  breed       String?
+  gender      String?   // male / female / unknown
+  birthday    DateTime?
+  weight      Float?
+  avatar_url  String?
+  note        String?
+  is_active   Boolean   @default(true)
+  user_id     Int
+  user        User      @relation("PetOwner", fields: [user_id], references: [id], onDelete: Cascade)
+  modifier_id Int?
+  modifier    User?     @relation("PetModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
   healthWeights  HealthWeight[]
   healthDiets    HealthDiet[]
@@ -237,53 +287,59 @@ model Pet {
 }
 
 model HealthWeight {
-  id         Int      @id @default(autoincrement())
-  user_id    Int
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  pet_id     Int?
-  pet        Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
-  date       DateTime
-  weight     Float    // 體重（公斤）
-  height     Float?   // 身高（公分）
-  bmi        Float?   // BMI 值
-  note       String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  user        User     @relation("HealthWeightOwner", fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id      Int?
+  pet         Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
+  date        DateTime
+  weight      Float    // 體重（公斤）
+  height      Float?   // 身高（公分）
+  bmi         Float?   // BMI 值
+  note        String?
+  modifier_id Int?
+  modifier    User?    @relation("HealthWeightModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([user_id, pet_id, date])
 }
 
 model HealthDiet {
-  id         Int      @id @default(autoincrement())
-  user_id    Int
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  pet_id     Int?
-  pet        Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
-  date       DateTime
-  meal_type  MealType // 餐別
-  food_name  String   // 食物名稱
-  amount     String?  // 份量描述
-  calories   Float?   // 卡路里
-  note       String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  user        User     @relation("HealthDietOwner", fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id      Int?
+  pet         Pet?     @relation(fields: [pet_id], references: [id], onDelete: Cascade)
+  date        DateTime
+  meal_type   MealType // 餐別
+  food_name   String   // 食物名稱
+  amount      String?  // 份量描述
+  calories    Float?   // 卡路里
+  note        String?
+  modifier_id Int?
+  modifier    User?    @relation("HealthDietModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([user_id, pet_id, date])
 }
 
 model HealthToilet {
-  id         Int        @id @default(autoincrement())
-  user_id    Int
-  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  pet_id     Int?
-  pet        Pet?       @relation(fields: [pet_id], references: [id], onDelete: Cascade)
-  date       DateTime
-  time       String     // 時間（如 "10:30"）
-  type       ToiletType // 類型
-  is_normal  Boolean    @default(true) // 是否正常
-  note       String?
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
+  id          Int        @id @default(autoincrement())
+  user_id     Int
+  user        User       @relation("HealthToiletOwner", fields: [user_id], references: [id], onDelete: Cascade)
+  pet_id      Int?
+  pet         Pet?       @relation(fields: [pet_id], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        String     // 時間（如 "10:30"）
+  type        ToiletType // 類型
+  is_normal   Boolean    @default(true) // 是否正常
+  note        String?
+  modifier_id Int?
+  modifier    User?      @relation("HealthToiletModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
 
   @@index([user_id, pet_id, date])
 }
@@ -291,7 +347,7 @@ model HealthToilet {
 model HealthSymptom {
   id                Int         @id @default(autoincrement())
   user_id           Int
-  user              User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user              User        @relation("HealthSymptomOwner", fields: [user_id], references: [id], onDelete: Cascade)
   pet_id            Int?
   pet               Pet?        @relation(fields: [pet_id], references: [id], onDelete: Cascade)
   date              DateTime
@@ -304,6 +360,8 @@ model HealthSymptom {
   is_recurring      Boolean     @default(false)
   description       String?     // 詳細描述
   note              String?
+  modifier_id       Int?
+  modifier          User?       @relation("HealthSymptomModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
   created_at        DateTime    @default(now())
   updated_at        DateTime    @updatedAt
 

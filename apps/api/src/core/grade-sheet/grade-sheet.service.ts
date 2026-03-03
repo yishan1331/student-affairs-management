@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateGradeSheetDto } from './dto/create-grade-sheet.dto';
 import { UpdateGradeSheetDto } from './dto/update-grade-sheet.dto';
@@ -14,38 +14,57 @@ export class GradeSheetService {
 		});
 	}
 
-	async findAll(query: Prisma.GradeSheetFindManyArgs) {
-		return this.prisma.gradeSheet.findMany(query);
+	async findAll(query: Prisma.GradeSheetFindManyArgs, userId: number, isAdmin: boolean) {
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		return this.prisma.gradeSheet.findMany({ ...query, where });
 	}
 
-	async count(where: Prisma.GradeSheetWhereInput) {
-		return this.prisma.gradeSheet.count({ where });
+	async count(where: Prisma.GradeSheetWhereInput, userId: number, isAdmin: boolean) {
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.gradeSheet.count({ where: finalWhere });
 	}
 
-	async findOne(id: number) {
-		return this.prisma.gradeSheet.findUnique({
+	async findOne(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.gradeSheet.findUnique({
 			where: { id },
 			include: {
 				student: true,
 			},
 		});
+		if (!record) throw new NotFoundException('找不到該成績紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限存取此成績紀錄');
+		}
+		return record;
 	}
 
-	async update(id: number, updateGradeSheetDto: UpdateGradeSheetDto) {
+	async update(id: number, updateGradeSheetDto: UpdateGradeSheetDto, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.gradeSheet.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該成績紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限修改此成績紀錄');
+		}
 		return this.prisma.gradeSheet.update({
 			where: { id },
 			data: updateGradeSheetDto,
 		});
 	}
 
-	async remove(id: number) {
+	async remove(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.gradeSheet.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該成績紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限刪除此成績紀錄');
+		}
 		return this.prisma.gradeSheet.delete({
 			where: { id },
 		});
 	}
 
-	async exportGradeSheets(courseId?: number) {
-		const where = courseId ? { student: { course_id: courseId } } : {};
+	async exportGradeSheets(courseId: number | undefined, userId: number, isAdmin: boolean) {
+		const where: Prisma.GradeSheetWhereInput = {};
+		if (courseId) where.student = { course_id: courseId };
+		if (!isAdmin) where.user_id = userId;
 		return this.prisma.gradeSheet.findMany({
 			where,
 			include: { student: true },
@@ -53,8 +72,11 @@ export class GradeSheetService {
 		});
 	}
 
-	async getStatistics(course_id?: number) {
-		const where = course_id ? { student: { course_id } } : {};
+	async getStatistics(course_id: number | undefined, userId: number, isAdmin: boolean) {
+		const where: Prisma.GradeSheetWhereInput = {};
+		if (course_id) where.student = { course_id };
+		if (!isAdmin) where.user_id = userId;
+
 		const grades = await this.prisma.gradeSheet.findMany({
 			where,
 			include: { student: true },

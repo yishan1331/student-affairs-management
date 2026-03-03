@@ -7,11 +7,12 @@ import {
 	Body,
 	Param,
 	Query,
+	Req,
 	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { GradeSheetService } from './grade-sheet.service';
 import { CreateGradeSheetDto } from './dto/create-grade-sheet.dto';
@@ -42,27 +43,35 @@ export class GradeSheetController {
 	}
 
 	@Get()
-	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
+	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.GradeSheetFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.gradeSheetService.findAll(prismaQuery),
-			this.gradeSheetService.count(where),
+			this.gradeSheetService.findAll(prismaQuery, user.id, isAdmin),
+			this.gradeSheetService.count(where, user.id, isAdmin),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
 	}
 
 	@Get('statistics')
-	getStatistics(@Query('course_id') courseId?: string) {
-		return this.gradeSheetService.getStatistics(courseId ? +courseId : undefined);
+	getStatistics(@Query('course_id') courseId: string | undefined, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.gradeSheetService.getStatistics(courseId ? +courseId : undefined, user.id, isAdmin);
 	}
 
 	@Get('export')
-	async exportGradeSheets(@Query('course_id') courseId: string, @Res() res: Response) {
+	async exportGradeSheets(@Query('course_id') courseId: string, @Req() req: Request, @Res() res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const grades = await this.gradeSheetService.exportGradeSheets(
 			courseId ? +courseId : undefined,
+			user.id,
+			isAdmin,
 		);
 
 		const workbook = new ExcelJS.Workbook();
@@ -94,20 +103,27 @@ export class GradeSheetController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.gradeSheetService.findOne(+id);
+	findOne(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.gradeSheetService.findOne(+id, user.id, isAdmin);
 	}
 
 	@Put(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateGradeSheetDto: UpdateGradeSheetDto,
+		@Req() req: Request,
 	) {
-		return this.gradeSheetService.update(+id, updateGradeSheetDto);
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.gradeSheetService.update(+id, updateGradeSheetDto, user.id, isAdmin);
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.gradeSheetService.remove(+id);
+	remove(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.gradeSheetService.remove(+id, user.id, isAdmin);
 	}
 }

@@ -7,11 +7,12 @@ import {
 	Body,
 	Param,
 	Query,
+	Req,
 	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -43,13 +44,15 @@ export class AttendanceController {
 	}
 
 	@Get()
-	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
+	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.AttendanceFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.attendanceService.findAll(prismaQuery),
-			this.attendanceService.count(where),
+			this.attendanceService.findAll(prismaQuery, user.id, isAdmin),
+			this.attendanceService.count(where, user.id, isAdmin),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
@@ -61,16 +64,24 @@ export class AttendanceController {
 	}
 
 	@Get('statistics')
-	getStatistics(@Query('course_id') courseId?: string) {
+	getStatistics(@Query('course_id') courseId: string | undefined, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		return this.attendanceService.getStatistics(
 			courseId ? +courseId : undefined,
+			user.id,
+			isAdmin,
 		);
 	}
 
 	@Get('export')
-	async exportAttendance(@Query('course_id') courseId: string, @Res() res: Response) {
+	async exportAttendance(@Query('course_id') courseId: string, @Req() req: Request, @Res() res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const attendances = await this.attendanceService.exportAttendance(
 			courseId ? +courseId : undefined,
+			user.id,
+			isAdmin,
 		);
 
 		const workbook = new ExcelJS.Workbook();
@@ -107,20 +118,27 @@ export class AttendanceController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.attendanceService.findOne(+id);
+	findOne(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.attendanceService.findOne(+id, user.id, isAdmin);
 	}
 
 	@Put(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateAttendanceDto: UpdateAttendanceDto,
+		@Req() req: Request,
 	) {
-		return this.attendanceService.update(+id, updateAttendanceDto);
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.attendanceService.update(+id, updateAttendanceDto, user.id, isAdmin);
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.attendanceService.remove(+id);
+	remove(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.attendanceService.remove(+id, user.id, isAdmin);
 	}
 }

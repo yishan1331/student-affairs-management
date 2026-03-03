@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateBatchAttendanceDto } from './dto/create-batch-attendance.dto';
@@ -15,31 +15,48 @@ export class AttendanceService {
 		});
 	}
 
-	async findAll(query: Prisma.AttendanceFindManyArgs) {
-		return this.prisma.attendance.findMany(query);
+	async findAll(query: Prisma.AttendanceFindManyArgs, userId: number, isAdmin: boolean) {
+		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		return this.prisma.attendance.findMany({ ...query, where });
 	}
 
-	async count(where: Prisma.AttendanceWhereInput) {
-		return this.prisma.attendance.count({ where });
+	async count(where: Prisma.AttendanceWhereInput, userId: number, isAdmin: boolean) {
+		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		return this.prisma.attendance.count({ where: finalWhere });
 	}
 
-	async findOne(id: number) {
-		return this.prisma.attendance.findUnique({
+	async findOne(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.attendance.findUnique({
 			where: { id },
 			include: {
 				student: true,
 			},
 		});
+		if (!record) throw new NotFoundException('找不到該考勤紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限存取此考勤紀錄');
+		}
+		return record;
 	}
 
-	async update(id: number, updateAttendanceDto: UpdateAttendanceDto) {
+	async update(id: number, updateAttendanceDto: UpdateAttendanceDto, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.attendance.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該考勤紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限修改此考勤紀錄');
+		}
 		return this.prisma.attendance.update({
 			where: { id },
 			data: updateAttendanceDto,
 		});
 	}
 
-	async remove(id: number) {
+	async remove(id: number, userId: number, isAdmin: boolean) {
+		const record = await this.prisma.attendance.findUnique({ where: { id } });
+		if (!record) throw new NotFoundException('找不到該考勤紀錄');
+		if (!isAdmin && record.user_id !== userId) {
+			throw new ForbiddenException('無權限刪除此考勤紀錄');
+		}
 		return this.prisma.attendance.delete({
 			where: { id },
 		});
@@ -61,8 +78,10 @@ export class AttendanceService {
 		);
 	}
 
-	async exportAttendance(courseId?: number) {
-		const where = courseId ? { student: { course_id: courseId } } : {};
+	async exportAttendance(courseId: number | undefined, userId: number, isAdmin: boolean) {
+		const where: Prisma.AttendanceWhereInput = {};
+		if (courseId) where.student = { course_id: courseId };
+		if (!isAdmin) where.user_id = userId;
 		return this.prisma.attendance.findMany({
 			where,
 			include: { student: true },
@@ -70,8 +89,10 @@ export class AttendanceService {
 		});
 	}
 
-	async getStatistics(course_id?: number) {
-		const where = course_id ? { student: { course_id } } : {};
+	async getStatistics(course_id: number | undefined, userId: number, isAdmin: boolean) {
+		const where: Prisma.AttendanceWhereInput = {};
+		if (course_id) where.student = { course_id };
+		if (!isAdmin) where.user_id = userId;
 
 		const attendances = await this.prisma.attendance.findMany({
 			where,

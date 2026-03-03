@@ -7,11 +7,12 @@ import {
 	Body,
 	Param,
 	Query,
+	Req,
 	Res,
 	UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
@@ -41,30 +42,38 @@ export class SchoolController {
 	}
 
 	@Get()
-	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
+	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.SchoolFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.schoolService.findAll(prismaQuery),
-			this.schoolService.count(where),
+			this.schoolService.findAll(prismaQuery, user.id, isAdmin),
+			this.schoolService.count(where, user.id, isAdmin),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.schoolService.findOne(+id);
+	findOne(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.schoolService.findOne(+id, user.id, isAdmin);
 	}
 
 	@Put(':id')
-	update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto) {
-		return this.schoolService.update(+id, updateSchoolDto);
+	update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.schoolService.update(+id, updateSchoolDto, user.id, isAdmin);
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.schoolService.remove(+id);
+	remove(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.schoolService.remove(+id, user.id, isAdmin);
 	}
 }

@@ -7,6 +7,7 @@ import {
 	Body,
 	Param,
 	Query,
+	Req,
 	Res,
 	UseGuards,
 	UseInterceptors,
@@ -14,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -45,22 +46,28 @@ export class StudentController {
 	}
 
 	@Get()
-	async findAll(@Query() query: any, @Res({ passthrough: true }) res: Response) {
+	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.StudentFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.studentService.findAll(prismaQuery),
-			this.studentService.count(where),
+			this.studentService.findAll(prismaQuery, user.id, isAdmin),
+			this.studentService.count(where, user.id, isAdmin),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
 	}
 
 	@Get('export')
-	async exportStudents(@Query('course_id') courseId: string, @Res() res: Response) {
+	async exportStudents(@Query('course_id') courseId: string, @Req() req: Request, @Res() res: Response) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
 		const students = await this.studentService.exportStudents(
 			courseId ? +courseId : undefined,
+			user.id,
+			isAdmin,
 		);
 
 		const workbook = new ExcelJS.Workbook();
@@ -118,20 +125,27 @@ export class StudentController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.studentService.findOne(+id);
+	findOne(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.studentService.findOne(+id, user.id, isAdmin);
 	}
 
 	@Put(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateStudentDto: UpdateStudentDto,
+		@Req() req: Request,
 	) {
-		return this.studentService.update(+id, updateStudentDto);
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.studentService.update(+id, updateStudentDto, user.id, isAdmin);
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.studentService.remove(+id);
+	remove(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.studentService.remove(+id, user.id, isAdmin);
 	}
 }
