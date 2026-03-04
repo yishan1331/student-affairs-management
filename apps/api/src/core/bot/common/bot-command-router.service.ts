@@ -9,8 +9,12 @@ import { BotMessageFormatterService } from './bot-message-formatter.service';
 import { BotErrorHandlerService } from './bot-error-handler.service';
 import { BotCommandResult, ParsedCommand, PetReference } from './interfaces/bot-command.interface';
 import { BotUserContext } from './interfaces/bot-context.interface';
-import { BOT_COMMANDS, BOT_HELP_TEXT, AUTH_REQUIRED_COMMANDS } from './constants/bot-commands.constant';
-import { PetType, MealType, ToiletType, SymptomType, Severity } from '@prisma/client';
+import {
+	BOT_COMMANDS, BOT_HELP_TEXT, AUTH_REQUIRED_COMMANDS, COMMAND_ALIASES,
+	SELF_KEYWORDS, PET_PREFIXES, ADD_KEYWORDS, STATS_KEYWORDS, TODAY_KEYWORDS, ABNORMAL_KEYWORDS,
+	MEAL_TYPE_MAP, TOILET_TYPE_MAP, PET_TYPE_MAP, SYMPTOM_TYPE_MAP, SEVERITY_MAP,
+} from './constants/bot-commands.constant';
+import { MealType, ToiletType, SymptomType, Severity } from '@prisma/client';
 
 @Injectable()
 export class BotCommandRouterService {
@@ -92,7 +96,8 @@ export class BotCommandRouterService {
 
 		// 處理 Telegram bot 指令格式：/command@botname
 		const parts = trimmed.split(/\s+/);
-		const commandPart = parts[0].split('@')[0].substring(1).toLowerCase();
+		const rawCommand = parts[0].split('@')[0].substring(1).toLowerCase();
+		const commandPart = COMMAND_ALIASES[rawCommand] || rawCommand;
 		return {
 			command: commandPart,
 			args: parts.slice(1),
@@ -135,31 +140,32 @@ export class BotCommandRouterService {
 	}
 
 	private async handlePet(ctx: BotUserContext, parsed: ParsedCommand): Promise<BotCommandResult> {
-		if (parsed.args.length < 1 || parsed.args[0] !== 'add') {
-			return { text: '📝 用法：/pet add <名字> <類型>\n類型: dog, cat, bird, fish, hamster, rabbit, other' };
+		const usage = '📝 用法：/pet 新增 <名字> <類型>\n類型: 狗/貓/鳥/魚/倉鼠/兔/其他';
+		if (parsed.args.length < 1 || !ADD_KEYWORDS.includes(parsed.args[0].toLowerCase())) {
+			return { text: usage };
 		}
 		if (parsed.args.length < 3) {
-			return { text: '📝 用法：/pet add <名字> <類型>\n類型: dog, cat, bird, fish, hamster, rabbit, other' };
+			return { text: usage };
 		}
 		const name = parsed.args[1];
-		const type = parsed.args[2].toLowerCase();
+		const typeInput = parsed.args[2].toLowerCase();
+		const type = PET_TYPE_MAP[typeInput];
 
-		const validTypes: string[] = Object.values(PetType);
-		if (!validTypes.includes(type)) {
-			return { text: `❌ 無效的寵物類型「${type}」\n可用類型: ${validTypes.join(', ')}` };
+		if (!type) {
+			return { text: `❌ 無效的寵物類型「${parsed.args[2]}」\n可用: 狗/貓/鳥/魚/倉鼠/兔/其他` };
 		}
 
-		await this.petService.create(ctx.userId!, { name, type: type as PetType });
+		await this.petService.create(ctx.userId!, { name, type: type as any });
 		return { text: this.formatter.formatPetCreated(name, type) };
 	}
 
 	private async handleWeight(ctx: BotUserContext, parsed: ParsedCommand): Promise<BotCommandResult> {
 		if (parsed.args.length === 0) {
-			return { text: '📝 用法：/weight <數值> [me|pet:<名字>] 或 /weight stats' };
+			return { text: '📝 用法：/weight <數值> [自己|寵物:<名字>] 或 /weight 統計' };
 		}
 
-		// stats
-		if (parsed.args[0] === 'stats') {
+		// stats / 統計
+		if (STATS_KEYWORDS.includes(parsed.args[0].toLowerCase())) {
 			const target = await this.resolveTarget(ctx.userId!, parsed.args);
 			if (target.error) return { text: `❌ ${target.error}` };
 			const label = target.isMe ? '自己' : target.pet?.petName;
@@ -187,11 +193,11 @@ export class BotCommandRouterService {
 
 	private async handleDiet(ctx: BotUserContext, parsed: ParsedCommand): Promise<BotCommandResult> {
 		if (parsed.args.length === 0) {
-			return { text: '📝 用法：/diet <餐別> <食物> [me|pet:<名字>] 或 /diet today' };
+			return { text: '📝 用法：/diet <餐別> <食物> [自己|寵物:<名字>] 或 /diet 今天' };
 		}
 
-		// today
-		if (parsed.args[0] === 'today') {
+		// today / 今天
+		if (TODAY_KEYWORDS.includes(parsed.args[0].toLowerCase())) {
 			const target = await this.resolveTarget(ctx.userId!, parsed.args);
 			if (target.error) return { text: `❌ ${target.error}` };
 
@@ -210,17 +216,17 @@ export class BotCommandRouterService {
 		}
 
 		if (parsed.args.length < 2) {
-			return { text: '📝 用法：/diet <餐別> <食物> [me|pet:<名字>]\n餐別: breakfast, lunch, dinner, snack' };
+			return { text: '📝 用法：/diet <餐別> <食物> [自己|寵物:<名字>]\n餐別: 早餐/午餐/晚餐/點心' };
 		}
 
-		const mealType = parsed.args[0].toLowerCase();
-		const validMeals: string[] = Object.values(MealType);
-		if (!validMeals.includes(mealType)) {
-			return { text: `❌ 無效的餐別「${mealType}」\n可用: ${validMeals.join(', ')}` };
+		const mealTypeInput = parsed.args[0].toLowerCase();
+		const mealType = MEAL_TYPE_MAP[mealTypeInput];
+		if (!mealType) {
+			return { text: `❌ 無效的餐別「${parsed.args[0]}」\n可用: 早餐/午餐/晚餐/點心` };
 		}
 
-		// 食物名稱 = args 中非 pet:/me 的部分
-		const foodParts = parsed.args.slice(1).filter((a) => !a.startsWith('pet:') && a !== 'me');
+		// 食物名稱 = args 中非 pet:/寵物:/me/自己 的部分
+		const foodParts = parsed.args.slice(1).filter((a) => !this.isPetPrefix(a) && !this.isSelfKeyword(a));
 		const foodName = foodParts.join(' ');
 		if (!foodName) {
 			return { text: '❌ 請輸入食物名稱' };
@@ -242,16 +248,16 @@ export class BotCommandRouterService {
 
 	private async handleToilet(ctx: BotUserContext, parsed: ParsedCommand): Promise<BotCommandResult> {
 		if (parsed.args.length === 0) {
-			return { text: '📝 用法：/toilet <類型> [abnormal] [me|pet:<名字>]\n類型: urination, defecation' };
+			return { text: '📝 用法：/toilet <類型> [異常] [自己|寵物:<名字>]\n類型: 排尿/排便' };
 		}
 
-		const type = parsed.args[0].toLowerCase();
-		const validTypes: string[] = Object.values(ToiletType);
-		if (!validTypes.includes(type)) {
-			return { text: `❌ 無效的排泄類型「${type}」\n可用: ${validTypes.join(', ')}` };
+		const typeInput = parsed.args[0].toLowerCase();
+		const type = TOILET_TYPE_MAP[typeInput];
+		if (!type) {
+			return { text: `❌ 無效的排泄類型「${parsed.args[0]}」\n可用: 尿/便` };
 		}
 
-		const isNormal = !parsed.args.includes('abnormal');
+		const isNormal = !parsed.args.some((a) => ABNORMAL_KEYWORDS.includes(a.toLowerCase()));
 		const target = await this.resolveTarget(ctx.userId!, parsed.args);
 		if (target.error) return { text: `❌ ${target.error}` };
 
@@ -272,11 +278,11 @@ export class BotCommandRouterService {
 
 	private async handleSymptom(ctx: BotUserContext, parsed: ParsedCommand): Promise<BotCommandResult> {
 		if (parsed.args.length === 0) {
-			return { text: '📝 用法：/symptom <類型> <嚴重度> [me|pet:<名字>] 或 /symptom stats\n嚴重度: mild, moderate, severe' };
+			return { text: '📝 用法：/symptom <類型> <嚴重度> [自己|寵物:<名字>] 或 /symptom 統計\n嚴重度: 輕微/中等/嚴重' };
 		}
 
-		// stats
-		if (parsed.args[0] === 'stats') {
+		// stats / 統計
+		if (STATS_KEYWORDS.includes(parsed.args[0].toLowerCase())) {
 			const target = await this.resolveTarget(ctx.userId!, parsed.args);
 			if (target.error) return { text: `❌ ${target.error}` };
 			const label = target.isMe ? '自己' : target.pet?.petName;
@@ -285,19 +291,19 @@ export class BotCommandRouterService {
 		}
 
 		if (parsed.args.length < 2) {
-			return { text: '📝 用法：/symptom <類型> <嚴重度> [me|pet:<名字>]\n嚴重度: mild, moderate, severe' };
+			return { text: '📝 用法：/symptom <類型> <嚴重度> [自己|寵物:<名字>]\n嚴重度: 輕微/中等/嚴重' };
 		}
 
-		const symptomType = parsed.args[0].toLowerCase();
-		const validSymptoms: string[] = Object.values(SymptomType);
-		if (!validSymptoms.includes(symptomType)) {
-			return { text: `❌ 無效的症狀類型「${symptomType}」\n可用: ${validSymptoms.join(', ')}` };
+		const symptomTypeInput = parsed.args[0].toLowerCase();
+		const symptomType = SYMPTOM_TYPE_MAP[symptomTypeInput];
+		if (!symptomType) {
+			return { text: `❌ 無效的症狀類型「${parsed.args[0]}」\n可用: 嘔吐/咳嗽/腹瀉/皮膚問題/眼睛問題/耳朵問題/食慾不振/嗜睡/呼吸問題/跛行/搔癢/打噴嚏/發燒/其他` };
 		}
 
-		const severity = parsed.args[1].toLowerCase();
-		const validSeverities: string[] = Object.values(Severity);
-		if (!validSeverities.includes(severity)) {
-			return { text: `❌ 無效的嚴重度「${severity}」\n可用: ${validSeverities.join(', ')}` };
+		const severityInput = parsed.args[1].toLowerCase();
+		const severity = SEVERITY_MAP[severityInput];
+		if (!severity) {
+			return { text: `❌ 無效的嚴重度「${parsed.args[1]}」\n可用: 輕微/中等/嚴重` };
 		}
 
 		const target = await this.resolveTarget(ctx.userId!, parsed.args);
@@ -325,12 +331,12 @@ export class BotCommandRouterService {
 	 * 回傳 { pet: PetReference | null, isMe: boolean, error?: string }
 	 */
 	private async resolveTarget(userId: number, args: string[]): Promise<{ pet: PetReference | null; isMe: boolean; error?: string }> {
-		// 明確指定 me → 記錄自己
-		if (args.includes('me')) {
+		// 明確指定 me/自己 → 記錄自己
+		if (args.some((a) => this.isSelfKeyword(a))) {
 			return { pet: null, isMe: true };
 		}
 
-		// 明確指定 pet:<名字>
+		// 明確指定 pet:<名字> / 寵物:<名字>
 		const petRef = this.extractPetRef(args);
 		if (petRef) {
 			const pet = await this.resolvePetByName(userId, petRef);
@@ -346,8 +352,22 @@ export class BotCommandRouterService {
 	}
 
 	private extractPetRef(args: string[]): string | null {
-		const petArg = args.find((a) => a.startsWith('pet:'));
-		return petArg ? petArg.substring(4) : null;
+		const petArg = args.find((a) => this.isPetPrefix(a));
+		if (!petArg) return null;
+		for (const prefix of PET_PREFIXES) {
+			if (petArg.startsWith(prefix)) {
+				return petArg.substring(prefix.length);
+			}
+		}
+		return null;
+	}
+
+	private isSelfKeyword(arg: string): boolean {
+		return SELF_KEYWORDS.includes(arg.toLowerCase());
+	}
+
+	private isPetPrefix(arg: string): boolean {
+		return PET_PREFIXES.some((p) => arg.startsWith(p));
 	}
 
 	private async resolvePetByName(userId: number, name: string): Promise<PetReference | null> {

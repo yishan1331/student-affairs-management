@@ -63,7 +63,10 @@ export class SlackBotService implements OnModuleInit, OnModuleDestroy {
 		});
 
 		// 註冊 Slack slash commands
-		const slashCommands = ['help', 'bind', 'unbind', 'bindstatus', 'pets', 'pet', 'weight', 'diet', 'toilet', 'symptom'];
+		const slashCommands = [
+			'help', 'h', 'bind', 'b', 'unbind', 'ub', 'bindstatus', 'bs',
+			'pets', 'ps', 'pet', 'p', 'weight', 'w', 'diet', 'd', 'toilet', 't', 'symptom', 's',
+		];
 		for (const cmd of slashCommands) {
 			this.app.command(`/${cmd}`, async ({ command, ack, respond }) => {
 				await ack();
