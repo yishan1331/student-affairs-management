@@ -12,8 +12,8 @@ datasource db {
 
 enum Role {
   admin
-  manager
-  staff
+  user
+  guest
 }
 
 enum Status {
@@ -73,16 +73,23 @@ enum Severity {
   severe
 }
 
+enum PetUserRole {
+  owner
+  member
+}
+
 model User {
-  id         Int      @id @default(autoincrement())
-  account    String   @unique
-  password   String
-  username   String
-  role       Role?    @default(staff)
-  email      String?  @unique
-  status     Status?  @default(active)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  account     String   @unique
+  password    String
+  username    String
+  role        Role?    @default(guest)
+  email       String?  @unique
+  telegram_id String?  @unique
+  slack_id    String?  @unique
+  status      Status?  @default(active)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   // 擁有的資料 (user_id 關聯)
   ownedSchools         School[]         @relation("SchoolOwner")
@@ -115,6 +122,9 @@ model User {
   modifiedHealthDiets    HealthDiet[]   @relation("HealthDietModifier")
   modifiedHealthToilets  HealthToilet[] @relation("HealthToiletModifier")
   modifiedHealthSymptoms HealthSymptom[] @relation("HealthSymptomModifier")
+
+  // Pet 共享關聯 (PetUser junction table)
+  petUsers             PetUser[]
 
   auditLogs            AuditLog[]
 }
@@ -282,8 +292,23 @@ model Pet {
   healthDiets    HealthDiet[]
   healthToilets  HealthToilet[]
   healthSymptoms HealthSymptom[]
+  petUsers       PetUser[]
 
   @@index([user_id])
+}
+
+model PetUser {
+  id         Int         @id @default(autoincrement())
+  pet_id     Int
+  pet        Pet         @relation(fields: [pet_id], references: [id], onDelete: Cascade)
+  user_id    Int
+  user       User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role       PetUserRole @default(member)
+  created_at DateTime    @default(now())
+
+  @@unique([pet_id, user_id])
+  @@index([user_id])
+  @@index([pet_id])
 }
 
 model HealthWeight {

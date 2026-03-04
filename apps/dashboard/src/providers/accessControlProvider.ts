@@ -17,22 +17,24 @@ export const accessControlProvider: AccessControlProvider = {
 		const payload = getTokenPayload(token);
 		const role = payload.role;
 
-		// 簡單的權限檢查邏輯
-		// admin可以執行所有操作
+		// admin 可以執行所有操作
 		if (role === 'admin') {
 			return { can: true };
 		}
 
-		// manager可以查看和編輯，但不能刪除
-		if (role === 'manager') {
-			if (action === 'delete') {
+		// user 除了 User 模組外，擁有完整 CRUD 權限
+		if (role === 'user') {
+			if (resource === 'user') {
 				return { can: false };
 			}
 			return { can: true };
 		}
 
-		// staff只能查看
-		if (role === 'staff') {
+		// guest 除了 User 模組外，只能讀取
+		if (role === 'guest') {
+			if (resource === 'user') {
+				return { can: false };
+			}
 			if (action === 'list' || action === 'show') {
 				return { can: true };
 			}

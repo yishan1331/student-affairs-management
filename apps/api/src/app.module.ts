@@ -31,6 +31,7 @@ import { HealthDietModule } from './core/health-diet/health-diet.module';
 import { HealthToiletModule } from './core/health-toilet/health-toilet.module';
 import { HealthSymptomModule } from './core/health-symptom/health-symptom.module';
 import { PetModule } from './core/pet/pet.module';
+import { BotModule } from './core/bot/bot.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -72,6 +73,7 @@ const adapter = new StringAdapter(casbinPolicy);
 		HealthToiletModule,
 		HealthSymptomModule,
 		PetModule,
+		BotModule.register(),
 	],
 	controllers: [],
 	providers: [

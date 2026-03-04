@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { PetService } from './pet.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { AddPetMemberDto } from './dto/add-pet-member.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -134,6 +135,34 @@ export class PetController {
 
 		await workbook.xlsx.write(res);
 		res.end();
+	}
+
+	// --- 共享成員管理端點（放在 :id 路由之前） ---
+
+	@Get(':id/members')
+	getMembers(@Param('id') id: string, @Req() req: Request) {
+		const user = req.user as any;
+		return this.petService.getMembers(+id, user.id, user.role === 'admin');
+	}
+
+	@Post(':id/members')
+	addMember(
+		@Param('id') id: string,
+		@Req() req: Request,
+		@Body() dto: AddPetMemberDto,
+	) {
+		const user = req.user as any;
+		return this.petService.addMember(+id, dto.user_id, user.id, user.role === 'admin');
+	}
+
+	@Delete(':id/members/:userId')
+	removeMember(
+		@Param('id') id: string,
+		@Param('userId') targetUserId: string,
+		@Req() req: Request,
+	) {
+		const user = req.user as any;
+		return this.petService.removeMember(+id, +targetUserId, user.id, user.role === 'admin');
 	}
 
 	@Get(':id')

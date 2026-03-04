@@ -8,13 +8,22 @@ import { Prisma } from '@prisma/client';
 export class HealthToiletService {
 	constructor(private prisma: PrismaService) {}
 
+	private userAccessWhere(userId: number): Prisma.HealthToiletWhereInput {
+		return {
+			OR: [
+				{ user_id: userId },
+				{ pet: { petUsers: { some: { user_id: userId } } } },
+			],
+		};
+	}
+
 	async create(userId: number, dto: CreateHealthToiletDto) {
 		if (dto.pet_id) {
-			const pet = await this.prisma.pet.findFirst({
-				where: { id: dto.pet_id, user_id: userId },
+			const petUser = await this.prisma.petUser.findUnique({
+				where: { pet_id_user_id: { pet_id: dto.pet_id, user_id: userId } },
 			});
-			if (!pet) {
-				throw new ForbiddenException('此寵物不存在或不屬於您');
+			if (!petUser) {
+				throw new ForbiddenException('此寵物不存在或您無權存取');
 			}
 		}
 		return this.prisma.healthToilet.create({
@@ -26,7 +35,7 @@ export class HealthToiletService {
 	}
 
 	async findAll(query: Prisma.HealthToiletFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where = isAdmin ? query.where : { ...query.where, ...this.userAccessWhere(userId) };
 		return this.prisma.healthToilet.findMany({
 			...query,
 			where,
@@ -38,7 +47,7 @@ export class HealthToiletService {
 	}
 
 	async count(where: Prisma.HealthToiletWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere = isAdmin ? where : { ...where, ...this.userAccessWhere(userId) };
 		return this.prisma.healthToilet.count({ where: finalWhere });
 	}
 
@@ -54,15 +63,26 @@ export class HealthToiletService {
 			throw new NotFoundException('找不到此資料');
 		}
 		if (!isAdmin && record.user_id !== userId) {
-			throw new ForbiddenException('無權限存取此資料');
+			if (record.pet_id) {
+				const petUser = await this.prisma.petUser.findUnique({
+					where: { pet_id_user_id: { pet_id: record.pet_id, user_id: userId } },
+				});
+				if (!petUser) {
+					throw new ForbiddenException('無權限存取此資料');
+				}
+			} else {
+				throw new ForbiddenException('無權限存取此資料');
+			}
 		}
 		return record;
 	}
 
 	async update(id: number, dto: UpdateHealthToiletDto, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? { id } : { id, user_id: userId };
+		if (!isAdmin) {
+			await this.findOne(id, userId, false);
+		}
 		try {
-			return await this.prisma.healthToilet.update({ where, data: dto });
+			return await this.prisma.healthToilet.update({ where: { id }, data: dto });
 		} catch (error) {
 			if (error?.code === 'P2025') {
 				throw new NotFoundException('找不到此資料或無權限修改');
@@ -72,9 +92,11 @@ export class HealthToiletService {
 	}
 
 	async remove(id: number, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? { id } : { id, user_id: userId };
+		if (!isAdmin) {
+			await this.findOne(id, userId, false);
+		}
 		try {
-			return await this.prisma.healthToilet.delete({ where });
+			return await this.prisma.healthToilet.delete({ where: { id } });
 		} catch (error) {
 			if (error?.code === 'P2025') {
 				throw new NotFoundException('找不到此資料或無權限刪除');
@@ -85,7 +107,7 @@ export class HealthToiletService {
 
 	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
 		const where: Prisma.HealthToiletWhereInput = {
-			...(isAdmin ? {} : { user_id: userId }),
+			...(isAdmin ? {} : this.userAccessWhere(userId)),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 		return this.prisma.healthToilet.findMany({
@@ -128,7 +150,7 @@ export class HealthToiletService {
 		const endDate = new Date(`${endStr}T23:59:59.999Z`);
 
 		const where: Prisma.HealthToiletWhereInput = {
-			...(isAdmin ? {} : { user_id: userId }),
+			...(isAdmin ? {} : this.userAccessWhere(userId)),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 			date: { gte: startDate, lte: endDate },
 		};
@@ -221,7 +243,7 @@ export class HealthToiletService {
 
 	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
 		const where: Prisma.HealthToiletWhereInput = {
-			...(isAdmin ? {} : { user_id: userId }),
+			...(isAdmin ? {} : this.userAccessWhere(userId)),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 
