@@ -90,9 +90,7 @@ export const LoginPage: React.FC = () => {
 							<Form.Item
 								name="username"
 								initialValue={
-									isTestEnvironment
-										? "admin@example.com"
-										: undefined
+									isTestEnvironment ? "admin" : undefined
 								}
 								rules={[
 									{

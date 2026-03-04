@@ -7,8 +7,9 @@ import {
 	CreateButton,
 	getDefaultSortOrder,
 } from "@refinedev/antd";
-import { Grid, Space, Table, Tag } from "antd";
-import { useGo, useNavigation, useResource } from "@refinedev/core";
+import { Grid, Space, Table, Tag, Dropdown, Modal, Button } from "antd";
+import { MoreOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
 
@@ -18,9 +19,10 @@ import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 export const SchoolList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
 	const { pathname } = useLocation();
-	const { createUrl } = useNavigation();
+	const { createUrl, show, edit } = useNavigation();
 
 	const { resource } = useResource();
+	const { mutate: deleteRecord } = useDelete();
 
 	const { tableProps, sorters, searchFormProps, tableQuery } =
 		useTable<ISchool>({
@@ -156,39 +158,87 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 				)}
 				<Table.Column<ISchool>
 					title="操作"
-					render={(_: any, record: ISchool) => (
-						<Space>
-							<ShowButton
-								hideText
-								size={isMobile ? "middle" : "small"}
-								recordItemId={record.id}
-							/>
-							<EditButton
-								hideText
-								size={isMobile ? "middle" : "small"}
-								recordItemId={record.id}
-							/>
-							<DeleteButton
-								resource={ROUTE_RESOURCE.school}
-								hideText
-								size={isMobile ? "middle" : "small"}
-								recordItemId={record.id}
-								confirmTitle={`確認要刪除嗎？`}
-								confirmOkText={`確認`}
-								confirmCancelText={`取消`}
-								successNotification={{
-									message: "刪除成功",
-									description: `${resource?.meta?.label}已成功刪除`,
-									type: "success",
+					width={isMobile ? 50 : undefined}
+					render={(_: any, record: ISchool) =>
+						isMobile ? (
+							<Dropdown
+								trigger={["click"]}
+								menu={{
+									items: [
+										{
+											key: "show",
+											icon: <EyeOutlined />,
+											label: "查看",
+											onClick: () => show(ROUTE_RESOURCE.school, record.id),
+										},
+										{
+											key: "edit",
+											icon: <EditOutlined />,
+											label: "編輯",
+											onClick: () => edit(ROUTE_RESOURCE.school, record.id),
+										},
+										{ type: "divider" },
+										{
+											key: "delete",
+											icon: <DeleteOutlined />,
+											label: "刪除",
+											danger: true,
+											onClick: () => {
+												Modal.confirm({
+													title: "確認要刪除嗎？",
+													okText: "確認",
+													cancelText: "取消",
+													okType: "danger",
+													onOk: () => {
+														deleteRecord({
+															resource: ROUTE_RESOURCE.school,
+															id: record.id,
+															successNotification: {
+																message: "刪除成功",
+																description: `${resource?.meta?.label}已成功刪除`,
+																type: "success",
+															},
+															errorNotification: {
+																message: "刪除失敗",
+																description: `無法刪除${resource?.meta?.label}`,
+																type: "error",
+															},
+														});
+													},
+												});
+											},
+										},
+									],
 								}}
-								errorNotification={{
-									message: "刪除失敗",
-									description: `無法刪除${resource?.meta?.label}`,
-									type: "error",
-								}}
-							/>
-						</Space>
-					)}
+							>
+								<Button type="text" icon={<MoreOutlined />} size="small" />
+							</Dropdown>
+						) : (
+							<Space>
+								<ShowButton hideText size="middle" recordItemId={record.id} />
+								<EditButton hideText size="middle" recordItemId={record.id} />
+								<DeleteButton
+									resource={ROUTE_RESOURCE.school}
+									hideText
+									size="middle"
+									recordItemId={record.id}
+									confirmTitle="確認要刪除嗎？"
+									confirmOkText="確認"
+									confirmCancelText="取消"
+									successNotification={{
+										message: "刪除成功",
+										description: `${resource?.meta?.label}已成功刪除`,
+										type: "success",
+									}}
+									errorNotification={{
+										message: "刪除失敗",
+										description: `無法刪除${resource?.meta?.label}`,
+										type: "error",
+									}}
+								/>
+							</Space>
+						)
+					}
 				/>
 			</Table>
 			{children}

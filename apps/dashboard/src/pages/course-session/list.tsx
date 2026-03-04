@@ -31,23 +31,30 @@ import {
 	Badge,
 	Segmented,
 	Grid,
+	Dropdown,
 } from "antd";
 import {
 	PlusOutlined,
 	CalendarOutlined,
 	TableOutlined,
+	MoreOutlined,
+	EyeOutlined,
+	EditOutlined,
+	DeleteOutlined,
 } from "@ant-design/icons";
-import { useGo, useNavigation, useResource } from "@refinedev/core";
+import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
 import { useLocation } from "react-router";
-import { type PropsWithChildren, useState, useCallback, useEffect, useRef } from "react";
+import {
+	type PropsWithChildren,
+	useState,
+	useCallback,
+	useEffect,
+	useRef,
+} from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import "dayjs/locale/zh-tw";
 
-import {
-	ICourseSession,
-	ICourse,
-	ISchool,
-} from "../../common/types/models";
+import { ICourseSession, ICourse, ISchool } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 import apiClient from "../../services/api/apiClient";
 import { useUser } from "../../contexts/userContext";
@@ -70,21 +77,25 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	const { createUrl } = useNavigation();
 	const { resource } = useResource();
 	const { user } = useUser();
+	const { mutate: deleteRecord } = useDelete();
 
 	// 顯示模式
 	const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
 
 	// 篩選狀態
 	const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
-	const [selectedSchoolId, setSelectedSchoolId] = useState<number | undefined>();
-	const [selectedCourseId, setSelectedCourseId] = useState<number | undefined>();
+	const [selectedSchoolId, setSelectedSchoolId] = useState<
+		number | undefined
+	>();
+	const [selectedCourseId, setSelectedCourseId] = useState<
+		number | undefined
+	>();
 
 	// 批次匯入 Modal 狀態
 	const [batchModalOpen, setBatchModalOpen] = useState(false);
-	const [batchDateRange, setBatchDateRange] = useState<[Dayjs | null, Dayjs | null]>([
-		dayjs().startOf("month"),
-		dayjs().endOf("month"),
-	]);
+	const [batchDateRange, setBatchDateRange] = useState<
+		[Dayjs | null, Dayjs | null]
+	>([dayjs().startOf("month"), dayjs().endOf("month")]);
 	const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
 	const [batchLoading, setBatchLoading] = useState(false);
 
@@ -139,7 +150,14 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 		return filters;
 	}, [monthStart, monthEnd, selectedSchoolId, selectedCourseId]);
 
-	const { tableProps, sorters, tableQueryResult, setFilters, setPageSize, setCurrent } = useTable<ICourseSession>({
+	const {
+		tableProps,
+		sorters,
+		tableQueryResult,
+		setFilters,
+		setPageSize,
+		setCurrent,
+	} = useTable<ICourseSession>({
 		resource: ROUTE_RESOURCE.courseSession,
 		initialSorter: [
 			{
@@ -180,7 +198,13 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 	// 課程選擇（依學校篩選）
 	const courseFilters = selectedSchoolId
-		? [{ field: "school_id", operator: "eq" as const, value: selectedSchoolId }]
+		? [
+				{
+					field: "school_id",
+					operator: "eq" as const,
+					value: selectedSchoolId,
+				},
+			]
 		: [];
 
 	const { query: courseQueryResult } = useSelect<ICourse>({
@@ -202,7 +226,11 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	}));
 
 	// 行內編輯處理
-	const handleInlineUpdate = async (id: number, field: string, value: any) => {
+	const handleInlineUpdate = async (
+		id: number,
+		field: string,
+		value: any,
+	) => {
 		try {
 			await apiClient.put(`/${ROUTE_RESOURCE.courseSession}/${id}`, {
 				[field]: value,
@@ -217,12 +245,19 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	};
 
 	// 取得行內編輯的本地值
-	const getEditValue = (recordId: number, field: "actual_student_count" | "note") => {
+	const getEditValue = (
+		recordId: number,
+		field: "actual_student_count" | "note",
+	) => {
 		return editState[recordId]?.[field];
 	};
 
 	// 設定行內編輯的本地值
-	const setEditValue = (recordId: number, field: "actual_student_count" | "note", value: any) => {
+	const setEditValue = (
+		recordId: number,
+		field: "actual_student_count" | "note",
+		value: any,
+	) => {
 		setEditState((prev) => ({
 			...prev,
 			[recordId]: {
@@ -233,14 +268,25 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	};
 
 	// 初始化行內編輯的本地值（首次 focus 時）
-	const initEditValue = (record: ICourseSession, field: "actual_student_count" | "note") => {
+	const initEditValue = (
+		record: ICourseSession,
+		field: "actual_student_count" | "note",
+	) => {
 		if (editState[record.id]?.[field] === undefined) {
-			setEditValue(record.id, field, record[field] ?? (field === "actual_student_count" ? 0 : ""));
+			setEditValue(
+				record.id,
+				field,
+				record[field] ?? (field === "actual_student_count" ? 0 : ""),
+			);
 		}
 	};
 
 	// 提交行內編輯
-	const submitEdit = (recordId: number, field: "actual_student_count" | "note", originalValue: any) => {
+	const submitEdit = (
+		recordId: number,
+		field: "actual_student_count" | "note",
+		originalValue: any,
+	) => {
 		const editedValue = getEditValue(recordId, field);
 		if (editedValue !== undefined && editedValue !== originalValue) {
 			handleInlineUpdate(recordId, field, editedValue);
@@ -259,16 +305,29 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	};
 
 	// 篩選變更處理
-	const applyFilters = (start: string, end: string, schoolId?: number, courseId?: number) => {
+	const applyFilters = (
+		start: string,
+		end: string,
+		schoolId?: number,
+		courseId?: number,
+	) => {
 		const filters: any[] = [
 			{ field: "date", operator: "gte", value: start },
 			{ field: "date", operator: "lte", value: end },
 		];
 		if (schoolId) {
-			filters.push({ field: "school_id", operator: "eq", value: schoolId });
+			filters.push({
+				field: "school_id",
+				operator: "eq",
+				value: schoolId,
+			});
 		}
 		if (courseId) {
-			filters.push({ field: "course_id", operator: "eq", value: courseId });
+			filters.push({
+				field: "course_id",
+				operator: "eq",
+				value: courseId,
+			});
 		}
 		setFilters(filters, "replace");
 	};
@@ -295,18 +354,25 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 	// 批次匯入處理
 	const handleBatchGenerate = async () => {
-		if (!batchDateRange[0] || !batchDateRange[1] || selectedCourseIds.length === 0) {
+		if (
+			!batchDateRange[0] ||
+			!batchDateRange[1] ||
+			selectedCourseIds.length === 0
+		) {
 			message.warning("請選擇日期範圍及課程");
 			return;
 		}
 		setBatchLoading(true);
 		try {
-			const response = await apiClient.post(`/${ROUTE_RESOURCE.courseSession}/batch-generate`, {
-				course_ids: selectedCourseIds,
-				start_date: batchDateRange[0].format("YYYY-MM-DD"),
-				end_date: batchDateRange[1].format("YYYY-MM-DD"),
-				modifier_id: user?.id,
-			});
+			const response = await apiClient.post(
+				`/${ROUTE_RESOURCE.courseSession}/batch-generate`,
+				{
+					course_ids: selectedCourseIds,
+					start_date: batchDateRange[0].format("YYYY-MM-DD"),
+					end_date: batchDateRange[1].format("YYYY-MM-DD"),
+					modifier_id: user?.id,
+				},
+			);
 			const result = response.data?.data || response.data;
 			message.success(`成功匯入 ${result.created} 筆上課記錄`);
 			setBatchModalOpen(false);
@@ -380,8 +446,12 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 								<Text
 									style={{
 										fontSize: 11,
-										color: session.is_cancelled ? "#ff4d4f" : undefined,
-										textDecoration: session.is_cancelled ? "line-through" : undefined,
+										color: session.is_cancelled
+											? "#ff4d4f"
+											: undefined,
+										textDecoration: session.is_cancelled
+											? "line-through"
+											: undefined,
 									}}
 								>
 									{session.course?.name || "-"}
@@ -399,10 +469,28 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 	// RangePicker 預設範圍
 	const rangePresets: { label: string; value: [Dayjs, Dayjs] }[] = [
-		{ label: "本週", value: [dayjs().startOf("week"), dayjs().endOf("week")] },
-		{ label: "下週", value: [dayjs().add(1, "week").startOf("week"), dayjs().add(1, "week").endOf("week")] },
-		{ label: "本月", value: [dayjs().startOf("month"), dayjs().endOf("month")] },
-		{ label: "下月", value: [dayjs().add(1, "month").startOf("month"), dayjs().add(1, "month").endOf("month")] },
+		{
+			label: "本週",
+			value: [dayjs().startOf("week"), dayjs().endOf("week")],
+		},
+		{
+			label: "下週",
+			value: [
+				dayjs().add(1, "week").startOf("week"),
+				dayjs().add(1, "week").endOf("week"),
+			],
+		},
+		{
+			label: "本月",
+			value: [dayjs().startOf("month"), dayjs().endOf("month")],
+		},
+		{
+			label: "下月",
+			value: [
+				dayjs().add(1, "month").startOf("month"),
+				dayjs().add(1, "month").endOf("month"),
+			],
+		},
 	];
 
 	return (
@@ -446,16 +534,29 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					<Col>
 						<Segmented
 							options={[
-								{ label: "表格", value: "table", icon: <TableOutlined /> },
-								{ label: "行事曆", value: "calendar", icon: <CalendarOutlined /> },
+								{
+									label: "表格",
+									value: "table",
+									icon: <TableOutlined />,
+								},
+								{
+									label: "行事曆",
+									value: "calendar",
+									icon: <CalendarOutlined />,
+								},
 							]}
 							value={viewMode}
-							onChange={(val) => setViewMode(val as "table" | "calendar")}
+							onChange={(val) =>
+								setViewMode(val as "table" | "calendar")
+							}
 						/>
 					</Col>
 					{viewMode === "table" && (
 						<Col xs={24} sm={8} md={5}>
-							<Text strong style={{ display: "block", marginBottom: 4 }}>
+							<Text
+								strong
+								style={{ display: "block", marginBottom: 4 }}
+							>
 								月份
 							</Text>
 							<DatePicker
@@ -468,7 +569,10 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 						</Col>
 					)}
 					<Col xs={24} sm={8} md={5}>
-						<Text strong style={{ display: "block", marginBottom: 4 }}>
+						<Text
+							strong
+							style={{ display: "block", marginBottom: 4 }}
+						>
 							學校
 						</Text>
 						<Select
@@ -482,7 +586,10 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 						/>
 					</Col>
 					<Col xs={24} sm={8} md={5}>
-						<Text strong style={{ display: "block", marginBottom: 4 }}>
+						<Text
+							strong
+							style={{ display: "block", marginBottom: 4 }}
+						>
 							課程
 						</Text>
 						<Select
@@ -500,13 +607,21 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 			{/* 表格模式 */}
 			{viewMode === "table" && (
-				<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+				<Table
+					{...tableProps}
+					dataSource={records}
+					rowKey="id"
+					scroll={{ x: "max-content" }}
+				>
 					{!isMobile && (
 						<Table.Column
 							dataIndex="id"
 							title="ID"
 							width={60}
-							defaultSortOrder={getDefaultSortOrder("id", sorters)}
+							defaultSortOrder={getDefaultSortOrder(
+								"id",
+								sorters,
+							)}
 						/>
 					)}
 					<Table.Column<ICourseSession>
@@ -542,17 +657,34 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							width={140}
 							render={(_: any, record: ICourseSession) => {
 								const course = record.course;
-								if (!course?.start_time || !course?.end_time) return "-";
-								const start = dayjs(course.start_time).format("HH:mm");
-								const end = dayjs(course.end_time).format("HH:mm");
+								if (!course?.start_time || !course?.end_time)
+									return "-";
+								const start = dayjs(course.start_time).format(
+									"HH:mm",
+								);
+								const end = dayjs(course.end_time).format(
+									"HH:mm",
+								);
 								const duration = course.duration;
 								return (
 									<span>
 										{start} - {end}
 										{duration ? (
-											<Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
-												({Math.floor(duration / 60) > 0 ? `${Math.floor(duration / 60)}h` : ""}
-												{duration % 60 > 0 ? `${duration % 60}m` : ""})
+											<Text
+												type="secondary"
+												style={{
+													fontSize: 12,
+													marginLeft: 4,
+												}}
+											>
+												(
+												{Math.floor(duration / 60) > 0
+													? `${Math.floor(duration / 60)}h`
+													: ""}
+												{duration % 60 > 0
+													? `${duration % 60}m`
+													: ""}
+												)
 											</Text>
 										) : null}
 									</span>
@@ -560,6 +692,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							}}
 						/>
 					)}
+
 					<Table.Column<ICourseSession>
 						title="狀態"
 						width={80}
@@ -580,18 +713,37 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 								style={{ width: isMobile ? 60 : 80 }}
 								disabled={record.is_cancelled}
 								value={
-									getEditValue(record.id, "actual_student_count") ??
-									record.actual_student_count
+									getEditValue(
+										record.id,
+										"actual_student_count",
+									) ?? record.actual_student_count
 								}
-								onFocus={() => initEditValue(record, "actual_student_count")}
+								onFocus={() =>
+									initEditValue(
+										record,
+										"actual_student_count",
+									)
+								}
 								onChange={(val) =>
-									setEditValue(record.id, "actual_student_count", val ?? 0)
+									setEditValue(
+										record.id,
+										"actual_student_count",
+										val ?? 0,
+									)
 								}
 								onBlur={() =>
-									submitEdit(record.id, "actual_student_count", record.actual_student_count)
+									submitEdit(
+										record.id,
+										"actual_student_count",
+										record.actual_student_count,
+									)
 								}
 								onPressEnter={() =>
-									submitEdit(record.id, "actual_student_count", record.actual_student_count)
+									submitEdit(
+										record.id,
+										"actual_student_count",
+										record.actual_student_count,
+									)
 								}
 							/>
 						)}
@@ -601,8 +753,12 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							dataIndex="salary_amount"
 							title="薪資金額"
 							width={100}
-							render={(value: number | null, record: ICourseSession) => {
-								if ((record as ICourseSession).is_cancelled) return "-";
+							render={(
+								value: number | null,
+								record: ICourseSession,
+							) => {
+								if ((record as ICourseSession).is_cancelled)
+									return "-";
 								return value != null ? `$${value}` : "未設定";
 							}}
 						/>
@@ -628,15 +784,29 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 										getEditValue(record.id, "note") ??
 										(record.note || "")
 									}
-									onFocus={() => initEditValue(record, "note")}
+									onFocus={() =>
+										initEditValue(record, "note")
+									}
 									onChange={(e) =>
-										setEditValue(record.id, "note", e.target.value)
+										setEditValue(
+											record.id,
+											"note",
+											e.target.value,
+										)
 									}
 									onBlur={() =>
-										submitEdit(record.id, "note", record.note || "")
+										submitEdit(
+											record.id,
+											"note",
+											record.note || "",
+										)
 									}
 									onPressEnter={() =>
-										submitEdit(record.id, "note", record.note || "")
+										submitEdit(
+											record.id,
+											"note",
+											record.note || "",
+										)
 									}
 									placeholder="輸入備註"
 								/>
@@ -645,50 +815,139 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					)}
 					<Table.Column<ICourseSession>
 						title="操作"
-						width={isMobile ? 120 : 180}
+						width={isMobile ? 50 : 180}
 						fixed="right"
-						render={(_: any, record: ICourseSession) => (
-							<Space>
-								<Switch
-									size="small"
-									checked={record.is_cancelled}
-									checkedChildren="停課"
-									unCheckedChildren="正常"
-									onChange={(checked) =>
-										handleInlineUpdate(record.id, "is_cancelled", checked)
-									}
-								/>
-								<ShowButton
-									hideText
-									size={isMobile ? "middle" : "small"}
-									recordItemId={record.id}
-								/>
-								<EditButton
-									hideText
-									size={isMobile ? "middle" : "small"}
-									recordItemId={record.id}
-								/>
-								<DeleteButton
-									resource={ROUTE_RESOURCE.courseSession}
-									hideText
-									size={isMobile ? "middle" : "small"}
-									recordItemId={record.id}
-									confirmTitle="確認要刪除嗎？"
-									confirmOkText="確認"
-									confirmCancelText="取消"
-									successNotification={{
-										message: "刪除成功",
-										description: `${resource?.meta?.label}已成功刪除`,
-										type: "success",
+						render={(_: any, record: ICourseSession) =>
+							isMobile ? (
+								<Dropdown
+									trigger={["click"]}
+									menu={{
+										items: [
+											{
+												key: "toggle",
+												label: record.is_cancelled ? "恢復上課" : "設為停課",
+												onClick: () =>
+													handleInlineUpdate(
+														record.id,
+														"is_cancelled",
+														!record.is_cancelled,
+													),
+											},
+											{ type: "divider" },
+											{
+												key: "show",
+												icon: <EyeOutlined />,
+												label: "查看",
+												onClick: () =>
+													go({
+														to: `/${ROUTE_PATH.courseSession}/${record.id}`,
+														type: "push",
+													}),
+											},
+											{
+												key: "edit",
+												icon: <EditOutlined />,
+												label: "編輯",
+												onClick: () =>
+													go({
+														to: `/${ROUTE_PATH.courseSession}/edit/${record.id}`,
+														type: "push",
+													}),
+											},
+											{ type: "divider" },
+											{
+												key: "delete",
+												icon: <DeleteOutlined />,
+												label: "刪除",
+												danger: true,
+												onClick: () => {
+													Modal.confirm({
+														title: "確認要刪除嗎？",
+														okText: "確認",
+														cancelText: "取消",
+														okType: "danger",
+														onOk: () => {
+															deleteRecord(
+																{
+																	resource: ROUTE_RESOURCE.courseSession,
+																	id: record.id,
+																	successNotification: {
+																		message: "刪除成功",
+																		description: `${resource?.meta?.label}已成功刪除`,
+																		type: "success",
+																	},
+																	errorNotification: {
+																		message: "刪除失敗",
+																		description: `無法刪除${resource?.meta?.label}`,
+																		type: "error",
+																	},
+																},
+															);
+														},
+													});
+												},
+											},
+										],
 									}}
-									errorNotification={{
-										message: "刪除失敗",
-										description: `無法刪除${resource?.meta?.label}`,
-										type: "error",
-									}}
-								/>
-							</Space>
-						)}
+								>
+									<Button
+										type="text"
+										icon={<MoreOutlined />}
+										size="small"
+									/>
+								</Dropdown>
+							) : (
+								<Space>
+									<Switch
+										size="small"
+										checked={record.is_cancelled}
+										checkedChildren="停課"
+										unCheckedChildren="正常"
+										style={
+											record.is_cancelled
+												? undefined
+												: { backgroundColor: "#52c41a" }
+										}
+										onChange={(checked) =>
+											handleInlineUpdate(
+												record.id,
+												"is_cancelled",
+												checked,
+											)
+										}
+									/>
+									<ShowButton
+										hideText
+										size="middle"
+										recordItemId={record.id}
+									/>
+									<EditButton
+										hideText
+										size="middle"
+										recordItemId={record.id}
+									/>
+									<DeleteButton
+										resource={ROUTE_RESOURCE.courseSession}
+										hideText
+										size="middle"
+										recordItemId={record.id}
+										confirmTitle="確認要刪除嗎？"
+										confirmOkText="確認"
+										confirmCancelText="取消"
+										successNotification={{
+											message: "刪除成功",
+											description: `${resource?.meta?.label}已成功刪除`,
+											type: "success",
+										}}
+										errorNotification={{
+											message: "刪除失敗",
+											description: `無法刪除${resource?.meta?.label}`,
+											type: "error",
+										}}
+									/>
+								</Space>
+							)
+						}
 					/>
 				</Table>
 			)}
@@ -700,14 +959,18 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 						value={selectedMonth}
 						onPanelChange={(value) => handleMonthChange(value)}
 						onSelect={(date, info) => {
-							if (info.source === "date" && !sessionClickedRef.current) {
+							if (
+								info.source === "date" &&
+								!sessionClickedRef.current
+							) {
 								setQuickCreateDate(date);
 								quickCreateForm.resetFields();
 								setQuickCreateModalOpen(true);
 							}
 						}}
 						cellRender={(current, info) => {
-							if (info.type === "date") return dateCellRender(current as Dayjs);
+							if (info.type === "date")
+								return dateCellRender(current as Dayjs);
 							return info.originNode;
 						}}
 					/>
@@ -730,7 +993,9 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							value={batchDateRange}
 							onChange={(dates) => {
 								if (dates) {
-									setBatchDateRange(dates as [Dayjs | null, Dayjs | null]);
+									setBatchDateRange(
+										dates as [Dayjs | null, Dayjs | null],
+									);
 								}
 							}}
 							presets={rangePresets}
@@ -746,7 +1011,9 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							onChange={setSelectedCourseIds}
 							style={{ width: "100%" }}
 							dropdownRender={(menu) => {
-								const allIds = courseOptions.map((c) => c.value);
+								const allIds = courseOptions.map(
+									(c) => c.value,
+								);
 								const isAllSelected =
 									allIds.length > 0 &&
 									selectedCourseIds.length === allIds.length;
@@ -760,14 +1027,18 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 												padding: "4px 12px",
 												cursor: "pointer",
 											}}
-											onMouseDown={(e) => e.preventDefault()}
+											onMouseDown={(e) =>
+												e.preventDefault()
+											}
 										>
 											<Checkbox
 												checked={isAllSelected}
 												indeterminate={isIndeterminate}
 												onChange={(e) => {
 													setSelectedCourseIds(
-														e.target.checked ? allIds : [],
+														e.target.checked
+															? allIds
+															: [],
 													);
 												}}
 											>
