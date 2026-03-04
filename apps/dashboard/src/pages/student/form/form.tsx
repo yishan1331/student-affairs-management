@@ -86,7 +86,7 @@ export const StudentForm = (props: Props) => {
 					]}
 				>
 					<Select
-						style={{ width: "200px" }}
+						style={{ width: "100%" }}
 						placeholder="請選擇性別"
 						options={[
 							{ label: "男", value: "male" },
@@ -107,7 +107,7 @@ export const StudentForm = (props: Props) => {
 					<Select
 						{...courseSelectProps}
 						options={courseOptions}
-						style={{ width: "200px" }}
+						style={{ width: "100%" }}
 						showSearch={false}
 						placeholder="請選擇課程"
 					/>

@@ -645,7 +645,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					)}
 					<Table.Column<ICourseSession>
 						title="操作"
-						width={180}
+						width={isMobile ? 120 : 180}
 						fixed="right"
 						render={(_: any, record: ICourseSession) => (
 							<Space>
