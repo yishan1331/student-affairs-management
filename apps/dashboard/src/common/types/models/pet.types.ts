@@ -26,6 +26,13 @@ export interface IPet {
 		id: number;
 		username: string;
 	};
+	petUsers?: {
+		id: number;
+		user_id: number;
+		role: 'owner' | 'member';
+		created_at: string;
+		user: { id: number; username: string; email?: string };
+	}[];
 }
 
 export interface ICreatePet {

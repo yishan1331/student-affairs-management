@@ -193,7 +193,7 @@ describe('authProvider', () => {
 			const token = buildMockJwt({
 				sub: '42',
 				username: 'teacher1',
-				role: 'staff',
+				role: 'guest',
 				exp: Math.floor(Date.now() / 1000) + 3600,
 			});
 			localStorageStore[TOKEN_KEY] = token;
@@ -203,7 +203,7 @@ describe('authProvider', () => {
 			expect(identity).toEqual({
 				id: '42',
 				username: 'teacher1',
-				role: 'staff',
+				role: 'guest',
 			});
 		});
 

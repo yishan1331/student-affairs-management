@@ -14,8 +14,8 @@ import { DataSource } from "../../common/types/types";
 
 const roleMap: Record<string, { label: string; color: string }> = {
 	admin: { label: "管理員", color: "red" },
-	manager: { label: "經理", color: "blue" },
-	staff: { label: "職員", color: "green" },
+	user: { label: "使用者", color: "blue" },
+	guest: { label: "訪客", color: "green" },
 };
 
 export const UserShow = () => {

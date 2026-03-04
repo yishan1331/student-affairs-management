@@ -42,6 +42,13 @@ export class UserController {
 		return this.userService.create(createUserDto);
 	}
 
+	@Get('search')
+	async search(@Query('q') q: string, @Query('limit') limit?: string) {
+		const keyword = (q || '').trim();
+		if (!keyword) return [];
+		return this.userService.searchUsers(keyword, limit ? parseInt(limit, 10) : 10);
+	}
+
 	@Get()
 	async findAll(@Query() query: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
 		const user = req.user as any;

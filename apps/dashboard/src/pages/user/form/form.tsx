@@ -17,8 +17,8 @@ type Props = {
 
 const roleOptions = [
 	{ label: "管理員", value: "admin" },
-	{ label: "經理", value: "manager" },
-	{ label: "職員", value: "staff" },
+	{ label: "使用者", value: "user" },
+	{ label: "訪客", value: "guest" },
 ];
 
 export const UserForm = (props: Props) => {

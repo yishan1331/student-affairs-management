@@ -8,7 +8,7 @@ import {
 	getDefaultSortOrder,
 } from "@refinedev/antd";
 import { Grid, Space, Table, Tag, Dropdown, Modal, Button } from "antd";
-import { MoreOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { MoreOutlined, EyeOutlined, EditOutlined, DeleteOutlined, TeamOutlined } from "@ant-design/icons";
 import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
 import { useLocation } from "react-router";
 import { type PropsWithChildren } from "react";
@@ -118,6 +118,21 @@ export const PetList = ({ children }: PropsWithChildren) => {
 							{value ? "啟用" : "停用"}
 						</Tag>
 					)}
+				/>
+				<Table.Column<IPet>
+					dataIndex="petUsers"
+					title="共享"
+					render={(_: any, rec: IPet) => {
+						const sharedCount = (rec.petUsers?.filter((pu) => pu.role !== "owner").length) ?? 0;
+						if (sharedCount > 0) {
+							return (
+								<Tag icon={<TeamOutlined />} color="blue">
+									共享 ({sharedCount})
+								</Tag>
+							);
+						}
+						return "-";
+					}}
 				/>
 				<Table.Column<IPet>
 					title="操作"

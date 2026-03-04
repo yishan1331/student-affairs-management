@@ -82,15 +82,15 @@ describe('accessControlProvider', () => {
 	});
 
 	// ----------------------------------------------------------------
-	// Manager role
+	// User role
 	// ----------------------------------------------------------------
-	describe('manager role', () => {
+	describe('user role', () => {
 		beforeEach(() => {
-			localStorageStore[TOKEN_KEY] = buildTokenForRole('manager');
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('user');
 		});
 
-		it.each(['list', 'show', 'create', 'edit'] as const)(
-			'should allow "%s" action',
+		it.each(['list', 'show', 'create', 'edit', 'delete'] as const)(
+			'should allow "%s" action on non-user resources',
 			async (action) => {
 				const result = await accessControlProvider.can!({
 					action,
@@ -101,26 +101,29 @@ describe('accessControlProvider', () => {
 			},
 		);
 
-		it('should deny "delete" action', async () => {
-			const result = await accessControlProvider.can!({
-				action: 'delete',
-				resource: 'school',
-			});
+		it.each(['list', 'show', 'create', 'edit', 'delete'] as const)(
+			'should deny "%s" action on user resource',
+			async (action) => {
+				const result = await accessControlProvider.can!({
+					action,
+					resource: 'user',
+				});
 
-			expect(result).toEqual({ can: false });
-		});
+				expect(result).toEqual({ can: false });
+			},
+		);
 	});
 
 	// ----------------------------------------------------------------
-	// Staff role
+	// Guest role
 	// ----------------------------------------------------------------
-	describe('staff role', () => {
+	describe('guest role', () => {
 		beforeEach(() => {
-			localStorageStore[TOKEN_KEY] = buildTokenForRole('staff');
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('guest');
 		});
 
 		it.each(['list', 'show'] as const)(
-			'should allow "%s" action',
+			'should allow "%s" action on non-user resources',
 			async (action) => {
 				const result = await accessControlProvider.can!({
 					action,
@@ -132,11 +135,23 @@ describe('accessControlProvider', () => {
 		);
 
 		it.each(['create', 'edit', 'delete'] as const)(
-			'should deny "%s" action',
+			'should deny "%s" action on non-user resources',
 			async (action) => {
 				const result = await accessControlProvider.can!({
 					action,
 					resource: 'school',
+				});
+
+				expect(result).toEqual({ can: false });
+			},
+		);
+
+		it.each(['list', 'show', 'create', 'edit', 'delete'] as const)(
+			'should deny "%s" action on user resource',
+			async (action) => {
+				const result = await accessControlProvider.can!({
+					action,
+					resource: 'user',
 				});
 
 				expect(result).toEqual({ can: false });

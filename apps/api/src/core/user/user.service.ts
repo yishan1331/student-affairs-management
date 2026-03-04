@@ -31,6 +31,20 @@ export class UserService {
 		return this.prisma.user.count({ where: finalWhere });
 	}
 
+	async searchUsers(keyword: string, limit = 10) {
+		return this.prisma.user.findMany({
+			where: {
+				OR: [
+					{ account: { contains: keyword, mode: 'insensitive' } },
+					{ username: { contains: keyword, mode: 'insensitive' } },
+				],
+			},
+			select: { id: true, username: true },
+			take: limit,
+			orderBy: { username: 'asc' },
+		});
+	}
+
 	findOne(id: number) {
 		return this.prisma.user.findFirst({
 			where: { id: id },

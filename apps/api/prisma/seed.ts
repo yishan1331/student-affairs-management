@@ -21,9 +21,9 @@ async function main() {
 			),
 			username: faker.person.fullName(),
 			role: faker.helpers.arrayElement([
-				Role.manager,
+				Role.user,
 				Role.admin,
-				Role.staff,
+				Role.guest,
 			]),
 			email: faker.internet.email(),
 			status: faker.helpers.arrayElement([

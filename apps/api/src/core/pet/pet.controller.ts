@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -171,7 +171,7 @@ export class PetController {
 		return this.petService.findOne(+id, user.id, user.role === 'admin');
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(
 		@Param('id') id: string,
 		@Req() req: Request,
