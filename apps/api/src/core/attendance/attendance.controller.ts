@@ -39,8 +39,9 @@ export class AttendanceController {
 	}
 
 	@Post()
-	create(@Body() createAttendanceDto: CreateAttendanceDto) {
-		return this.attendanceService.create(createAttendanceDto);
+	create(@Body() createAttendanceDto: CreateAttendanceDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.attendanceService.create(createAttendanceDto, user.id);
 	}
 
 	@Get()
@@ -59,8 +60,9 @@ export class AttendanceController {
 	}
 
 	@Post('batch')
-	createBatch(@Body() createBatchAttendanceDto: CreateBatchAttendanceDto) {
-		return this.attendanceService.createBatch(createBatchAttendanceDto);
+	createBatch(@Body() createBatchAttendanceDto: CreateBatchAttendanceDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.attendanceService.createBatch(createBatchAttendanceDto, user.id);
 	}
 
 	@Get('statistics')

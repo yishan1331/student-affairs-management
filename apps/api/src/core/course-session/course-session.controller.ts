@@ -40,8 +40,9 @@ export class CourseSessionController {
 	}
 
 	@Post()
-	create(@Body() dto: CreateCourseSessionDto) {
-		return this.courseSessionService.create(dto);
+	create(@Body() dto: CreateCourseSessionDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.courseSessionService.create(dto, user.id);
 	}
 
 	@Get()
@@ -77,8 +78,9 @@ export class CourseSessionController {
 	}
 
 	@Post('batch-generate')
-	batchGenerate(@Body() dto: BatchGenerateCourseSessionDto) {
-		return this.courseSessionService.batchGenerate(dto);
+	batchGenerate(@Body() dto: BatchGenerateCourseSessionDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.courseSessionService.batchGenerate(dto, user.id);
 	}
 
 	@Post('recalculate-salaries')

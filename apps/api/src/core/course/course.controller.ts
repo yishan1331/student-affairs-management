@@ -37,8 +37,9 @@ export class CourseController {
 	}
 
 	@Post()
-	create(@Body() createCourseDto: CreateCourseDto) {
-		return this.courseService.create(createCourseDto);
+	create(@Body() createCourseDto: CreateCourseDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.courseService.create(createCourseDto, user.id);
 	}
 
 	@Get('schedule')

@@ -97,7 +97,7 @@ export class CourseSessionService {
 		};
 	}
 
-	async create(dto: CreateCourseSessionDto) {
+	async create(dto: CreateCourseSessionDto, userId: number) {
 		const isCancelled = dto.is_cancelled ?? false;
 
 		// If cancelled, salary is 0; otherwise calculate normally
@@ -125,6 +125,7 @@ export class CourseSessionService {
 				salary_base_id,
 				note: dto.note,
 				modifier_id: dto.modifier_id,
+				user_id: userId,
 			},
 			include: {
 				course: { include: { school: true } },
@@ -208,6 +209,7 @@ export class CourseSessionService {
 					is_cancelled: true,
 					salary_amount: null,
 					salary_base_id: null,
+					modifier_id: userId,
 				},
 				include: {
 					course: { include: { school: true } },
@@ -238,6 +240,7 @@ export class CourseSessionService {
 					is_cancelled: false,
 					salary_amount,
 					salary_base_id,
+					modifier_id: userId,
 				},
 				include: {
 					course: { include: { school: true } },
@@ -251,6 +254,7 @@ export class CourseSessionService {
 			data: {
 				...dto,
 				date: dto.date ? this.toUTCMidnight(dto.date) : undefined,
+				modifier_id: userId,
 			},
 			include: {
 				course: { include: { school: true } },
@@ -275,7 +279,7 @@ export class CourseSessionService {
 		return this.prisma.courseSession.delete({ where: { id } });
 	}
 
-	async batchGenerate(dto: BatchGenerateCourseSessionDto) {
+	async batchGenerate(dto: BatchGenerateCourseSessionDto, userId: number) {
 		const results: any[] = [];
 
 		// Determine date range
@@ -362,6 +366,7 @@ export class CourseSessionService {
 						salary_base_id,
 						note: null,
 						modifier_id: dto.modifier_id,
+						user_id: userId,
 					},
 				});
 				results.push(session);

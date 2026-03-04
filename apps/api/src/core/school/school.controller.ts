@@ -37,8 +37,9 @@ export class SchoolController {
 	}
 
 	@Post()
-	create(@Body() createSchoolDto: CreateSchoolDto) {
-		return this.schoolService.create(createSchoolDto);
+	create(@Body() createSchoolDto: CreateSchoolDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.schoolService.create(createSchoolDto, user.id);
 	}
 
 	@Get()

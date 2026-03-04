@@ -8,9 +8,9 @@ import { Prisma } from '@prisma/client';
 export class StudentService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(createStudentDto: CreateStudentDto) {
+	async create(createStudentDto: CreateStudentDto, userId: number) {
 		return this.prisma.student.create({
-			data: createStudentDto,
+			data: { ...createStudentDto, user_id: userId, modifier_id: userId },
 		});
 	}
 
@@ -48,7 +48,7 @@ export class StudentService {
 		}
 		return this.prisma.student.update({
 			where: { id },
-			data: updateStudentDto,
+			data: { ...updateStudentDto, modifier_id: userId },
 		});
 	}
 
@@ -74,10 +74,10 @@ export class StudentService {
 		});
 	}
 
-	async importStudents(students: { name: string; number: string; gender: string; course_id: number; modifier_id: number }[]) {
+	async importStudents(students: { name: string; number: string; gender: string; course_id: number; modifier_id: number }[], userId: number) {
 		return this.prisma.$transaction(
 			students.map((student) =>
-				this.prisma.student.create({ data: student }),
+				this.prisma.student.create({ data: { ...student, user_id: userId, modifier_id: userId } }),
 			),
 		);
 	}

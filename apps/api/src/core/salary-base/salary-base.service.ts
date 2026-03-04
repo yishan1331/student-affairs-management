@@ -8,11 +8,12 @@ import { Prisma } from '@prisma/client';
 export class SalaryBaseService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(dto: CreateSalaryBaseDto) {
+	async create(dto: CreateSalaryBaseDto, userId: number) {
 		const { school_ids, ...data } = dto;
 		return this.prisma.salaryBase.create({
 			data: {
 				...data,
+				user_id: userId,
 				schools: {
 					connect: school_ids.map((id) => ({ id })),
 				},
@@ -61,7 +62,10 @@ export class SalaryBaseService {
 			throw new ForbiddenException('無權限修改此薪資級距');
 		}
 		const { school_ids, ...data } = dto;
-		const updateData: Prisma.SalaryBaseUpdateInput = { ...data };
+		const updateData: Prisma.SalaryBaseUpdateInput = {
+			...data,
+			modifier: { connect: { id: userId } },
+		};
 		if (school_ids !== undefined) {
 			updateData.schools = {
 				set: school_ids.map((id) => ({ id })),

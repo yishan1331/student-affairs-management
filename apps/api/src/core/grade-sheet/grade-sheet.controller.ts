@@ -38,8 +38,9 @@ export class GradeSheetController {
 	}
 
 	@Post()
-	create(@Body() createGradeSheetDto: CreateGradeSheetDto) {
-		return this.gradeSheetService.create(createGradeSheetDto);
+	create(@Body() createGradeSheetDto: CreateGradeSheetDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.gradeSheetService.create(createGradeSheetDto, user.id);
 	}
 
 	@Get()

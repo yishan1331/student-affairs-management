@@ -41,8 +41,9 @@ export class StudentController {
 	}
 
 	@Post()
-	create(@Body() createStudentDto: CreateStudentDto) {
-		return this.studentService.create(createStudentDto);
+	create(@Body() createStudentDto: CreateStudentDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.studentService.create(createStudentDto, user.id);
 	}
 
 	@Get()
@@ -102,7 +103,8 @@ export class StudentController {
 
 	@Post('import')
 	@UseInterceptors(FileInterceptor('file'))
-	async importStudents(@UploadedFile() file: Express.Multer.File) {
+	async importStudents(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+		const user = req.user as any;
 		const ExcelJS = require('exceljs');
 		const workbook = new ExcelJS.Workbook();
 		await workbook.xlsx.load(file.buffer);
@@ -121,7 +123,7 @@ export class StudentController {
 			});
 		});
 
-		return this.studentService.importStudents(students);
+		return this.studentService.importStudents(students, user.id);
 	}
 
 	@Get(':id')

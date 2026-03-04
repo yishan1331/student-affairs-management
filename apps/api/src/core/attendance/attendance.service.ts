@@ -9,9 +9,9 @@ import { Prisma } from '@prisma/client';
 export class AttendanceService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(createAttendanceDto: CreateAttendanceDto) {
+	async create(createAttendanceDto: CreateAttendanceDto, userId: number) {
 		return this.prisma.attendance.create({
-			data: createAttendanceDto,
+			data: { ...createAttendanceDto, user_id: userId, modifier_id: userId },
 		});
 	}
 
@@ -47,7 +47,7 @@ export class AttendanceService {
 		}
 		return this.prisma.attendance.update({
 			where: { id },
-			data: updateAttendanceDto,
+			data: { ...updateAttendanceDto, modifier_id: userId },
 		});
 	}
 
@@ -62,7 +62,7 @@ export class AttendanceService {
 		});
 	}
 
-	async createBatch(createBatchAttendanceDto: CreateBatchAttendanceDto) {
+	async createBatch(createBatchAttendanceDto: CreateBatchAttendanceDto, userId: number) {
 		const { course_id, date, records } = createBatchAttendanceDto;
 
 		return this.prisma.$transaction(
@@ -72,6 +72,8 @@ export class AttendanceService {
 						student_id: record.student_id,
 						date: date,
 						status: record.status,
+						user_id: userId,
+						modifier_id: userId,
 					},
 				}),
 			),

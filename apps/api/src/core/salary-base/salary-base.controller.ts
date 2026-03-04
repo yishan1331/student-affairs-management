@@ -38,8 +38,9 @@ export class SalaryBaseController {
 	}
 
 	@Post()
-	create(@Body() dto: CreateSalaryBaseDto) {
-		return this.salaryBaseService.create(dto);
+	create(@Body() dto: CreateSalaryBaseDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.salaryBaseService.create(dto, user.id);
 	}
 
 	@Get()

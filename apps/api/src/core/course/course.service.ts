@@ -8,9 +8,9 @@ import { Prisma } from '@prisma/client';
 export class CourseService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(createCourseDto: CreateCourseDto) {
+	async create(createCourseDto: CreateCourseDto, userId: number) {
 		return this.prisma.course.create({
-			data: createCourseDto,
+			data: { ...createCourseDto, user_id: userId, modifier_id: userId },
 		});
 	}
 
@@ -82,7 +82,7 @@ export class CourseService {
 		}
 		return this.prisma.course.update({
 			where: { id },
-			data: updateCourseDto,
+			data: { ...updateCourseDto, modifier_id: userId },
 		});
 	}
 

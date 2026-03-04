@@ -8,9 +8,9 @@ import { Prisma } from '@prisma/client';
 export class GradeSheetService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(createGradeSheetDto: CreateGradeSheetDto) {
+	async create(createGradeSheetDto: CreateGradeSheetDto, userId: number) {
 		return this.prisma.gradeSheet.create({
-			data: createGradeSheetDto,
+			data: { ...createGradeSheetDto, user_id: userId, modifier_id: userId },
 		});
 	}
 
@@ -46,7 +46,7 @@ export class GradeSheetService {
 		}
 		return this.prisma.gradeSheet.update({
 			where: { id },
-			data: updateGradeSheetDto,
+			data: { ...updateGradeSheetDto, modifier_id: userId },
 		});
 	}
 
