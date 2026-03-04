@@ -164,6 +164,22 @@ const AppContent = () => {
 			accessControlProvider={accessControlProvider}
 			options={{
 				syncWithLocation: true,
+				reactQuery: {
+					clientConfig: {
+						defaultOptions: {
+							queries: {
+								retry: (failureCount, error: any) => {
+									const status = error?.statusCode || error?.response?.status;
+									// 4xx 錯誤不重試（403 權限不足、404 不存在等）
+									if (status && status >= 400 && status < 500) {
+										return false;
+									}
+									return failureCount < 3;
+								},
+							},
+						},
+					},
+				},
 			}}
 			resources={[
 				{

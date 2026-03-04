@@ -1,6 +1,7 @@
 import { MealType, ToiletType, PetType, SymptomType, Severity } from "./types/models";
 
 export const TOKEN_KEY = "SAMS";
+export const REFRESH_TOKEN_KEY = "SAMS_REFRESH";
 
 // API基礎URL配置
 export const BASE_URL = import.meta.env.VITE_API_URL;

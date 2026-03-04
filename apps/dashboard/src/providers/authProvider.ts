@@ -1,6 +1,6 @@
 import type { AuthProvider } from '@refinedev/core';
 import { apiClient } from '../services/api';
-import { TOKEN_KEY } from '../common/constants';
+import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '../common/constants';
 
 const decodeBase64Url = (base64Url: string) => {
 	const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -38,8 +38,11 @@ export const authProvider: AuthProvider = {
 				password,
 			});
 			console.log(response);
-			const { access_token } = response.data.data;
+			const { access_token, refresh_token } = response.data.data;
 			localStorage.setItem(TOKEN_KEY, access_token);
+			if (refresh_token) {
+				localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
+			}
 			console.log(access_token);
 			return {
 				success: true,
@@ -54,6 +57,7 @@ export const authProvider: AuthProvider = {
 	},
 	logout: async () => {
 		localStorage.removeItem(TOKEN_KEY);
+		localStorage.removeItem(REFRESH_TOKEN_KEY);
 		return {
 			success: true,
 			redirectTo: '/login',
