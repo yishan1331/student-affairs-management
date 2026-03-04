@@ -74,7 +74,7 @@ export const HealthSubjectSelector: React.FC<HealthSubjectSelectorProps> = ({
 		const options = [{ label: "我自己", value: -1 }, ...petItems];
 		return (
 			<Select
-				style={{ width: 200 }}
+				style={{ width: '100%', maxWidth: 200 }}
 				value={value === undefined || value === null ? -1 : value}
 				onChange={(val) => {
 					onChange?.(val === -1 ? undefined : val);

@@ -501,12 +501,14 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 			{/* 表格模式 */}
 			{viewMode === "table" && (
 				<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
-					<Table.Column
-						dataIndex="id"
-						title="ID"
-						width={60}
-						defaultSortOrder={getDefaultSortOrder("id", sorters)}
-					/>
+					{!isMobile && (
+						<Table.Column
+							dataIndex="id"
+							title="ID"
+							width={60}
+							defaultSortOrder={getDefaultSortOrder("id", sorters)}
+						/>
+					)}
 					<Table.Column<ICourseSession>
 						title="課程"
 						width={150}
@@ -514,44 +516,50 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							record.course?.name || "-"
 						}
 					/>
-					<Table.Column<ICourseSession>
-						title="學校"
-						width={120}
-						render={(_: any, record: ICourseSession) =>
-							record.course?.school?.name || "-"
-						}
-					/>
+					{!isMobile && (
+						<Table.Column<ICourseSession>
+							title="學校"
+							width={120}
+							render={(_: any, record: ICourseSession) =>
+								record.course?.school?.name || "-"
+							}
+						/>
+					)}
 					<Table.Column
 						dataIndex="date"
 						title="日期"
-						width={160}
+						width={isMobile ? 110 : 160}
 						defaultSortOrder={getDefaultSortOrder("date", sorters)}
 						render={(value: string) =>
-							dayjs(value).format("YYYY-MM-DD (dd)")
+							isMobile
+								? dayjs(value).format("MM-DD (dd)")
+								: dayjs(value).format("YYYY-MM-DD (dd)")
 						}
 					/>
-					<Table.Column<ICourseSession>
-						title="上課時間"
-						width={140}
-						render={(_: any, record: ICourseSession) => {
-							const course = record.course;
-							if (!course?.start_time || !course?.end_time) return "-";
-							const start = dayjs(course.start_time).format("HH:mm");
-							const end = dayjs(course.end_time).format("HH:mm");
-							const duration = course.duration;
-							return (
-								<span>
-									{start} - {end}
-									{duration ? (
-										<Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
-											({Math.floor(duration / 60) > 0 ? `${Math.floor(duration / 60)}h` : ""}
-											{duration % 60 > 0 ? `${duration % 60}m` : ""})
-										</Text>
-									) : null}
-								</span>
-							);
-						}}
-					/>
+					{!isMobile && (
+						<Table.Column<ICourseSession>
+							title="上課時間"
+							width={140}
+							render={(_: any, record: ICourseSession) => {
+								const course = record.course;
+								if (!course?.start_time || !course?.end_time) return "-";
+								const start = dayjs(course.start_time).format("HH:mm");
+								const end = dayjs(course.end_time).format("HH:mm");
+								const duration = course.duration;
+								return (
+									<span>
+										{start} - {end}
+										{duration ? (
+											<Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
+												({Math.floor(duration / 60) > 0 ? `${Math.floor(duration / 60)}h` : ""}
+												{duration % 60 > 0 ? `${duration % 60}m` : ""})
+											</Text>
+										) : null}
+									</span>
+								);
+							}}
+						/>
+					)}
 					<Table.Column<ICourseSession>
 						title="狀態"
 						width={80}
@@ -563,13 +571,13 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 						)}
 					/>
 					<Table.Column<ICourseSession>
-						title="實際上課人數"
-						width={130}
+						title={isMobile ? "人數" : "實際上課人數"}
+						width={isMobile ? 80 : 130}
 						render={(_: any, record: ICourseSession) => (
 							<InputNumber
 								min={0}
 								size="small"
-								style={{ width: 80 }}
+								style={{ width: isMobile ? 60 : 80 }}
 								disabled={record.is_cancelled}
 								value={
 									getEditValue(record.id, "actual_student_count") ??
@@ -588,47 +596,53 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							/>
 						)}
 					/>
-					<Table.Column
-						dataIndex="salary_amount"
-						title="薪資金額"
-						width={100}
-						render={(value: number | null, record: ICourseSession) => {
-							if ((record as ICourseSession).is_cancelled) return "-";
-							return value != null ? `$${value}` : "未設定";
-						}}
-					/>
-					<Table.Column<ICourseSession>
-						title="薪資級距"
-						width={120}
-						render={(_: any, record: ICourseSession) =>
-							record.salaryBase?.name || "未設定"
-						}
-					/>
-					<Table.Column<ICourseSession>
-						title="備註"
-						width={180}
-						render={(_: any, record: ICourseSession) => (
-							<Input
-								size="small"
-								style={{ width: "100%" }}
-								value={
-									getEditValue(record.id, "note") ??
-									(record.note || "")
-								}
-								onFocus={() => initEditValue(record, "note")}
-								onChange={(e) =>
-									setEditValue(record.id, "note", e.target.value)
-								}
-								onBlur={() =>
-									submitEdit(record.id, "note", record.note || "")
-								}
-								onPressEnter={() =>
-									submitEdit(record.id, "note", record.note || "")
-								}
-								placeholder="輸入備註"
-							/>
-						)}
-					/>
+					{!isMobile && (
+						<Table.Column
+							dataIndex="salary_amount"
+							title="薪資金額"
+							width={100}
+							render={(value: number | null, record: ICourseSession) => {
+								if ((record as ICourseSession).is_cancelled) return "-";
+								return value != null ? `$${value}` : "未設定";
+							}}
+						/>
+					)}
+					{!isMobile && (
+						<Table.Column<ICourseSession>
+							title="薪資級距"
+							width={120}
+							render={(_: any, record: ICourseSession) =>
+								record.salaryBase?.name || "未設定"
+							}
+						/>
+					)}
+					{!isMobile && (
+						<Table.Column<ICourseSession>
+							title="備註"
+							width={180}
+							render={(_: any, record: ICourseSession) => (
+								<Input
+									size="small"
+									style={{ width: "100%" }}
+									value={
+										getEditValue(record.id, "note") ??
+										(record.note || "")
+									}
+									onFocus={() => initEditValue(record, "note")}
+									onChange={(e) =>
+										setEditValue(record.id, "note", e.target.value)
+									}
+									onBlur={() =>
+										submitEdit(record.id, "note", record.note || "")
+									}
+									onPressEnter={() =>
+										submitEdit(record.id, "note", record.note || "")
+									}
+									placeholder="輸入備註"
+								/>
+							)}
+						/>
+					)}
 					<Table.Column<ICourseSession>
 						title="操作"
 						width={180}

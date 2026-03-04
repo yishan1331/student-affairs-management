@@ -240,6 +240,8 @@ export const ScheduleList: React.FC = () => {
 	const ROW_HEIGHT_PER_30MIN = 48; // 每 30 分鐘的像素高度
 	const gridHeight = (totalMinutes / 30) * ROW_HEIGHT_PER_30MIN;
 
+	const COURSE_BLOCK_MIN_HEIGHT = isMobile ? 32 : 20;
+
 	// 渲染單日課表欄位（mobile 和 desktop 共用）
 	const renderDayColumn = (day: string) => (
 		<div
@@ -313,7 +315,7 @@ export const ScheduleList: React.FC = () => {
 								top: top + 1,
 								left: 4,
 								right: 4,
-								height: Math.max(height - 2, 20),
+								height: Math.max(height - 2, COURSE_BLOCK_MIN_HEIGHT),
 								background: bgColor,
 								borderRadius: 6,
 								padding: "6px 10px",

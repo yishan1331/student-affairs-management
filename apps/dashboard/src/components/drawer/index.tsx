@@ -55,7 +55,8 @@ export const CustomDrawer = (props: PropsWithChildren<Props>) => {
 						marginRight: '16px',
 						alignItems: 'center',
 						justifyContent: 'center',
-						padding: 0,
+						minWidth: 44,
+						minHeight: 44,
 						color: token.colorTextTertiary,
 					}}
 					icon={<CloseOutlined />}

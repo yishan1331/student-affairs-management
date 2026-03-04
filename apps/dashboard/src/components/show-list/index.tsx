@@ -31,7 +31,7 @@ export const CustomShowList = <T extends object>({
 								</Typography.Text>
 							),
 							value: (
-								<Typography.Text>
+								<Typography.Text style={{ wordBreak: 'break-word' }}>
 									{record?.[dataSource.value] as string}
 								</Typography.Text>
 							),

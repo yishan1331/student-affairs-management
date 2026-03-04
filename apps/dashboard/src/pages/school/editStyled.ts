@@ -11,8 +11,8 @@ export const useStyles = createStyles(({ token }) => {
 			padding: '16px',
 
 			'.ant-upload-drag': {
-				width: '240px !important',
-				height: '240px !important',
+				width: 'min(240px, 100%) !important',
+				height: 'min(240px, 60vw) !important',
 				marginLeft: 'auto',
 				marginRight: 'auto',
 				border: 'none',
