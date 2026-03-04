@@ -101,7 +101,11 @@ export const ScheduleList: React.FC = () => {
 		"6",
 	]);
 	const [searchName, setSearchName] = useState("");
-	const [mobileActiveDay, setMobileActiveDay] = useState("1");
+	// 手機版預設顯示今天星期幾，星期日則顯示星期一
+	const todayDay = new Date().getDay(); // 0=日, 1=一, ..., 6=六
+	const [mobileActiveDay, setMobileActiveDay] = useState(
+		todayDay === 0 ? "1" : String(todayDay),
+	);
 
 	// 取得學校列表
 	useEffect(() => {
