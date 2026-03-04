@@ -59,7 +59,7 @@ export const UserEdit = () => {
 				</>
 			)}
 		>
-			<UserForm formProps={{ ...formProps }} isEdit={true} />
+			<UserForm formProps={{ ...formProps }} isEdit={true} userId={id} />
 		</Edit>
 	);
 };
