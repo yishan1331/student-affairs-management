@@ -205,7 +205,7 @@ export const SalaryOverviewList: React.FC = () => {
 							picker="month"
 							placeholder="選擇月份"
 							style={{ width: "100%" }}
-							onChange={(date) => {
+							onChange={(date: Dayjs | null) => {
 								if (date) {
 									setDateRange([
 										date.startOf("month"),
