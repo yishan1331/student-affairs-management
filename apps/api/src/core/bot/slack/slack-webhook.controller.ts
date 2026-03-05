@@ -22,17 +22,19 @@ export class SlackWebhookController {
 
 	@Post('events')
 	async handleEvents(@Req() req: RawBodyRequest<Request>, @Res() res: Response) {
+		const body = req.body;
+
+		// url_verification challenge 優先處理（Slack 設定 URL 時的驗證）
+		// 放在簽章驗證之前，因為 Vercel serverless 環境 rawBody 可能不可用
+		if (body?.type === 'url_verification') {
+			this.logger.log('收到 Slack url_verification challenge');
+			return res.status(HttpStatus.OK).json({ challenge: body.challenge });
+		}
+
 		// 驗證 Slack 簽章
 		if (!this.verifySlackSignature(req)) {
 			this.logger.warn('Slack webhook 驗證失敗：簽章不符');
 			return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
-		}
-
-		const body = req.body;
-
-		// url_verification challenge（Slack 設定 URL 時的驗證）
-		if (body.type === 'url_verification') {
-			return res.status(HttpStatus.OK).json({ challenge: body.challenge });
 		}
 
 		// Slash command（application/x-www-form-urlencoded，body.command 存在）
