@@ -9,7 +9,7 @@ import { corsOptions } from './config/cors.config';
 let cachedServer: Server;
 
 async function bootstrap(): Promise<Server> {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, { rawBody: true });
 	app.setGlobalPrefix('api');
 	app.enableCors(corsOptions);
 	await app.init();

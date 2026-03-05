@@ -22,7 +22,9 @@
 		"db:seed": "ts-node ./prisma/seed.ts",
 		"postinstall": "prisma generate",
 		"create:admin": "ts-node ./scripts/create-admin.ts",
-		"prisma:migrate": "ts-node ./scripts/prisma-migrate.ts"
+		"prisma:migrate": "ts-node ./scripts/prisma-migrate.ts",
+		"bot:set-webhook": "ts-node ./scripts/set-telegram-webhook.ts",
+		"bot:delete-webhook": "ts-node ./scripts/delete-telegram-webhook.ts"
 	},
 	"dependencies": {
 		"@faker-js/faker": "^9.6.0",
