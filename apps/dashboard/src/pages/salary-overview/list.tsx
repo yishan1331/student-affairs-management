@@ -81,8 +81,8 @@ export const SalaryOverviewList: React.FC = () => {
 		setLoading(true);
 		try {
 			const params: Record<string, any> = {
-				start_date: dateRange[0].toISOString(),
-				end_date: dateRange[1].toISOString(),
+				start_date: dateRange[0].format("YYYY-MM-DD"),
+				end_date: dateRange[1].format("YYYY-MM-DD"),
 			};
 			if (schoolId) params.school_id = schoolId;
 
@@ -197,7 +197,26 @@ export const SalaryOverviewList: React.FC = () => {
 			{/* 篩選區 */}
 			<Card style={{ marginBottom: 16 }}>
 				<Row gutter={[16, 16]} align="middle">
-					<Col xs={24} sm={12} md={8}>
+					<Col xs={24} sm={8} md={5}>
+						<Text strong style={{ display: "block", marginBottom: 4 }}>
+							快速選月
+						</Text>
+						<DatePicker
+							picker="month"
+							placeholder="選擇月份"
+							style={{ width: "100%" }}
+							onChange={(date) => {
+								if (date) {
+									setDateRange([
+										date.startOf("month"),
+										date.endOf("month"),
+									]);
+								}
+							}}
+							value={null}
+						/>
+					</Col>
+					<Col xs={24} sm={16} md={9}>
 						<Text strong style={{ display: "block", marginBottom: 4 }}>
 							日期範圍
 						</Text>
@@ -324,13 +343,14 @@ export const SalaryOverviewList: React.FC = () => {
 								);
 								return (
 									<Table.Summary.Row>
-										<Table.Summary.Cell index={0}>
+										<Table.Summary.Cell index={0} />
+										<Table.Summary.Cell index={1}>
 											<Text strong>合計</Text>
 										</Table.Summary.Cell>
-										<Table.Summary.Cell index={1} align="center">
+										<Table.Summary.Cell index={2} align="center">
 											<Text strong>{totalSessions}</Text>
 										</Table.Summary.Cell>
-										<Table.Summary.Cell index={2} align="right">
+										<Table.Summary.Cell index={3} align="right">
 											<Text strong style={{ color: "#52c41a" }}>
 												{formatCurrency(totalAmount)}
 											</Text>
