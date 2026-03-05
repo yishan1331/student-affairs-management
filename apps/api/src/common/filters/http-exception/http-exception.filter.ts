@@ -30,6 +30,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			}
 		}
 
+		if (response.headersSent) return;
+
 		response.status(status).json({
 			statusCode: status,
 			success: false,

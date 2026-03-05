@@ -25,16 +25,17 @@ export class SlackWebhookController {
 		const body = req.body;
 
 		// url_verification challenge 優先處理（Slack 設定 URL 時的驗證）
-		// 放在簽章驗證之前，因為 Vercel serverless 環境 rawBody 可能不可用
 		if (body?.type === 'url_verification') {
 			this.logger.log('收到 Slack url_verification challenge');
-			return res.status(HttpStatus.OK).json({ challenge: body.challenge });
+			res.status(HttpStatus.OK).json({ challenge: body.challenge });
+			return;
 		}
 
 		// 驗證 Slack 簽章
 		if (!this.verifySlackSignature(req)) {
 			this.logger.warn('Slack webhook 驗證失敗：簽章不符');
-			return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+			res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+			return;
 		}
 
 		// Slash command（application/x-www-form-urlencoded，body.command 存在）
@@ -45,22 +46,22 @@ export class SlackWebhookController {
 					body.text || '',
 					body.user_id,
 				);
-				return res.status(HttpStatus.OK).json({
+				res.status(HttpStatus.OK).json({
 					response_type: result.ephemeral ? 'ephemeral' : 'in_channel',
 					text: result.text,
 				});
 			} catch (error) {
 				this.logger.error('處理 Slack slash command 時發生錯誤', error);
-				return res.status(HttpStatus.OK).json({
+				res.status(HttpStatus.OK).json({
 					response_type: 'ephemeral',
 					text: '❌ 系統發生錯誤，請稍後再試',
 				});
 			}
+			return;
 		}
 
 		// Event callback
 		if (body.type === 'event_callback') {
-			// 立即回覆 200，避免 Slack 重試
 			res.status(HttpStatus.OK).json({ ok: true });
 
 			try {
@@ -78,7 +79,7 @@ export class SlackWebhookController {
 			return;
 		}
 
-		return res.status(HttpStatus.OK).json({ ok: true });
+		res.status(HttpStatus.OK).json({ ok: true });
 	}
 
 	private verifySlackSignature(req: RawBodyRequest<Request>): boolean {

@@ -22,21 +22,21 @@ export class TelegramWebhookController {
 
 	@Post('webhook')
 	async handleWebhook(@Req() req: Request, @Res() res: Response) {
-		// 驗證 Telegram 的 secret token
 		if (this.webhookSecret) {
 			const headerSecret = req.headers['x-telegram-bot-api-secret-token'];
 			if (headerSecret !== this.webhookSecret) {
 				this.logger.warn('Telegram webhook 驗證失敗：secret token 不符');
-				return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+				res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+				return;
 			}
 		}
 
 		try {
 			await this.bot.handleUpdate(req.body);
-			return res.status(HttpStatus.OK).json({ ok: true });
 		} catch (error) {
 			this.logger.error('處理 Telegram webhook 時發生錯誤', error);
-			return res.status(HttpStatus.OK).json({ ok: true });
 		}
+
+		res.status(HttpStatus.OK).json({ ok: true });
 	}
 }
