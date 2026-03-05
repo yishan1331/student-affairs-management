@@ -121,29 +121,31 @@ export class HealthToiletService {
 	}
 
 	async getTrend(userId: number, isAdmin: boolean, period: string, date: string, petId?: number | null) {
-		const baseDate = new Date(date);
-		const y = baseDate.getFullYear();
-		const m = baseDate.getMonth();
-		const d = baseDate.getDate();
+		// 解析日期字串，避免時區問題（支援 YYYY-MM-DD 及 ISO 格式）
+		const dateOnly = date.includes('T') ? date.slice(0, 10) : date;
+		const parts = dateOnly.split('-');
+		const y = parseInt(parts[0]);
+		const m = parseInt(parts[1]) - 1; // 0-indexed
+		const d = parseInt(parts[2]);
 
 		let startStr: string;
 		let endStr: string;
 
 		if (period === 'day') {
-			const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-			startStr = ds;
-			endStr = ds;
+			startStr = dateOnly;
+			endStr = dateOnly;
 		} else if (period === 'month') {
-			const lastDay = new Date(y, m + 1, 0).getDate();
+			const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
 			startStr = `${y}-${String(m + 1).padStart(2, '0')}-01`;
 			endStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 		} else {
-			const day = baseDate.getDay();
+			// week
+			const day = new Date(Date.UTC(y, m, d)).getUTCDay();
 			const diffToMonday = day === 0 ? -6 : 1 - day;
-			const mon = new Date(y, m, d + diffToMonday);
-			const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
-			startStr = `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, '0')}-${String(mon.getDate()).padStart(2, '0')}`;
-			endStr = `${sun.getFullYear()}-${String(sun.getMonth() + 1).padStart(2, '0')}-${String(sun.getDate()).padStart(2, '0')}`;
+			const mon = new Date(Date.UTC(y, m, d + diffToMonday));
+			const sun = new Date(Date.UTC(mon.getUTCFullYear(), mon.getUTCMonth(), mon.getUTCDate() + 6));
+			startStr = `${mon.getUTCFullYear()}-${String(mon.getUTCMonth() + 1).padStart(2, '0')}-${String(mon.getUTCDate()).padStart(2, '0')}`;
+			endStr = `${sun.getUTCFullYear()}-${String(sun.getUTCMonth() + 1).padStart(2, '0')}-${String(sun.getUTCDate()).padStart(2, '0')}`;
 		}
 
 		const startDate = new Date(`${startStr}T00:00:00.000Z`);

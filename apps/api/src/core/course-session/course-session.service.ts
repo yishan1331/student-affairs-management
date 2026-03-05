@@ -323,10 +323,10 @@ export class CourseSessionService {
 			for (
 				let d = new Date(firstDay);
 				d <= lastDay;
-				d.setDate(d.getDate() + 1)
+				d.setUTCDate(d.getUTCDate() + 1)
 			) {
-				// Convert JS getDay (0=Sun) to our format (1=Mon, 7=Sun)
-				let dayNum = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+				// Convert JS getUTCDay (0=Sun) to our format (1=Mon, 7=Sun)
+				let dayNum = d.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
 				dayNum = dayNum === 0 ? 7 : dayNum; // Convert: 0->7, 1->1, ..., 6->6
 
 				if (daysOfWeek.includes(dayNum)) {
@@ -407,8 +407,8 @@ export class CourseSessionService {
 	async getSalarySummary(startDate: string, endDate: string, schoolId: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.CourseSessionWhereInput = {
 			date: {
-				gte: new Date(startDate),
-				lte: new Date(endDate),
+				gte: this.toUTCMidnight(startDate),
+				lte: this.toUTCMidnight(endDate),
 			},
 			is_cancelled: false, // Exclude cancelled sessions from salary totals
 		};

@@ -185,7 +185,7 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 	const fetchTrend = useCallback(async () => {
 		setLoading(true);
 		try {
-			const params: any = { period, date: date.toISOString() };
+			const params: any = { period, date: date.format("YYYY-MM-DD") };
 			params.pet_id = petId != null ? petId : "null";
 			const res = await apiClient.get("/v1/health-weight/trend", {
 				params,
@@ -340,7 +340,7 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 	const fetchTrend = useCallback(async () => {
 		setLoading(true);
 		try {
-			const params: any = { period, date: date.toISOString() };
+			const params: any = { period, date: date.format("YYYY-MM-DD") };
 			params.pet_id = petId != null ? petId : "null";
 			const res = await apiClient.get("/v1/health-toilet/trend", {
 				params,
@@ -513,7 +513,7 @@ const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; i
 	const fetchTrend = useCallback(async () => {
 		setLoading(true);
 		try {
-			const params: any = { period, date: date.toISOString() };
+			const params: any = { period, date: date.format("YYYY-MM-DD") };
 			params.pet_id = petId != null ? petId : "null";
 			const res = await apiClient.get("/v1/health-symptom/trend", {
 				params,
