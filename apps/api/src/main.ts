@@ -1,17 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { corsOptions } from './config/cors.config';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, { rawBody: true });
 	const configService = app.get(ConfigService);
 	const port = configService.get('PORT');
 	app.setGlobalPrefix('api');
-	app.enableCors({
-		exposedHeaders: ['x-total-count'],
-	});
+	app.enableCors(corsOptions);
 
 	const config = new DocumentBuilder()
 		.setTitle('Student Affairs Management System API')

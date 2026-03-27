@@ -5,10 +5,13 @@ const whitelist = [
 	'http://localhost:5173',
 ];
 
-// 允許 Vercel preview deployment URLs (e.g. astrid-xxx-yishan1331s-projects.vercel.app)
+// 允許 Vercel / Zeabur preview deployment URLs
 const isAllowedOrigin = (origin: string): boolean => {
 	if (whitelist.includes(origin)) return true;
+	// Vercel preview: astrid-xxx-yishan1331s-projects.vercel.app
 	if (/^https:\/\/astrid-.*\.vercel\.app$/.test(origin)) return true;
+	// Zeabur: *.zeabur.app
+	if (/^https:\/\/.*\.zeabur\.app$/.test(origin)) return true;
 	return false;
 };
 

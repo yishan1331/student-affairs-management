@@ -4,6 +4,17 @@
 /build
 .output/
 
+# nest build compiles .ts files outside src/ in-place
+casbin/**/*.js
+casbin/**/*.d.ts
+casbin/**/*.js.map
+prisma/**/*.js
+prisma/**/*.d.ts
+prisma/**/*.js.map
+scripts/**/*.js
+scripts/**/*.d.ts
+scripts/**/*.js.map
+
 # Logs
 logs
 *.log
