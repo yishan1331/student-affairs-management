@@ -46,7 +46,7 @@ export const authProvider: AuthProvider = {
 			console.log(access_token);
 			return {
 				success: true,
-				redirectTo: '/',
+				redirectTo: '/course-session',
 			};
 		} catch (error) {
 			return {

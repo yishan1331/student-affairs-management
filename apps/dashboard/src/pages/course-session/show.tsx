@@ -46,7 +46,7 @@ export const CourseSessionShow = () => {
 
 	const { data: courseData } = useOne<ICourse>({
 		resource: ROUTE_RESOURCE.course,
-		id: record?.course_id,
+		id: record?.course_id ?? undefined,
 		queryOptions: {
 			enabled: !!record?.course_id,
 		},
@@ -62,7 +62,21 @@ export const CourseSessionShow = () => {
 	});
 	const salaryBase = salaryBaseData?.data;
 
+	const isSubstitute = !record?.course_id && (record?.course_name || record?.school_id);
+
 	const dataSources: DataSource<ICourseSession>[] = [
+		{
+			label: "課程類型",
+			value: "course_id",
+			type: "custom",
+			render: () => {
+				return (
+					<Tag color={isSubstitute ? "orange" : "blue"}>
+						{isSubstitute ? "代課" : "正式課程"}
+					</Tag>
+				);
+			},
+		},
 		{
 			label: "課程",
 			value: "course_id",
@@ -70,7 +84,7 @@ export const CourseSessionShow = () => {
 			render: () => {
 				return (
 					<Typography.Text>
-						{course?.name || record?.course?.name}
+						{course?.name || record?.course?.name || record?.course_name || "-"}
 					</Typography.Text>
 				);
 			},
@@ -84,6 +98,7 @@ export const CourseSessionShow = () => {
 					<Typography.Text>
 						{(course as any)?.school?.name ||
 							record?.course?.school?.name ||
+							record?.school?.name ||
 							"-"}
 					</Typography.Text>
 				);
@@ -107,18 +122,30 @@ export const CourseSessionShow = () => {
 			type: "custom",
 			render: () => {
 				const c = course || record?.course;
-				if (!c?.start_time || !c?.end_time) return <Typography.Text>-</Typography.Text>;
-				const start = dayjs(c.start_time).format("HH:mm");
-				const end = dayjs(c.end_time).format("HH:mm");
-				const dur = (c as any)?.duration as number | undefined;
-				const durText = dur
-					? ` (${Math.floor(dur / 60) > 0 ? `${Math.floor(dur / 60)}h` : ""}${dur % 60 > 0 ? `${dur % 60}m` : ""})`
-					: "";
-				return (
-					<Typography.Text>
-						{start} - {end}{durText}
-					</Typography.Text>
-				);
+				if (c?.start_time && c?.end_time) {
+					const start = dayjs(c.start_time).format("HH:mm");
+					const end = dayjs(c.end_time).format("HH:mm");
+					const dur = (c as any)?.duration as number | undefined;
+					const durText = dur
+						? ` (${Math.floor(dur / 60) > 0 ? `${Math.floor(dur / 60)}h` : ""}${dur % 60 > 0 ? `${dur % 60}m` : ""})`
+						: "";
+					return (
+						<Typography.Text>
+							{start} - {end}{durText}
+						</Typography.Text>
+					);
+				}
+				// 代課：顯示時長
+				if (record?.duration) {
+					const dur = record.duration;
+					return (
+						<Typography.Text>
+							{Math.floor(dur / 60) > 0 ? `${Math.floor(dur / 60)}h` : ""}
+							{dur % 60 > 0 ? `${dur % 60}m` : ""}
+						</Typography.Text>
+					);
+				}
+				return <Typography.Text>-</Typography.Text>;
 			},
 		},
 		{

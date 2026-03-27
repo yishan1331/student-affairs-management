@@ -58,21 +58,40 @@ export class CourseSessionService {
 
 	/**
 	 * Calculate salary for a course session based on the matched salary tier.
+	 * Supports both regular courses (via courseId) and ad-hoc/substitute sessions (via schoolId + duration).
 	 */
-	private async calculateSalary(courseId: number, actualStudentCount: number) {
-		const course = await this.prisma.course.findUnique({
-			where: { id: courseId },
-			include: { school: true },
-		});
+	private async calculateSalary(
+		courseId: number | null | undefined,
+		actualStudentCount: number,
+		schoolId?: number | null,
+		adHocDuration?: number | null,
+	) {
+		let resolvedSchoolId: number;
+		let resolvedDuration: number;
 
-		if (!course) {
-			throw new NotFoundException(`Course with id ${courseId} not found`);
+		if (courseId) {
+			const course = await this.prisma.course.findUnique({
+				where: { id: courseId },
+				include: { school: true },
+			});
+
+			if (!course) {
+				throw new NotFoundException(`Course with id ${courseId} not found`);
+			}
+
+			resolvedSchoolId = course.school_id;
+			resolvedDuration = course.duration;
+		} else if (schoolId) {
+			resolvedSchoolId = schoolId;
+			resolvedDuration = adHocDuration ?? 60;
+		} else {
+			return { salary_amount: null, salary_base_id: null };
 		}
 
 		// Find all active SalaryBase records associated with this school
 		const salaryBases = await this.prisma.salaryBase.findMany({
 			where: {
-				schools: { some: { id: course.school_id } },
+				schools: { some: { id: resolvedSchoolId } },
 				is_active: true,
 			},
 		});
@@ -89,7 +108,7 @@ export class CourseSessionService {
 		// Variable salary: hourly_rate * (duration / 60)
 		const salaryAmount = isFixedSalary
 			? matchedSalaryBase.hourly_rate
-			: matchedSalaryBase.hourly_rate * (course.duration / 60);
+			: matchedSalaryBase.hourly_rate * (resolvedDuration / 60);
 
 		return {
 			salary_amount: Math.round(salaryAmount * 100) / 100,
@@ -110,6 +129,8 @@ export class CourseSessionService {
 			const calculated = await this.calculateSalary(
 				dto.course_id,
 				actualStudentCount,
+				dto.school_id,
+				dto.duration,
 			);
 			salary_amount = calculated.salary_amount;
 			salary_base_id = calculated.salary_base_id;
@@ -117,7 +138,10 @@ export class CourseSessionService {
 
 		return this.prisma.courseSession.create({
 			data: {
-				course_id: dto.course_id,
+				course_id: dto.course_id || undefined,
+				course_name: dto.course_name,
+				school_id: dto.school_id,
+				duration: dto.duration,
 				date: this.toUTCMidnight(dto.date),
 				actual_student_count: actualStudentCount,
 				is_cancelled: isCancelled,
@@ -129,6 +153,7 @@ export class CourseSessionService {
 			},
 			include: {
 				course: { include: { school: true } },
+				school: true,
 				salaryBase: true,
 			},
 		});
@@ -153,6 +178,7 @@ export class CourseSessionService {
 			orderBy,
 			include: {
 				course: { include: { school: true } },
+				school: true,
 				salaryBase: true,
 			},
 		});
@@ -168,6 +194,7 @@ export class CourseSessionService {
 			where: { id },
 			include: {
 				course: { include: { school: true } },
+				school: true,
 				salaryBase: true,
 			},
 		});
@@ -198,6 +225,11 @@ export class CourseSessionService {
 		}
 
 		const isCancelled = dto.is_cancelled ?? existing.is_cancelled;
+		const includeRelations = {
+			course: { include: { school: true } },
+			school: true,
+			salaryBase: true,
+		};
 
 		// If session is cancelled, salary should be 0
 		if (isCancelled) {
@@ -211,10 +243,7 @@ export class CourseSessionService {
 					salary_base_id: null,
 					modifier_id: userId,
 				},
-				include: {
-					course: { include: { school: true } },
-					salaryBase: true,
-				},
+				include: includeRelations,
 			});
 		}
 
@@ -222,14 +251,20 @@ export class CourseSessionService {
 		if (
 			dto.actual_student_count !== undefined ||
 			dto.course_id !== undefined ||
+			dto.school_id !== undefined ||
+			dto.duration !== undefined ||
 			dto.is_cancelled === false // Re-activating a cancelled session
 		) {
 			const courseId = dto.course_id ?? existing.course_id;
+			const schoolId = dto.school_id ?? existing.school_id;
+			const duration = dto.duration ?? existing.duration;
 			const studentCount = dto.actual_student_count ?? existing.actual_student_count;
 
 			const { salary_amount, salary_base_id } = await this.calculateSalary(
 				courseId,
 				studentCount,
+				schoolId,
+				duration,
 			);
 
 			return this.prisma.courseSession.update({
@@ -242,10 +277,7 @@ export class CourseSessionService {
 					salary_base_id,
 					modifier_id: userId,
 				},
-				include: {
-					course: { include: { school: true } },
-					salaryBase: true,
-				},
+				include: includeRelations,
 			});
 		}
 
@@ -256,10 +288,7 @@ export class CourseSessionService {
 				date: dto.date ? this.toUTCMidnight(dto.date) : undefined,
 				modifier_id: userId,
 			},
-			include: {
-				course: { include: { school: true } },
-				salaryBase: true,
-			},
+			include: includeRelations,
 		});
 	}
 
@@ -382,7 +411,7 @@ export class CourseSessionService {
 	async recalculateAllSalaries() {
 		const sessions = await this.prisma.courseSession.findMany({
 			where: { is_cancelled: false },
-			select: { id: true, course_id: true, actual_student_count: true },
+			select: { id: true, course_id: true, school_id: true, duration: true, actual_student_count: true },
 		});
 
 		let updated = 0;
@@ -390,6 +419,8 @@ export class CourseSessionService {
 			const { salary_amount, salary_base_id } = await this.calculateSalary(
 				session.course_id,
 				session.actual_student_count,
+				session.school_id,
+				session.duration,
 			);
 
 			if (salary_amount != null) {
@@ -418,13 +449,17 @@ export class CourseSessionService {
 		}
 
 		if (schoolId) {
-			where.course = { school_id: schoolId };
+			where.OR = [
+				{ course: { school_id: schoolId } },
+				{ school_id: schoolId },
+			];
 		}
 
 		const sessions = await this.prisma.courseSession.findMany({
 			where,
 			include: {
 				course: { include: { school: true } },
+				school: true,
 				salaryBase: true,
 			},
 			orderBy: { date: 'asc' },
@@ -434,8 +469,8 @@ export class CourseSessionService {
 		const schoolMap = new Map<number, {
 			schoolId: number;
 			schoolName: string;
-			courses: Map<number, {
-				courseId: number;
+			courses: Map<string, {
+				courseId: number | null;
 				courseName: string;
 				sessionCount: number;
 				totalSalary: number;
@@ -450,7 +485,10 @@ export class CourseSessionService {
 		}>();
 
 		for (const session of sessions) {
-			const school = session.course.school;
+			// Resolve school: from course relation or direct school relation
+			const school = session.course?.school || session.school;
+			if (!school) continue;
+
 			if (!schoolMap.has(school.id)) {
 				schoolMap.set(school.id, {
 					schoolId: school.id,
@@ -461,19 +499,24 @@ export class CourseSessionService {
 			}
 
 			const schoolEntry = schoolMap.get(school.id)!;
-			const course = session.course;
 
-			if (!schoolEntry.courses.has(course.id)) {
-				schoolEntry.courses.set(course.id, {
-					courseId: course.id,
-					courseName: course.name,
+			// Use course id as key for regular sessions, or "adhoc-{session.id}" for ad-hoc
+			const courseKey = session.course_id
+				? String(session.course_id)
+				: `adhoc-${session.id}`;
+			const courseName = session.course?.name || session.course_name || '代課';
+
+			if (!schoolEntry.courses.has(courseKey)) {
+				schoolEntry.courses.set(courseKey, {
+					courseId: session.course_id,
+					courseName,
 					sessionCount: 0,
 					totalSalary: 0,
 					sessions: [],
 				});
 			}
 
-			const courseEntry = schoolEntry.courses.get(course.id)!;
+			const courseEntry = schoolEntry.courses.get(courseKey)!;
 			courseEntry.sessionCount++;
 			courseEntry.totalSalary += session.salary_amount ?? 0;
 			schoolEntry.totalSalary += session.salary_amount ?? 0;

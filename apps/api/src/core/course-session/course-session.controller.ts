@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -31,7 +31,7 @@ export class CourseSessionController {
 	constructor(private readonly courseSessionService: CourseSessionService) {
 		this.queryBuilder = new PrismaQueryBuilder({
 			searchableFields: [],
-			filterableFields: ['course_id', 'salary_base_id'],
+			filterableFields: ['course_id', 'salary_base_id', 'school_id'],
 			rangeFilterableFields: ['date'],
 			relationFilters: { school_id: 'course.school_id' },
 			defaultSort: { date: 'asc' },
@@ -95,7 +95,7 @@ export class CourseSessionController {
 		return this.courseSessionService.findOne(+id, user.id, isAdmin);
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(@Param('id') id: string, @Body() dto: UpdateCourseSessionDto, @Req() req: Request) {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';

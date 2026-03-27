@@ -144,8 +144,9 @@ model School {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  courses      Course[]
-  salaryBases  SalaryBase[]
+  courses        Course[]
+  salaryBases    SalaryBase[]
+  courseSessions CourseSession[]
 
   @@index([user_id])
 }
@@ -251,8 +252,12 @@ model SalaryBase {
 
 model CourseSession {
   id                   Int         @id @default(autoincrement())
-  course_id            Int
-  course               Course      @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course_id            Int?
+  course               Course?     @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course_name          String?     // 代課時手動輸入的課程名稱
+  school_id            Int?        // 代課時直接指定學校（用於薪資計算）
+  school               School?     @relation(fields: [school_id], references: [id], onDelete: SetNull)
+  duration             Int?        // 代課時手動輸入的上課時長（分鐘）
   date                 DateTime
   actual_student_count Int         @default(0)
   is_cancelled         Boolean     @default(false) // 是否停課

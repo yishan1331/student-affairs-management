@@ -107,6 +107,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	const [quickCreateDate, setQuickCreateDate] = useState<Dayjs | null>(null);
 	const [quickCreateLoading, setQuickCreateLoading] = useState(false);
 	const [quickCreateForm] = Form.useForm();
+	const [quickCreateIsSubstitute, setQuickCreateIsSubstitute] = useState(false);
 	const sessionClickedRef = useRef(false);
 
 	const breakpoint = Grid.useBreakpoint();
@@ -232,7 +233,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 		value: any,
 	) => {
 		try {
-			await apiClient.put(`/${ROUTE_RESOURCE.courseSession}/${id}`, {
+			await apiClient.patch(`/${ROUTE_RESOURCE.courseSession}/${id}`, {
 				[field]: value,
 				modifier_id: user?.id,
 			});
@@ -454,7 +455,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 											: undefined,
 									}}
 								>
-									{session.course?.name || "-"}
+									{session.course?.name || session.course_name || "-"}
 									{session.course?.start_time
 										? ` ${dayjs(session.course.start_time).format("HH:mm")}`
 										: ""}
@@ -627,16 +628,18 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					<Table.Column<ICourseSession>
 						title="課程"
 						width={150}
-						render={(_: any, record: ICourseSession) =>
-							record.course?.name || "-"
-						}
+						render={(_: any, record: ICourseSession) => {
+							if (record.course?.name) return record.course.name;
+							if (record.course_name) return <Tag color="orange">{record.course_name}</Tag>;
+							return "-";
+						}}
 					/>
 					{!isMobile && (
 						<Table.Column<ICourseSession>
 							title="學校"
 							width={120}
 							render={(_: any, record: ICourseSession) =>
-								record.course?.school?.name || "-"
+								record.course?.school?.name || record.school?.name || "-"
 							}
 						/>
 					)}
@@ -1062,6 +1065,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 				onCancel={() => {
 					setQuickCreateModalOpen(false);
 					quickCreateForm.resetFields();
+					setQuickCreateIsSubstitute(false);
 				}}
 				onOk={() => quickCreateForm.submit()}
 				confirmLoading={quickCreateLoading}
@@ -1073,18 +1077,63 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					layout="vertical"
 					onFinish={handleQuickCreate}
 				>
-					<Form.Item
-						label="課程"
-						name="course_id"
-						rules={[{ required: true, message: "請選擇課程" }]}
-					>
-						<Select
-							options={courseOptions}
-							placeholder="請選擇課程"
-							showSearch={false}
-							style={{ width: "100%" }}
+					<Form.Item label="課程類型">
+						<Segmented
+							block
+							value={quickCreateIsSubstitute ? "substitute" : "regular"}
+							onChange={(val) => {
+								setQuickCreateIsSubstitute(val === "substitute");
+								quickCreateForm.resetFields();
+							}}
+							options={[
+								{ label: "正式課程", value: "regular" },
+								{ label: "代課", value: "substitute" },
+							]}
 						/>
 					</Form.Item>
+					{!quickCreateIsSubstitute ? (
+						<Form.Item
+							label="課程"
+							name="course_id"
+							rules={[{ required: true, message: "請選擇課程" }]}
+						>
+							<Select
+								options={courseOptions}
+								placeholder="請選擇課程"
+								showSearch={false}
+								style={{ width: "100%" }}
+							/>
+						</Form.Item>
+					) : (
+						<>
+							<Form.Item
+								label="學校"
+								name="school_id"
+								rules={[{ required: true, message: "請選擇學校" }]}
+							>
+								<Select
+									options={schoolOptions}
+									placeholder="請選擇學校"
+									showSearch={false}
+									style={{ width: "100%" }}
+								/>
+							</Form.Item>
+							<Form.Item
+								label="課程名稱"
+								name="course_name"
+								rules={[{ required: true, message: "請輸入課程名稱" }]}
+							>
+								<Input placeholder="例：代課 - 數學" />
+							</Form.Item>
+							<Form.Item
+								label="上課時長（分鐘）"
+								name="duration"
+								rules={[{ required: true, message: "請輸入上課時長" }]}
+							>
+								<InputNumber min={1} style={{ width: "100%" }} placeholder="例：60" />
+							</Form.Item>
+						</>
+					)}
 					<Form.Item label="實際上課人數" name="actual_student_count">
 						<InputNumber min={0} style={{ width: "100%" }} />
 					</Form.Item>
