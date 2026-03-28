@@ -18,6 +18,8 @@ import dayjs from "dayjs";
 import { ISchool } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 import { ICourse } from "../../common/types/models/course.types";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 const DAY_MAP: Record<string, string> = {
 	"1": "週一",
@@ -59,6 +61,38 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
+
+	const mobileFields: MobileCardField<ICourse>[] = [
+		{ label: "名稱", dataIndex: "name" },
+		{ label: "學校", render: (_, record) => record.school?.name || "-" },
+		{ label: "年級", dataIndex: "grade" },
+		{
+			label: "上課星期",
+			dataIndex: "day_of_week",
+			render: (value: string) =>
+				value
+					?.split(",")
+					.map((d: string) => DAY_MAP[d.trim()] || d.trim())
+					.join("、") || "-",
+		},
+		{
+			label: "開始時間",
+			dataIndex: "start_time",
+			render: (value: string) => (value ? dayjs(value).format("HH:mm") : "-"),
+		},
+		{
+			label: "結束時間",
+			dataIndex: "end_time",
+			render: (value: string) => (value ? dayjs(value).format("HH:mm") : "-"),
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
 
 	return (
 		<List
@@ -113,6 +147,24 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 				</Form>
 			</Card> */}
 
+			{isMobile ? (
+				<MobileCardList<ICourse>
+					dataSource={records}
+					fields={mobileFields}
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.course, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.course, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.course,
+							id: record.id,
+							successNotification: { message: "刪除成功", description: `${resource?.meta?.label?.slice(0, 2)}資料已成功刪除`, type: "success" },
+							errorNotification: { message: "刪除失敗", description: `無法刪除${resource?.meta?.label?.slice(0, 2)}資料`, type: "error" },
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -254,6 +306,7 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

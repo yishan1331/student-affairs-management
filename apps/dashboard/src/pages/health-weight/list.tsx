@@ -16,6 +16,8 @@ import { type PropsWithChildren, useState } from "react";
 import { IHealthWeight } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
 import { HealthSubjectSelector } from "../../components";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const HealthWeightList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -46,6 +48,36 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
 
+	const mobileFields: MobileCardField<IHealthWeight>[] = [
+		{
+			label: "日期",
+			dataIndex: "date",
+			render: (value: string) => new Date(value).toLocaleDateString(),
+		},
+		{
+			label: "體重",
+			dataIndex: "weight",
+			render: (value: number) => (value?.toFixed(1) ?? "-") + " kg",
+		},
+		{
+			label: "身高",
+			dataIndex: "height",
+			render: (value: number) => value ? value.toFixed(1) + " cm" : "-",
+		},
+		{
+			label: "BMI",
+			dataIndex: "bmi",
+			render: (value: number) => value ? value.toFixed(1) : "-",
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -73,6 +105,33 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
+			{isMobile ? (
+				<MobileCardList<IHealthWeight>
+					dataSource={records}
+					fields={mobileFields}
+					rowKey="id"
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.healthWeight, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.healthWeight, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.healthWeight,
+							id: record.id,
+							successNotification: {
+								message: "刪除成功",
+								description: `${resource?.meta?.label}已成功刪除`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "刪除失敗",
+								description: `無法刪除${resource?.meta?.label}`,
+								type: "error",
+							},
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -224,6 +283,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

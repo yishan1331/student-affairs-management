@@ -15,6 +15,8 @@ import { type PropsWithChildren } from "react";
 
 import { ISchool } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const SchoolList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -39,6 +41,52 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
+
+	const mobileFields: MobileCardField<ISchool>[] = [
+		{ label: "名稱", dataIndex: "name" },
+		{
+			label: "代表顏色",
+			dataIndex: "color",
+			render: (value: string) =>
+				value ? (
+					<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+						<div
+							style={{
+								width: 20,
+								height: 20,
+								borderRadius: 4,
+								backgroundColor: value,
+								border: "1px solid #d9d9d9",
+							}}
+						/>
+						<span style={{ fontSize: 12, color: "#8c8c8c" }}>{value}</span>
+					</div>
+				) : (
+					<span style={{ color: "#bfbfbf" }}>未設定</span>
+				),
+		},
+		{
+			label: "啟用狀態",
+			dataIndex: "is_active",
+			render: (value: boolean) => (
+				<Tag color={value ? "success" : "error"}>
+					{value ? "啟用" : "未啟用"}
+				</Tag>
+			),
+		},
+		{
+			label: "描述",
+			dataIndex: "description",
+			render: (value: string) => value || "-",
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
 
 	return (
 		<List
@@ -93,127 +141,78 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 				</Form>
 			</Card> */}
 
-			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
-				{!isMobile && (
+			{isMobile ? (
+				<MobileCardList<ISchool>
+					dataSource={records}
+					fields={mobileFields}
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.school, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.school, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.school,
+							id: record.id,
+							successNotification: { message: "刪除成功", description: `${resource?.meta?.label}已成功刪除`, type: "success" },
+							errorNotification: { message: "刪除失敗", description: `無法刪除${resource?.meta?.label}`, type: "error" },
+						});
+					}}
+				/>
+			) : (
+				<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 					<Table.Column
 						dataIndex="id"
 						title="ID"
 						defaultSortOrder={getDefaultSortOrder("id", sorters)}
 					/>
-				)}
-				<Table.Column dataIndex="name" title="名稱" />
-				<Table.Column
-					dataIndex="color"
-					title="代表顏色"
-					render={(value: string) =>
-						value ? (
-							<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-								<div
-									style={{
-										width: 20,
-										height: 20,
-										borderRadius: 4,
-										backgroundColor: value,
-										border: "1px solid #d9d9d9",
-									}}
-								/>
-								<span style={{ fontSize: 12, color: "#8c8c8c" }}>{value}</span>
-							</div>
-						) : (
-							<span style={{ color: "#bfbfbf" }}>未設定</span>
-						)
-					}
-				/>
-				{!isMobile && (
+					<Table.Column dataIndex="name" title="名稱" />
+					<Table.Column
+						dataIndex="color"
+						title="代表顏色"
+						render={(value: string) =>
+							value ? (
+								<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+									<div
+										style={{
+											width: 20,
+											height: 20,
+											borderRadius: 4,
+											backgroundColor: value,
+											border: "1px solid #d9d9d9",
+										}}
+									/>
+									<span style={{ fontSize: 12, color: "#8c8c8c" }}>{value}</span>
+								</div>
+							) : (
+								<span style={{ color: "#bfbfbf" }}>未設定</span>
+							)
+						}
+					/>
 					<Table.Column dataIndex="description" title="描述" />
-				)}
-				{!isMobile && (
 					<Table.Column dataIndex="display_order" title="排序" />
-				)}
-				<Table.Column
-					dataIndex="is_active"
-					title="啟用狀態"
-					render={(value: boolean) => (
-						<Tag color={value ? "success" : "error"}>
-							{value ? "啟用" : "未啟用"}
-						</Tag>
-					)}
-				/>
-				{!isMobile && (
+					<Table.Column
+						dataIndex="is_active"
+						title="啟用狀態"
+						render={(value: boolean) => (
+							<Tag color={value ? "success" : "error"}>
+								{value ? "啟用" : "未啟用"}
+							</Tag>
+						)}
+					/>
 					<Table.Column dataIndex="modifier_id" title="修改者ID" />
-				)}
-				{!isMobile && (
 					<Table.Column
 						dataIndex="created_at"
 						title="建立時間"
 						render={(value: string) => new Date(value).toLocaleString()}
 					/>
-				)}
-				{!isMobile && (
 					<Table.Column
 						dataIndex="updated_at"
 						title="更新時間"
 						render={(value: string) => new Date(value).toLocaleString()}
 					/>
-				)}
-				<Table.Column<ISchool>
-					title="操作"
-					width={isMobile ? 50 : undefined}
-					render={(_: any, record: ISchool) =>
-						isMobile ? (
-							<Dropdown
-								trigger={["click"]}
-								menu={{
-									items: [
-										{
-											key: "show",
-											icon: <EyeOutlined />,
-											label: "查看",
-											onClick: () => show(ROUTE_RESOURCE.school, record.id),
-										},
-										{
-											key: "edit",
-											icon: <EditOutlined />,
-											label: "編輯",
-											onClick: () => edit(ROUTE_RESOURCE.school, record.id),
-										},
-										{ type: "divider" },
-										{
-											key: "delete",
-											icon: <DeleteOutlined />,
-											label: "刪除",
-											danger: true,
-											onClick: () => {
-												Modal.confirm({
-													title: "確認要刪除嗎？",
-													okText: "確認",
-													cancelText: "取消",
-													okType: "danger",
-													onOk: () => {
-														deleteRecord({
-															resource: ROUTE_RESOURCE.school,
-															id: record.id,
-															successNotification: {
-																message: "刪除成功",
-																description: `${resource?.meta?.label}已成功刪除`,
-																type: "success",
-															},
-															errorNotification: {
-																message: "刪除失敗",
-																description: `無法刪除${resource?.meta?.label}`,
-																type: "error",
-															},
-														});
-													},
-												});
-											},
-										},
-									],
-								}}
-							>
-								<Button type="text" icon={<MoreOutlined />} size="small" />
-							</Dropdown>
-						) : (
+					<Table.Column<ISchool>
+						title="操作"
+						render={(_: any, record: ISchool) => (
 							<Space>
 								<ShowButton hideText size="middle" recordItemId={record.id} />
 								<EditButton hideText size="middle" recordItemId={record.id} />
@@ -237,10 +236,10 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 									}}
 								/>
 							</Space>
-						)
-					}
-				/>
-			</Table>
+						)}
+					/>
+				</Table>
+			)}
 			{children}
 		</List>
 	);

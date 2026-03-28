@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { ThemedLayoutContextProvider } from "@refinedev/antd";
 import { ThemedHeaderV2 as DefaultHeader } from "./header";
 import { ThemedSiderV2 as DefaultSider } from "./sider";
@@ -18,7 +18,7 @@ export const ThemedLayoutV2: React.FC<RefineThemedLayoutV2Props> = ({
   const breakpoint = Grid.useBreakpoint();
   const SiderToRender = Sider ?? DefaultSider;
   const HeaderToRender = Header ?? DefaultHeader;
-  const isSmall = typeof breakpoint.sm === "undefined" ? true : breakpoint.sm;
+  const isMobile = typeof breakpoint.md === "undefined" ? false : !breakpoint.md;
   const hasSider = !!SiderToRender({ Title });
 
   return (
@@ -34,7 +34,8 @@ export const ThemedLayoutV2: React.FC<RefineThemedLayoutV2Props> = ({
             <div
               style={{
                 minHeight: 360,
-                padding: isSmall ? 24 : 12,
+                padding: isMobile ? 8 : 24,
+                paddingBottom: isMobile ? 72 : 24,
               }}
             >
               {children}

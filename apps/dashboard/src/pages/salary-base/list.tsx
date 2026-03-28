@@ -15,6 +15,8 @@ import { type PropsWithChildren } from "react";
 
 import { ISalaryBase } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -38,6 +40,44 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
+
+	const mobileFields: MobileCardField<ISalaryBase>[] = [
+		{
+			label: "名稱",
+			dataIndex: "name",
+		},
+		{
+			label: "時薪",
+			dataIndex: "hourly_rate",
+			render: (value: number) => `$${value}`,
+		},
+		{
+			label: "人數範圍",
+			render: (_: any, record: ISalaryBase) => {
+				if (record.min_students == null && record.max_students == null) return "固定薪資";
+				const min = record.min_students ?? 0;
+				const max = record.max_students;
+				if (max == null) return `${min}人以上`;
+				return `${min}~${max}人`;
+			},
+		},
+		{
+			label: "啟用狀態",
+			dataIndex: "is_active",
+			render: (value: boolean) => (
+				<Tag color={value ? "success" : "error"}>
+					{value ? "啟用" : "未啟用"}
+				</Tag>
+			),
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
 
 	return (
 		<List
@@ -65,6 +105,33 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 				</CreateButton>,
 			]}
 		>
+			{isMobile ? (
+				<MobileCardList<ISalaryBase>
+					dataSource={records}
+					fields={mobileFields}
+					rowKey="id"
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.salaryBase, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.salaryBase, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.salaryBase,
+							id: record.id,
+							successNotification: {
+								message: "刪除成功",
+								description: `${resource?.meta?.label}已成功刪除`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "刪除失敗",
+								description: `無法刪除${resource?.meta?.label}`,
+								type: "error",
+							},
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -233,6 +300,7 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

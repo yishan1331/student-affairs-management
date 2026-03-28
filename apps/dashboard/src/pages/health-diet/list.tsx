@@ -16,6 +16,8 @@ import { type PropsWithChildren, useState } from "react";
 import { IHealthDiet, MealType } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE, MEAL_TYPE_MAP } from "../../common/constants";
 import { HealthSubjectSelector } from "../../components";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const HealthDietList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -46,6 +48,43 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
 
+	const mobileFields: MobileCardField<IHealthDiet>[] = [
+		{
+			label: "食物名稱",
+			dataIndex: "food_name",
+		},
+		{
+			label: "日期",
+			dataIndex: "date",
+			render: (value: string) => new Date(value).toLocaleDateString(),
+		},
+		{
+			label: "餐別",
+			dataIndex: "meal_type",
+			render: (value: MealType) => {
+				const m = MEAL_TYPE_MAP[value];
+				return m ? <Tag color={m.color}>{m.label}</Tag> : value;
+			},
+		},
+		{
+			label: "份量",
+			dataIndex: "amount",
+			render: (value: string) => value || "-",
+		},
+		{
+			label: "卡路里",
+			dataIndex: "calories",
+			render: (value: number) => value != null ? value : "-",
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -73,6 +112,33 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
+			{isMobile ? (
+				<MobileCardList<IHealthDiet>
+					dataSource={records}
+					fields={mobileFields}
+					rowKey="id"
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.healthDiet, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.healthDiet, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.healthDiet,
+							id: record.id,
+							successNotification: {
+								message: "刪除成功",
+								description: `${resource?.meta?.label}已成功刪除`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "刪除失敗",
+								description: `無法刪除${resource?.meta?.label}`,
+								type: "error",
+							},
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -220,6 +286,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

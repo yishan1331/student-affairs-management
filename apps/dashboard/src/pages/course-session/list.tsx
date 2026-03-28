@@ -58,6 +58,8 @@ import "dayjs/locale/zh-tw";
 
 import { ICourseSession, ICourse, ISchool } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE } from "../../common/constants";
+import { MobileCardList, MobileFilterBar } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 import apiClient from "../../services/api/apiClient";
 import { useUser } from "../../contexts/userContext";
 
@@ -532,6 +534,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			{/* 篩選區域 */}
+			<MobileFilterBar isMobile={isMobile}>
 			<Card size="small" style={{ marginBottom: 16 }}>
 				<Row gutter={[16, 16]} align="middle">
 					<Col>
@@ -632,9 +635,113 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					</Col>
 				</Row>
 			</Card>
+			</MobileFilterBar>
 
-			{/* 表格模式 */}
-			{viewMode === "table" && (
+			{/* 表格模式 - 手機用卡片 */}
+			{viewMode === "table" && isMobile && (() => {
+				const mobileFields: MobileCardField<ICourseSession>[] = [
+					{
+						label: "課程",
+						render: (_, record) => {
+							if (record.course?.name) return record.course.name;
+							if (record.course_name) return <Tag color="orange">{record.course_name}</Tag>;
+							return "-";
+						},
+					},
+					{
+						label: "日期",
+						dataIndex: "date",
+						render: (value) => dayjs(value).format("MM-DD (dd)"),
+					},
+					{
+						label: "狀態",
+						dataIndex: "is_cancelled",
+						render: (value) => (
+							<Tag color={value ? "error" : "success"}>
+								{value ? "停課" : "正常"}
+							</Tag>
+						),
+					},
+				];
+				const mobilePagination = {
+					current: (tableProps.pagination as any)?.current,
+					pageSize: (tableProps.pagination as any)?.pageSize,
+					total: (tableProps.pagination as any)?.total,
+					onChange: (tableProps.pagination as any)?.onChange,
+				};
+				return (
+					<MobileCardList<ICourseSession>
+						dataSource={records}
+						fields={mobileFields}
+						loading={tableProps.loading as boolean}
+						pagination={mobilePagination}
+						onShow={(record) =>
+							go({
+								to: `/${ROUTE_PATH.courseSession}/${record.id}`,
+								type: "push",
+							})
+						}
+						onEdit={(record) =>
+							go({
+								to: `/${ROUTE_PATH.courseSession}/edit/${record.id}`,
+								type: "push",
+							})
+						}
+						onDelete={(record) => {
+							deleteRecord({
+								resource: ROUTE_RESOURCE.courseSession,
+								id: record.id,
+								successNotification: {
+									message: "刪除成功",
+									description: `${resource?.meta?.label}已成功刪除`,
+									type: "success",
+								},
+								errorNotification: {
+									message: "刪除失敗",
+									description: `無法刪除${resource?.meta?.label}`,
+									type: "error",
+								},
+							});
+						}}
+						extraActions={(record) => (
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: 8,
+									borderTop: "1px solid #f0f0f0",
+									paddingTop: 8,
+								}}
+								onClick={(e) => e.stopPropagation()}
+							>
+								<Text type="secondary" style={{ fontSize: 12, flexShrink: 0 }}>
+									人數
+								</Text>
+								<InputNumber
+									min={0}
+									size="small"
+									style={{ width: 70 }}
+									disabled={record.is_cancelled}
+									value={
+										getEditValue(record.id, "actual_student_count")
+										?? record.actual_student_count
+									}
+									onFocus={() => initEditValue(record, "actual_student_count")}
+									onChange={(val) =>
+										setEditValue(record.id, "actual_student_count", val ?? 0)
+									}
+									onBlur={() =>
+										submitEdit(record.id, "actual_student_count", record.actual_student_count)
+									}
+								/>
+							</div>
+						)}
+					/>
+				);
+			})()}
+
+			{/* 表格模式 - 桌面用表格 */}
+			{viewMode === "table" && !isMobile && (
 				<Table
 					{...tableProps}
 					dataSource={records}

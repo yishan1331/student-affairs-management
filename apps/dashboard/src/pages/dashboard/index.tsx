@@ -3,6 +3,7 @@ import {
 	Button,
 	Card,
 	Col,
+	Grid,
 	Row,
 	Statistic,
 	Spin,
@@ -61,6 +62,8 @@ interface GradeStats {
 const { Title, Text } = Typography;
 
 export const DashboardPage: React.FC = () => {
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
 	const [statistics, setStatistics] = useState<DashboardStatistics | null>(
 		null,
 	);
@@ -151,7 +154,7 @@ export const DashboardPage: React.FC = () => {
 
 			{/* Statistics Cards */}
 			<Row gutter={[16, 16]}>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="學校總數"
@@ -161,7 +164,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="課程總數"
@@ -170,7 +173,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="學生總數"
@@ -180,7 +183,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="今日出勤率"
@@ -204,7 +207,7 @@ export const DashboardPage: React.FC = () => {
 				<BarChartOutlined /> 出勤統計分佈
 			</Title>
 			<Row gutter={[16, 16]}>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="出席"
@@ -224,7 +227,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="缺席"
@@ -243,7 +246,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="遲到"
@@ -262,7 +265,7 @@ export const DashboardPage: React.FC = () => {
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={12} lg={6}>
+				<Col xs={12} sm={12} lg={6}>
 					<Card>
 						<Statistic
 							title="請假"

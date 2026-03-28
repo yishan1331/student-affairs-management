@@ -28,6 +28,7 @@ import apiClient from "../../services/api/apiClient";
 import { ISchool } from "../../common/types/models";
 import { ICourse } from "../../common/types/models/course.types";
 import { ROUTE_RESOURCE } from "../../common/constants";
+import { MobileFilterBar } from "../../components/mobile";
 
 const { Title, Text } = Typography;
 
@@ -568,6 +569,7 @@ export const ScheduleList: React.FC = () => {
 			</Title>
 
 			{/* 篩選區 */}
+			<MobileFilterBar isMobile={isMobile}>
 			<Card style={{ marginBottom: 16 }}>
 				<Row gutter={[16, 16]} align="middle">
 					<Col xs={24} sm={12} md={6}>
@@ -652,6 +654,7 @@ export const ScheduleList: React.FC = () => {
 					</Row>
 				)}
 			</Card>
+			</MobileFilterBar>
 
 			{/* 學校圖例 */}
 			{Object.keys(schoolColorMap).length > 0 && (

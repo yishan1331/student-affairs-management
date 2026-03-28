@@ -16,6 +16,8 @@ import { type PropsWithChildren, useState } from "react";
 import { IHealthToilet, ToiletType } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE, TOILET_TYPE_MAP } from "../../common/constants";
 import { HealthSubjectSelector } from "../../components";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const HealthToiletList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -46,6 +48,42 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
 
+	const mobileFields: MobileCardField<IHealthToilet>[] = [
+		{
+			label: "類型",
+			dataIndex: "type",
+			render: (value: ToiletType) => {
+				const t = TOILET_TYPE_MAP[value];
+				return t ? <Tag color={t.color}>{t.label}</Tag> : value;
+			},
+		},
+		{
+			label: "日期",
+			dataIndex: "date",
+			render: (value: string) => new Date(value).toLocaleDateString(),
+		},
+		{
+			label: "時間",
+			dataIndex: "time",
+		},
+		{
+			label: "是否正常",
+			dataIndex: "is_normal",
+			render: (value: boolean) => (
+				<Tag color={value ? "success" : "error"}>
+					{value ? "正常" : "異常"}
+				</Tag>
+			),
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -73,6 +111,33 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
+			{isMobile ? (
+				<MobileCardList<IHealthToilet>
+					dataSource={records}
+					fields={mobileFields}
+					rowKey="id"
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.healthToilet, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.healthToilet, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.healthToilet,
+							id: record.id,
+							successNotification: {
+								message: "刪除成功",
+								description: `${resource?.meta?.label}已成功刪除`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "刪除失敗",
+								description: `無法刪除${resource?.meta?.label}`,
+								type: "error",
+							},
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -217,6 +282,7 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

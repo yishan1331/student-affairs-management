@@ -16,6 +16,8 @@ import { type PropsWithChildren, useState } from "react";
 import { IHealthSymptom, SymptomType, Severity } from "../../common/types/models";
 import { ROUTE_PATH, ROUTE_RESOURCE, SYMPTOM_TYPE_MAP, SEVERITY_MAP } from "../../common/constants";
 import { HealthSubjectSelector } from "../../components";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 	const go = useGo();
@@ -46,6 +48,51 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
 
+	const mobileFields: MobileCardField<IHealthSymptom>[] = [
+		{
+			label: "症狀類型",
+			dataIndex: "symptom_type",
+			render: (value: SymptomType) => {
+				const t = SYMPTOM_TYPE_MAP[value];
+				return t ? <Tag color={t.color}>{t.label}</Tag> : value;
+			},
+		},
+		{
+			label: "日期",
+			dataIndex: "date",
+			render: (value: string) => new Date(value).toLocaleDateString(),
+		},
+		{
+			label: "嚴重程度",
+			dataIndex: "severity",
+			render: (value: Severity) => {
+				const s = SEVERITY_MAP[value];
+				return s ? <Tag color={s.color}>{s.label}</Tag> : value;
+			},
+		},
+		{
+			label: "次數",
+			dataIndex: "frequency",
+			render: (value: number) => `${value} 次`,
+		},
+		{
+			label: "反覆發生",
+			dataIndex: "is_recurring",
+			render: (value: boolean) => (
+				<Tag color={value ? "warning" : "default"}>
+					{value ? "是" : "否"}
+				</Tag>
+			),
+		},
+	];
+
+	const mobilePagination = isMobile ? {
+		current: (tableProps.pagination as any)?.current,
+		pageSize: (tableProps.pagination as any)?.pageSize,
+		total: (tableProps.pagination as any)?.total,
+		onChange: (tableProps.pagination as any)?.onChange,
+	} : undefined;
+
 	return (
 		<List
 			breadcrumb={true}
@@ -73,6 +120,33 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 			]}
 		>
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
+			{isMobile ? (
+				<MobileCardList<IHealthSymptom>
+					dataSource={records}
+					fields={mobileFields}
+					rowKey="id"
+					loading={tableProps.loading as boolean}
+					pagination={mobilePagination}
+					onShow={(record) => show(ROUTE_RESOURCE.healthSymptom, record.id)}
+					onEdit={(record) => edit(ROUTE_RESOURCE.healthSymptom, record.id)}
+					onDelete={(record) => {
+						deleteRecord({
+							resource: ROUTE_RESOURCE.healthSymptom,
+							id: record.id,
+							successNotification: {
+								message: "刪除成功",
+								description: `${resource?.meta?.label}已成功刪除`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "刪除失敗",
+								description: `無法刪除${resource?.meta?.label}`,
+								type: "error",
+							},
+						});
+					}}
+				/>
+			) : (
 			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
 				{!isMobile && (
 					<Table.Column
@@ -248,6 +322,7 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 					}
 				/>
 			</Table>
+			)}
 			{children}
 		</List>
 	);

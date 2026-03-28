@@ -65,6 +65,7 @@ import {
 	CustomTitle,
 	CustomSider,
 	CustomLayout,
+	BottomNav,
 } from "./components";
 import "./styles/global.scss";
 
@@ -440,6 +441,7 @@ const AppContent = () => {
 								>
 									<Outlet />
 								</div>
+								<BottomNav />
 							</CustomLayout>
 						</Authenticated>
 					}

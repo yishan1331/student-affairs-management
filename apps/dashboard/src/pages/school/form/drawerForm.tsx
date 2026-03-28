@@ -83,7 +83,7 @@ export const SchoolDrawerForm = (props: Props) => {
 			{...drawerProps}
 			open={true}
 			title={title}
-			width={breakpoint.sm ? "378px" : "100%"}
+			width={!breakpoint.sm ? "100%" : !breakpoint.md ? "90%" : 520}
 			zIndex={1001}
 			onClose={handleDrawerClose}
 		>

@@ -4,6 +4,7 @@ import {
 	Card,
 	Col,
 	DatePicker,
+	Grid,
 	Row,
 	Select,
 	Spin,
@@ -14,6 +15,7 @@ import {
 	Empty,
 	Space,
 } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 import {
 	DollarOutlined,
 	BankOutlined,
@@ -25,6 +27,7 @@ import dayjs, { Dayjs } from "dayjs";
 import apiClient from "../../services/api/apiClient";
 import { ISchool } from "../../common/types/models";
 import { ROUTE_RESOURCE } from "../../common/constants";
+import { MobileFilterBar } from "../../components/mobile";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -62,6 +65,9 @@ const formatCurrency = (value: number): string => {
 // ===== 元件 =====
 
 export const SalaryOverviewList: React.FC = () => {
+	const breakpoint = Grid.useBreakpoint();
+	const isMobile = !breakpoint.md;
+
 	// 日期範圍：預設為當月 1 日 ~ 今天
 	const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
 		dayjs().startOf("month"),
@@ -70,6 +76,19 @@ export const SalaryOverviewList: React.FC = () => {
 	const [schoolId, setSchoolId] = useState<number | undefined>(undefined);
 	const [summaryData, setSummaryData] = useState<ISalarySummarySchool[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [expandedCourses, setExpandedCourses] = useState<Set<number>>(new Set());
+
+	const toggleCourse = (courseId: number) => {
+		setExpandedCourses((prev) => {
+			const next = new Set(prev);
+			if (next.has(courseId)) {
+				next.delete(courseId);
+			} else {
+				next.add(courseId);
+			}
+			return next;
+		});
+	};
 
 	// 學校下拉選項
 	const { selectProps: schoolSelectProps } = useSelect<ISchool>({
@@ -198,6 +217,7 @@ export const SalaryOverviewList: React.FC = () => {
 			</Title>
 
 			{/* 篩選區 */}
+			<MobileFilterBar isMobile={isMobile}>
 			<Card style={{ marginBottom: 16 }}>
 				<Row gutter={[16, 16]} align="middle">
 					<Col xs={24} sm={8} md={5}>
@@ -275,36 +295,39 @@ export const SalaryOverviewList: React.FC = () => {
 					</Col>
 				</Row>
 			</Card>
+			</MobileFilterBar>
 
 			{/* 摘要卡片 */}
-			<Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-				<Col xs={24} sm={8}>
-					<Card>
+			<Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
+				<Col xs={8} sm={8}>
+					<Card size={isMobile ? "small" : "default"}>
 						<Statistic
 							title="薪資總計"
 							value={grandTotal}
-							prefix={<DollarOutlined />}
+							prefix={isMobile ? undefined : <DollarOutlined />}
 							formatter={(value) => formatCurrency(Number(value))}
-							valueStyle={{ color: "#3f8600" }}
+							valueStyle={{ color: "#3f8600", fontSize: isMobile ? 16 : 24 }}
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={8}>
-					<Card>
+				<Col xs={8} sm={8}>
+					<Card size={isMobile ? "small" : "default"}>
 						<Statistic
 							title="學校數"
 							value={summaryData.length}
-							prefix={<BankOutlined />}
+							prefix={isMobile ? undefined : <BankOutlined />}
 							suffix="所"
+							valueStyle={isMobile ? { fontSize: 16 } : undefined}
 						/>
 					</Card>
 				</Col>
-				<Col xs={24} sm={8}>
-					<Card>
+				<Col xs={8} sm={8}>
+					<Card size={isMobile ? "small" : "default"}>
 						<Statistic
-							title="總上課次數"
+							title="上課次數"
 							value={totalSessionCount}
 							suffix="堂"
+							valueStyle={isMobile ? { fontSize: 16 } : undefined}
 						/>
 					</Card>
 				</Col>
@@ -323,6 +346,7 @@ export const SalaryOverviewList: React.FC = () => {
 				summaryData.map((school) => (
 					<Card
 						key={school.schoolId}
+						size={isMobile ? "small" : "default"}
 						title={
 							<Space>
 								<BankOutlined />
@@ -330,50 +354,135 @@ export const SalaryOverviewList: React.FC = () => {
 							</Space>
 						}
 						extra={
-							<Text strong style={{ color: "#3f8600", fontSize: 16 }}>
-								合計：{formatCurrency(school.totalSalary)}
+							<Text strong style={{ color: "#3f8600", fontSize: isMobile ? 13 : 16 }}>
+								{isMobile ? formatCurrency(school.totalSalary) : `合計：${formatCurrency(school.totalSalary)}`}
 							</Text>
 						}
 						style={{ marginBottom: 16 }}
 					>
-						<Table
-							columns={courseColumns}
-							dataSource={school.courses}
-							rowKey="courseId"
-							pagination={false}
-							scroll={{ x: 'max-content' }}
-							expandable={{
-								expandedRowRender: expandedRowRenderWithScroll,
-								rowExpandable: (record) =>
-									record.sessions && record.sessions.length > 0,
-							}}
-							summary={(pageData) => {
-								const totalSessions = pageData.reduce(
-									(sum, course) => sum + course.sessionCount,
-									0,
-								);
-								const totalAmount = pageData.reduce(
-									(sum, course) => sum + course.totalSalary,
-									0,
-								);
-								return (
-									<Table.Summary.Row>
-										<Table.Summary.Cell index={0} />
-										<Table.Summary.Cell index={1}>
-											<Text strong>合計</Text>
-										</Table.Summary.Cell>
-										<Table.Summary.Cell index={2} align="center">
-											<Text strong>{totalSessions}</Text>
-										</Table.Summary.Cell>
-										<Table.Summary.Cell index={3} align="right">
-											<Text strong style={{ color: "#52c41a" }}>
-												{formatCurrency(totalAmount)}
-											</Text>
-										</Table.Summary.Cell>
-									</Table.Summary.Row>
-								);
-							}}
-						/>
+						{isMobile ? (
+							<Space direction="vertical" size={8} style={{ width: "100%" }}>
+								{school.courses.map((course) => {
+									const isExpanded = expandedCourses.has(course.courseId);
+									return (
+										<Card
+											key={course.courseId}
+											size="small"
+											style={{ borderRadius: 8, cursor: "pointer" }}
+											styles={{ body: { padding: 0 } }}
+											onClick={() => toggleCourse(course.courseId)}
+										>
+											<div style={{ padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+												<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+													<DownOutlined style={{
+														fontSize: 10,
+														color: "#999",
+														transition: "transform 0.2s",
+														transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+													}} />
+													<div>
+														<Text strong style={{ fontSize: 13 }}>{course.courseName}</Text>
+														<div>
+															<Text type="secondary" style={{ fontSize: 12 }}>
+																{course.sessionCount} 堂
+															</Text>
+														</div>
+													</div>
+												</div>
+												<Text strong style={{ color: "#52c41a", fontSize: 14 }}>
+													{formatCurrency(course.totalSalary)}
+												</Text>
+											</div>
+											{isExpanded && (
+												<div style={{ padding: "0 8px 8px", borderTop: "1px solid #f0f0f0" }}>
+													<Space direction="vertical" size={4} style={{ width: "100%", marginTop: 6 }}>
+														{course.sessions.map((session) => (
+															<div
+																key={`${course.courseId}-${session.date}`}
+																style={{
+																	display: "flex",
+																	justifyContent: "space-between",
+																	alignItems: "center",
+																	padding: "6px 8px",
+																	borderRadius: 6,
+																	background: "var(--ant-color-fill-alter, #fafafa)",
+																	fontSize: 12,
+																}}
+																onClick={(e) => e.stopPropagation()}
+															>
+																<div>
+																	<Text style={{ fontSize: 12 }}>
+																		{dayjs(session.date).format("MM/DD (dd)")}
+																	</Text>
+																	<Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+																		{session.studentCount} 人
+																	</Text>
+																	{session.salaryBaseName && (
+																		<Text type="secondary" style={{ fontSize: 11, marginLeft: 4 }}>
+																			· {session.salaryBaseName}
+																		</Text>
+																	)}
+																</div>
+																<Text style={{ fontSize: 12, color: "#52c41a" }}>
+																	{formatCurrency(session.salaryAmount)}
+																</Text>
+															</div>
+														))}
+													</Space>
+												</div>
+											)}
+										</Card>
+									);
+								})}
+								<div style={{ display: "flex", justifyContent: "space-between", padding: "4px 12px", borderTop: "1px solid #f0f0f0" }}>
+									<Text strong style={{ fontSize: 12 }}>
+										合計 {school.courses.reduce((sum, c) => sum + c.sessionCount, 0)} 堂
+									</Text>
+									<Text strong style={{ color: "#52c41a", fontSize: 13 }}>
+										{formatCurrency(school.totalSalary)}
+									</Text>
+								</div>
+							</Space>
+						) : (
+							<Table
+								columns={courseColumns}
+								dataSource={school.courses}
+								rowKey="courseId"
+								pagination={false}
+								scroll={{ x: 'max-content' }}
+								expandable={{
+									expandedRowRender: expandedRowRenderWithScroll,
+									rowExpandable: (record) =>
+										record.sessions && record.sessions.length > 0,
+								}}
+								summary={(pageData) => {
+									const totalSessions = pageData.reduce(
+										(sum, course) => sum + course.sessionCount,
+										0,
+									);
+									const totalAmount = pageData.reduce(
+										(sum, course) => sum + course.totalSalary,
+										0,
+									);
+									return (
+										<Table.Summary.Row>
+											<Table.Summary.Cell index={0} />
+											<Table.Summary.Cell index={1}>
+												<Text strong>合計</Text>
+											</Table.Summary.Cell>
+											<Table.Summary.Cell index={2} align="center">
+												<Text strong>{totalSessions}</Text>
+											</Table.Summary.Cell>
+											<Table.Summary.Cell index={3} align="right">
+												<Text strong style={{ color: "#52c41a" }}>
+													{formatCurrency(totalAmount)}
+												</Text>
+											</Table.Summary.Cell>
+										</Table.Summary.Row>
+									);
+								}}
+							/>
+						)}
 					</Card>
 				))
 			)}

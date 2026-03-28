@@ -28,3 +28,51 @@
     --dark-text-color: #{$dark-text-color};
     --dark-border-color: #{$dark-border-color};
 }
+
+// Mobile 優化
+@media (max-width: $screen-md) {
+    // 讓 Refine List 頁面的 header 更緊湊
+    .ant-page-header {
+        padding: 8px 0 !important;
+    }
+
+    // 表格在手機上更緊湊
+    .ant-table-wrapper {
+        .ant-table-thead > tr > th,
+        .ant-table-tbody > tr > td {
+            padding: 8px 6px !important;
+            font-size: 13px;
+        }
+    }
+
+    // 分頁器手機簡化
+    .ant-pagination {
+        .ant-pagination-options {
+            display: none;
+        }
+    }
+
+    // 讓卡片在手機上間距更合理
+    .ant-card {
+        border-radius: 8px;
+    }
+
+    // 觸控友善 - 按鈕最小尺寸
+    .ant-btn-icon-only {
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    // Dropdown menu 觸控友善
+    .ant-dropdown-menu-item {
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        font-size: 14px !important;
+    }
+
+    // Breadcrumb 在手機上隱藏
+    .ant-breadcrumb {
+        display: none;
+    }
+}
