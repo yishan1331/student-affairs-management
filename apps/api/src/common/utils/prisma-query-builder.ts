@@ -157,19 +157,33 @@ export class PrismaQueryBuilder {
 		}
 
 		// 處理關聯篩選（e.g. school_id → course: { school_id: value }）
+		// 使用 OR 邏輯：匹配直接欄位或關聯路徑（支援替代課程的 school_id 直接設定，以及正規課程透過 course.school_id）
 		if (this.options.relationFilters) {
 			for (const [queryField, relationPath] of Object.entries(this.options.relationFilters)) {
 				if (query[queryField] !== undefined) {
 					const value = !isNaN(Number(query[queryField]))
 						? Number(query[queryField])
 						: query[queryField];
+
+					// Remove direct filter if it was already set by filterableFields
+					delete where[queryField];
+
+					// Build nested relation condition
 					const parts = relationPath.split('.');
-					let current = where;
+					const relationCondition: Record<string, any> = {};
+					let current = relationCondition;
 					for (let i = 0; i < parts.length - 1; i++) {
-						if (!current[parts[i]]) current[parts[i]] = {};
+						current[parts[i]] = {};
 						current = current[parts[i]];
 					}
 					current[parts[parts.length - 1]] = value;
+
+					// Use OR: match direct field OR relation path
+					if (!where.OR) where.OR = [];
+					where.OR.push(
+						{ [queryField]: value },
+						relationCondition,
+					);
 				}
 			}
 		}
