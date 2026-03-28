@@ -12,6 +12,7 @@ import {
 	Empty,
 	Space,
 	Tabs,
+	Tooltip,
 	Typography,
 } from "antd";
 import {
@@ -22,6 +23,7 @@ import {
 	ArrowUpOutlined,
 	ArrowDownOutlined,
 	MedicineBoxOutlined,
+	ClearOutlined,
 } from "@ant-design/icons";
 import { DualAxes, Column, Pie } from "@ant-design/charts";
 import dayjs, { Dayjs } from "dayjs";
@@ -163,6 +165,17 @@ const PeriodControls: React.FC<{
 					<Typography.Text type="secondary">
 						{periodLabel}
 					</Typography.Text>
+				</Col>
+				<Col xs={24} sm="auto" style={{ marginLeft: "auto" }}>
+					<Tooltip title="重置篩選">
+						<Button
+							icon={<ClearOutlined />}
+							onClick={() => {
+								setPeriod("day");
+								setDate(dayjs());
+							}}
+						/>
+					</Tooltip>
 				</Col>
 			</Row>
 		</Card>

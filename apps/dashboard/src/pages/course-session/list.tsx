@@ -32,6 +32,7 @@ import {
 	Segmented,
 	Grid,
 	Dropdown,
+	Tooltip,
 } from "antd";
 import {
 	PlusOutlined,
@@ -41,6 +42,7 @@ import {
 	EyeOutlined,
 	EditOutlined,
 	DeleteOutlined,
+	ClearOutlined,
 } from "@ant-design/icons";
 import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
 import { useLocation } from "react-router";
@@ -602,6 +604,31 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 							showSearch={false}
 							options={courseFilterOptions}
 						/>
+					</Col>
+					<Col xs={24} sm={8} md={4}>
+						<Text
+							strong
+							style={{ display: "block", marginBottom: 4 }}
+						>
+							&nbsp;
+						</Text>
+						<Tooltip title="重置篩選">
+							<Button
+								icon={<ClearOutlined />}
+								onClick={() => {
+									const resetMonth = dayjs();
+									setSelectedMonth(resetMonth);
+									setSelectedSchoolId(undefined);
+									setSelectedCourseId(undefined);
+									applyFilters(
+										resetMonth.startOf("month").format("YYYY-MM-DD"),
+										resetMonth.endOf("month").format("YYYY-MM-DD"),
+										undefined,
+										undefined,
+									);
+								}}
+							/>
+						</Tooltip>
 					</Col>
 				</Row>
 			</Card>

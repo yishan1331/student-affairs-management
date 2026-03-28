@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
+	Button,
 	Card,
 	Col,
 	DatePicker,
@@ -8,6 +9,7 @@ import {
 	Spin,
 	Statistic,
 	Table,
+	Tooltip,
 	Typography,
 	Empty,
 	Space,
@@ -16,6 +18,7 @@ import {
 	DollarOutlined,
 	BankOutlined,
 	ReloadOutlined,
+	ClearOutlined,
 } from "@ant-design/icons";
 import { useSelect } from "@refinedev/antd";
 import dayjs, { Dayjs } from "dayjs";
@@ -253,9 +256,21 @@ export const SalaryOverviewList: React.FC = () => {
 							&nbsp;
 						</Text>
 						<Space>
-							<a onClick={fetchSummary} style={{ cursor: "pointer" }}>
-								<ReloadOutlined /> 重新載入
-							</a>
+							<Tooltip title="重新載入">
+								<Button
+									icon={<ReloadOutlined />}
+									onClick={fetchSummary}
+								/>
+							</Tooltip>
+							<Tooltip title="重置篩選">
+								<Button
+									icon={<ClearOutlined />}
+									onClick={() => {
+										setDateRange([dayjs().startOf("month"), dayjs()]);
+										setSchoolId(undefined);
+									}}
+								/>
+							</Tooltip>
 						</Space>
 					</Col>
 				</Row>

@@ -21,6 +21,7 @@ import {
 	ScheduleOutlined,
 	SearchOutlined,
 	ReloadOutlined,
+	ClearOutlined,
 } from "@ant-design/icons";
 import { useGo } from "@refinedev/core";
 import apiClient from "../../services/api/apiClient";
@@ -615,12 +616,25 @@ export const ScheduleList: React.FC = () => {
 						<Text strong style={{ display: "block", marginBottom: 4 }}>
 							&nbsp;
 						</Text>
-						<Button
-							icon={<ReloadOutlined />}
-							onClick={fetchSchedule}
-						>
-							重新載入
-						</Button>
+						<Space>
+							<Tooltip title="重新載入">
+								<Button
+									icon={<ReloadOutlined />}
+									onClick={fetchSchedule}
+								/>
+							</Tooltip>
+							<Tooltip title="重置篩選">
+								<Button
+									icon={<ClearOutlined />}
+									onClick={() => {
+										setSelectedSchool(undefined);
+										setSelectedGrade(undefined);
+										setSearchName("");
+										setSelectedDays(["1", "2", "3", "4", "5", "6"]);
+									}}
+								/>
+							</Tooltip>
+						</Space>
 					</Col>
 				</Row>
 				{!isMobile && (
