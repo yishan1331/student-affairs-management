@@ -18,6 +18,15 @@ import { CopyOutlined, KeyOutlined, DeleteOutlined, PlusOutlined } from "@ant-de
 
 import { apiClient } from "../../services/api";
 import { showMessage } from "../../utils/message";
+import { TOKEN_KEY } from "../../common/constants";
+import { getTokenPayload } from "../../providers/authProvider";
+
+interface ApiTokenOwner {
+	id: number;
+	account: string;
+	username: string;
+	role: string;
+}
 
 interface ApiTokenItem {
 	id: number;
@@ -26,6 +35,8 @@ interface ApiTokenItem {
 	expires_at: string | null;
 	revoked_at: string | null;
 	created_at: string;
+	user_id?: number;
+	user?: ApiTokenOwner;
 }
 
 interface CreatedToken {
@@ -40,6 +51,11 @@ const formatDate = (v: string | null) => (v ? new Date(v).toLocaleString() : "-"
 export const ApiTokenList = () => {
 	const breakpoint = Grid.useBreakpoint();
 	const isMobile = !breakpoint.md;
+	const currentUser = (() => {
+		const token = localStorage.getItem(TOKEN_KEY);
+		return token ? getTokenPayload(token) : null;
+	})();
+	const isAdmin = currentUser?.role === "admin";
 	const [tokens, setTokens] = useState<ApiTokenItem[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [modalOpen, setModalOpen] = useState(false);
@@ -132,6 +148,16 @@ export const ApiTokenList = () => {
 				size={isMobile ? "small" : "middle"}
 			>
 				<Table.Column<ApiTokenItem> dataIndex="name" title="名稱" />
+				{isAdmin && (
+					<Table.Column<ApiTokenItem>
+						title="擁有者"
+						render={(_, record) =>
+							record.user
+								? `${record.user.username} (${record.user.account})`
+								: "-"
+						}
+					/>
+				)}
 				<Table.Column<ApiTokenItem>
 					title="狀態"
 					render={(_, record) => statusTag(record)}

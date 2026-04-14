@@ -32,12 +32,12 @@ export class ApiTokenController {
 	@Get()
 	findAll(@Req() req: Request) {
 		const user = req.user as any;
-		return this.apiTokenService.findAll(user.id);
+		return this.apiTokenService.findAll(user.id, user.role);
 	}
 
 	@Delete(':id')
 	revoke(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
 		const user = req.user as any;
-		return this.apiTokenService.revoke(user.id, id);
+		return this.apiTokenService.revoke(user.id, id, user.role);
 	}
 }

@@ -33,9 +33,10 @@ export class ApiTokenService {
 		return { ...record, token: raw };
 	}
 
-	findAll(userId: number) {
+	findAll(userId: number, role?: string) {
+		const isAdmin = role === 'admin';
 		return this.prisma.apiToken.findMany({
-			where: { user_id: userId },
+			where: isAdmin ? {} : { user_id: userId },
 			select: {
 				id: true,
 				name: true,
@@ -43,14 +44,19 @@ export class ApiTokenService {
 				expires_at: true,
 				revoked_at: true,
 				created_at: true,
+				user_id: true,
+				user: {
+					select: { id: true, account: true, username: true, role: true },
+				},
 			},
 			orderBy: { created_at: 'desc' },
 		});
 	}
 
-	async revoke(userId: number, id: number) {
+	async revoke(userId: number, id: number, role?: string) {
+		const isAdmin = role === 'admin';
 		const token = await this.prisma.apiToken.findFirst({
-			where: { id, user_id: userId },
+			where: isAdmin ? { id } : { id, user_id: userId },
 		});
 		if (!token) {
 			throw new NotFoundException('找不到此權杖');
