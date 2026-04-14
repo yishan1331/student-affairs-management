@@ -38,7 +38,7 @@ export class CreatePetDto {
 	birthday?: Date;
 
 	@IsOptional()
-	@IsNumber()
+	@IsNumber({ maxDecimalPlaces: 2 })
 	@Min(0)
 	@Max(1000)
 	weight?: number;

@@ -165,7 +165,7 @@ export const PetShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{record?.weight ? record.weight.toFixed(1) : "-"}
+					{record?.weight ? record.weight.toFixed(2) : "-"}
 				</Typography.Text>
 			),
 		},

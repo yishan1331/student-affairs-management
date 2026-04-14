@@ -69,8 +69,8 @@ export const HealthWeightForm = (props: Props) => {
 						style={{ width: "200px" }}
 						min={0.1}
 						max={500}
-						step={0.1}
-						precision={1}
+						step={0.01}
+						precision={2}
 						placeholder="請輸入體重"
 					/>
 				</Form.Item>

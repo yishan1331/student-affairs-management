@@ -7,7 +7,7 @@ export class IngestWeightDto {
 	})
 	date: string;
 
-	@IsNumber()
+	@IsNumber({ maxDecimalPlaces: 2 })
 	@Min(0.1)
 	@Max(500)
 	weight: number;

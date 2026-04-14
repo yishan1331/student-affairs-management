@@ -61,7 +61,7 @@ export const HealthWeightShow = () => {
 			type: "custom",
 			render: () => (
 				<Typography.Text>
-					{record?.weight?.toFixed(1) ?? "-"}
+					{record?.weight?.toFixed(2) ?? "-"}
 				</Typography.Text>
 			),
 		},

@@ -8,7 +8,7 @@ export class CreateHealthWeightDto {
 	date: Date;
 
 	@IsDefined()
-	@IsNumber()
+	@IsNumber({ maxDecimalPlaces: 2 })
 	@Min(0.1)
 	@Max(500)
 	weight: number;

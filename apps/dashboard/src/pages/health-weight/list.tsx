@@ -57,7 +57,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 		{
 			label: "體重",
 			dataIndex: "weight",
-			render: (value: number) => (value?.toFixed(1) ?? "-") + " kg",
+			render: (value: number) => (value?.toFixed(2) ?? "-") + " kg",
 		},
 		{
 			label: "身高",
@@ -155,7 +155,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 					dataIndex="weight"
 					title="體重 (kg)"
 					sorter
-					render={(value: number) => value?.toFixed(1) ?? "-"}
+					render={(value: number) => value?.toFixed(2) ?? "-"}
 				/>
 				<Table.Column
 					dataIndex="height"

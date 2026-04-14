@@ -25,7 +25,8 @@
 		"create:admin": "ts-node ./scripts/create-admin.ts",
 		"prisma:migrate": "ts-node ./scripts/prisma-migrate.ts",
 		"bot:set-webhook": "ts-node ./scripts/set-telegram-webhook.ts",
-		"bot:delete-webhook": "ts-node ./scripts/delete-telegram-webhook.ts"
+		"bot:delete-webhook": "ts-node ./scripts/delete-telegram-webhook.ts",
+		"import:apple-health": "ts-node ./scripts/import-apple-health-weight.ts"
 	},
 	"dependencies": {
 		"@faker-js/faker": "^9.6.0",
