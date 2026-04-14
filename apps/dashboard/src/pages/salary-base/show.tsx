@@ -61,6 +61,25 @@ export const SalaryBaseShow = () => {
 			},
 		},
 		{
+			label: "適用課程",
+			value: "courses",
+			type: "custom",
+			render: () => {
+				if (!record?.courses?.length) {
+					return <Typography.Text>-</Typography.Text>;
+				}
+				return (
+					<Space size={[0, 4]} wrap>
+						{record.courses.map((course) => (
+							<Tag key={course.id} color="purple">
+								{course.name}
+							</Tag>
+						))}
+					</Space>
+				);
+			},
+		},
+		{
 			label: "時薪",
 			value: "hourly_rate",
 			type: "custom",

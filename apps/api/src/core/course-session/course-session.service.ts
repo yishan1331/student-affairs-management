@@ -88,13 +88,27 @@ export class CourseSessionService {
 			return { salary_amount: null, salary_base_id: null };
 		}
 
-		// Find all active SalaryBase records associated with this school
-		const salaryBases = await this.prisma.salaryBase.findMany({
-			where: {
-				schools: { some: { id: resolvedSchoolId } },
-				is_active: true,
-			},
-		});
+		// Priority 1: SalaryBase directly bound to this course (course-specific salary)
+		let salaryBases: any[] = [];
+		if (courseId) {
+			salaryBases = await this.prisma.salaryBase.findMany({
+				where: {
+					courses: { some: { id: courseId } },
+					is_active: true,
+				},
+			});
+		}
+
+		// Priority 2: Fall back to school-level SalaryBase if no course-specific tier
+		if (salaryBases.length === 0) {
+			salaryBases = await this.prisma.salaryBase.findMany({
+				where: {
+					schools: { some: { id: resolvedSchoolId } },
+					courses: { none: {} }, // exclude tiers that are bound to specific courses
+					is_active: true,
+				},
+			});
+		}
 
 		const matchedSalaryBase = this.findMatchingSalaryBase(salaryBases, actualStudentCount);
 
@@ -406,11 +420,20 @@ export class CourseSessionService {
 	}
 
 	/**
-	 * Recalculate salary for all non-cancelled sessions.
+	 * Recalculate salary for non-cancelled sessions.
+	 * If start_date / end_date provided, only sessions within that date range are recalculated.
 	 */
-	async recalculateAllSalaries() {
+	async recalculateAllSalaries(startDate?: string, endDate?: string) {
+		const where: Prisma.CourseSessionWhereInput = { is_cancelled: false };
+		if (startDate && endDate) {
+			where.date = {
+				gte: this.toUTCMidnight(startDate),
+				lte: this.toUTCMidnight(endDate),
+			};
+		}
+
 		const sessions = await this.prisma.courseSession.findMany({
-			where: { is_cancelled: false },
+			where,
 			select: { id: true, course_id: true, school_id: true, duration: true, actual_student_count: true },
 		});
 

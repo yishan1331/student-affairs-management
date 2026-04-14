@@ -171,6 +171,7 @@ model Course {
 
   students             Student[]
   courseSessions       CourseSession[]
+  salaryBases          SalaryBase[]
 
   @@index([user_id])
 }
@@ -245,6 +246,7 @@ model SalaryBase {
   updated_at   DateTime @updatedAt
 
   schools          School[]         // 多對多：可被多個學校共用
+  courses          Course[]         // 多對多：可綁定特定課程（優先於學校匹配）
   courseSessions   CourseSession[]
 
   @@index([user_id])

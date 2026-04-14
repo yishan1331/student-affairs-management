@@ -33,6 +33,7 @@ import {
 	Grid,
 	Dropdown,
 	Tooltip,
+	App,
 } from "antd";
 import {
 	PlusOutlined,
@@ -43,6 +44,7 @@ import {
 	EditOutlined,
 	DeleteOutlined,
 	ClearOutlined,
+	ReloadOutlined,
 } from "@ant-design/icons";
 import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
 import { useLocation } from "react-router";
@@ -82,6 +84,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { user } = useUser();
 	const { mutate: deleteRecord } = useDelete();
+	const { modal } = App.useApp();
 
 	// 顯示模式
 	const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
@@ -358,6 +361,40 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 		applyFilters(monthStart, monthEnd, selectedSchoolId, value);
 	};
 
+	// 重算當前月份薪資
+	const [recalculateLoading, setRecalculateLoading] = useState(false);
+	const handleRecalculateSalaries = () => {
+		const monthLabel = selectedMonth.format("YYYY-MM");
+		modal.confirm({
+			title: `確認要重算 ${monthLabel} 的薪資嗎？`,
+			content: `將依最新的薪資級距設定，重新計算 ${monthLabel}（${monthStart} ~ ${monthEnd}）所有未停課上課記錄的薪資。此動作無法復原。`,
+			okText: "確認重算",
+			cancelText: "取消",
+			okType: "primary",
+			onOk: async () => {
+				setRecalculateLoading(true);
+				try {
+					const response = await apiClient.post(
+						`/${ROUTE_RESOURCE.courseSession}/recalculate-salaries`,
+						{
+							start_date: monthStart,
+							end_date: monthEnd,
+						},
+					);
+					const result = response.data?.data || response.data;
+					message.success(
+						`${monthLabel} 重算完成：共 ${result.total} 筆，更新 ${result.updated} 筆`,
+					);
+					tableQueryResult.refetch();
+				} catch (error) {
+					message.error("重算失敗，請稍後再試");
+				} finally {
+					setRecalculateLoading(false);
+				}
+			},
+		});
+	};
+
 	// 批次匯入處理
 	const handleBatchGenerate = async () => {
 		if (
@@ -504,6 +541,18 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 			breadcrumb={true}
 			title="上課記錄"
 			headerButtons={[
+				...(user?.role === "admin"
+					? [
+						<Button
+							key="recalculate"
+							icon={<ReloadOutlined />}
+							loading={recalculateLoading}
+							onClick={handleRecalculateSalaries}
+						>
+							重算薪資
+						</Button>,
+					]
+					: []),
 				<Button
 					key="batch"
 					type="primary"

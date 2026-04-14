@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -64,7 +64,7 @@ export class SalaryBaseController {
 		return this.salaryBaseService.findOne(+id, user.id, isAdmin);
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(@Param('id') id: string, @Body() dto: UpdateSalaryBaseDto, @Req() req: Request) {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';

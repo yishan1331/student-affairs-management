@@ -13,6 +13,13 @@ export class CreateSalaryBaseDto {
 	@Type(() => Number)
 	school_ids: number[];
 
+	@ApiPropertyOptional({ type: [Number], description: '關聯課程 ID 陣列（優先於學校匹配）' })
+	@IsOptional()
+	@IsArray()
+	@IsNumber({}, { each: true })
+	@Type(() => Number)
+	course_ids?: number[];
+
 	@ApiProperty()
 	@IsNumber()
 	hourly_rate: number;

@@ -159,6 +159,21 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 						);
 					}}
 				/>
+				<Table.Column<ISalaryBase>
+					title="適用課程"
+					render={(_: any, record: ISalaryBase) => {
+						if (!record.courses?.length) return "-";
+						return (
+							<Space size={[0, 4]} wrap>
+								{record.courses.map((course) => (
+									<Tag key={course.id} color="purple">
+										{course.name}
+									</Tag>
+								))}
+							</Space>
+						);
+					}}
+				/>
 				<Table.Column
 					dataIndex="hourly_rate"
 					title="時薪"

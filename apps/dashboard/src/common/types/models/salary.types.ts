@@ -11,11 +11,14 @@ export interface ISalaryBase {
 	updated_at: Date;
 	schools?: { id: number; name: string }[];
 	school_ids?: number[];
+	courses?: { id: number; name: string }[];
+	course_ids?: number[];
 }
 
 export interface ICreateSalaryBase {
 	name: string;
 	school_ids: number[];
+	course_ids?: number[];
 	hourly_rate: number;
 	min_students?: number | null;
 	max_students?: number | null;
@@ -27,6 +30,7 @@ export interface ICreateSalaryBase {
 export interface IUpdateSalaryBase {
 	name?: string;
 	school_ids?: number[];
+	course_ids?: number[];
 	hourly_rate?: number;
 	min_students?: number | null;
 	max_students?: number | null;

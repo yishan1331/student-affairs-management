@@ -84,8 +84,13 @@ export class CourseSessionController {
 	}
 
 	@Post('recalculate-salaries')
-	recalculateSalaries() {
-		return this.courseSessionService.recalculateAllSalaries();
+	recalculateSalaries(
+		@Body() body: { start_date?: string; end_date?: string },
+	) {
+		return this.courseSessionService.recalculateAllSalaries(
+			body?.start_date,
+			body?.end_date,
+		);
 	}
 
 	@Get(':id')
