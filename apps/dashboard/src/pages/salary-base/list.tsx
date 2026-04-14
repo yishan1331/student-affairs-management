@@ -26,7 +26,7 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<ISalaryBase>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<ISalaryBase>({
 		resource: ROUTE_RESOURCE.salaryBase,
 		initialSorter: [
 			{
@@ -76,7 +76,10 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

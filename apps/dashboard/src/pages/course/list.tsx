@@ -39,7 +39,7 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters, searchFormProps, tableQuery } =
+	const { tableProps, sorters, searchFormProps, tableQuery, setCurrent, setPageSize } =
 		useTable<ICourse>({
 			resource: ROUTE_RESOURCE.course,
 			initialSorter: [
@@ -91,7 +91,10 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

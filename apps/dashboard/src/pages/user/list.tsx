@@ -32,7 +32,7 @@ export const UserList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<IUser>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<IUser>({
 		resource: ROUTE_RESOURCE.user,
 		initialSorter: [
 			{
@@ -73,7 +73,10 @@ export const UserList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

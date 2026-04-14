@@ -26,7 +26,7 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters, searchFormProps, tableQuery } =
+	const { tableProps, sorters, searchFormProps, tableQuery, setCurrent, setPageSize } =
 		useTable<ISchool>({
 			resource: ROUTE_RESOURCE.school,
 			initialSorter: [
@@ -85,7 +85,10 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

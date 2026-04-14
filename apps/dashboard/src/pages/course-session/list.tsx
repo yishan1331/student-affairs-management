@@ -667,7 +667,10 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					current: (tableProps.pagination as any)?.current,
 					pageSize: (tableProps.pagination as any)?.pageSize,
 					total: (tableProps.pagination as any)?.total,
-					onChange: (tableProps.pagination as any)?.onChange,
+					onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 				};
 				return (
 					<MobileCardList<ICourseSession>

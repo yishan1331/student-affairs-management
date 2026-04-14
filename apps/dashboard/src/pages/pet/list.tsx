@@ -26,7 +26,7 @@ export const PetList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<IPet>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<IPet>({
 		resource: ROUTE_RESOURCE.pet,
 		initialSorter: [
 			{
@@ -79,7 +79,10 @@ export const PetList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

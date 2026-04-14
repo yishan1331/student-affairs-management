@@ -28,7 +28,7 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<IHealthDiet>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<IHealthDiet>({
 		resource: ROUTE_RESOURCE.healthDiet,
 		initialSorter: [
 			{
@@ -82,7 +82,10 @@ export const HealthDietList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

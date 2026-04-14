@@ -26,7 +26,7 @@ export const GradeSheetList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<IGradeSheet>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<IGradeSheet>({
 		resource: ROUTE_RESOURCE.gradeSheet,
 		initialSorter: [
 			{
@@ -56,7 +56,10 @@ export const GradeSheetList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (

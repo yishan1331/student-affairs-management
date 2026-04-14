@@ -33,7 +33,7 @@ export const AttendanceList = ({ children }: PropsWithChildren) => {
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
 
-	const { tableProps, sorters } = useTable<IAttendance>({
+	const { tableProps, sorters, setCurrent, setPageSize } = useTable<IAttendance>({
 		resource: ROUTE_RESOURCE.attendance,
 		initialSorter: [
 			{
@@ -72,7 +72,10 @@ export const AttendanceList = ({ children }: PropsWithChildren) => {
 		current: (tableProps.pagination as any)?.current,
 		pageSize: (tableProps.pagination as any)?.pageSize,
 		total: (tableProps.pagination as any)?.total,
-		onChange: (tableProps.pagination as any)?.onChange,
+		onChange: (page: number, size: number) => {
+			setCurrent(page);
+			setPageSize(size);
+		},
 	} : undefined;
 
 	return (
