@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 
 import { Response } from 'express';
-const moment = require('moment');
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -35,7 +34,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 		response.status(status).json({
 			statusCode: status,
 			success: false,
-			timestamp: moment().format('YYYY-MM-DD HH:mm:ss'),
+			timestamp: new Date().toISOString(),
 			message,
 		});
 	}
