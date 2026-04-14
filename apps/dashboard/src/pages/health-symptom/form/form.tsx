@@ -40,7 +40,10 @@ export const HealthSymptomForm = (props: Props) => {
 						? dayjs(values.date).format("YYYY-MM-DD")
 						: undefined,
 					time: values.time
-						? dayjs(values.time).format("HH:mm")
+						? (dayjs.isDayjs(values.time)
+								? values.time
+								: dayjs(values.time, "HH:mm")
+							).format("HH:mm")
 						: undefined,
 					pet_id: values.pet_id ?? undefined,
 				});
@@ -109,7 +112,6 @@ export const HealthSymptomForm = (props: Props) => {
 					label="發生次數"
 					name="frequency"
 					className={styles.formItem}
-					initialValue={1}
 				>
 					<InputNumber min={1} style={{ width: "200px" }} />
 				</Form.Item>
@@ -135,7 +137,6 @@ export const HealthSymptomForm = (props: Props) => {
 					name="is_recurring"
 					className={styles.formItem}
 					valuePropName="checked"
-					initialValue={false}
 				>
 					<Switch
 						checkedChildren="是"

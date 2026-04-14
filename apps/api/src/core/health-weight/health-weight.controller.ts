@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -133,7 +133,7 @@ export class HealthWeightController {
 		return this.healthWeightService.findOne(+id, user.id, user.role === 'admin');
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(
 		@Param('id') id: string,
 		@Req() req: Request,

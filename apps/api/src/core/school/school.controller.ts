@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -64,7 +64,7 @@ export class SchoolController {
 		return this.schoolService.findOne(+id, user.id, isAdmin);
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto, @Req() req: Request) {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';

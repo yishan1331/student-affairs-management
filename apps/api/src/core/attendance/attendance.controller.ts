@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -126,7 +126,7 @@ export class AttendanceController {
 		return this.attendanceService.findOne(+id, user.id, isAdmin);
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateAttendanceDto: UpdateAttendanceDto,

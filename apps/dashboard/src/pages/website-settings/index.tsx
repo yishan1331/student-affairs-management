@@ -39,7 +39,7 @@ export const WebsiteSettings: React.FC = () => {
   return (
     <Row gutter={[16, 16]}>
       <Col span={24}>
-        <Card title="網站設置" bordered={false}>
+        <Card title="網站設置" variant="borderless">
           <Form {...formProps} layout="vertical">
             <Row gutter={16}>
               <Col span={12}>

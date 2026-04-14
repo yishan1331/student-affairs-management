@@ -32,8 +32,11 @@ import {
 	theme,
 	ConfigProvider,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import type { RefineThemedLayoutV2SiderProps } from '@refinedev/antd';
 import type { CSSProperties } from 'react';
+
+type MenuItem = NonNullable<MenuProps['items']>[number];
 
 const drawerButtonStyles: CSSProperties = {
 	borderStartStartRadius: 0,
@@ -80,14 +83,16 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 
 	const RenderToTitle = TitleFromProps ?? TitleFromContext ?? ThemedTitleV2;
 
-	const renderTreeView = (tree: ITreeMenu[], selectedKey?: string) => {
+	const buildMenuItems = (
+		tree: ITreeMenu[],
+		selectedKey?: string,
+	): MenuItem[] => {
 		return tree.map((item: ITreeMenu) => {
 			const {
 				icon,
 				label,
 				route,
 				key,
-				name,
 				children,
 				parentName,
 				meta,
@@ -95,15 +100,12 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 			} = item;
 
 			if (children.length > 0) {
-				return (
-					<Menu.SubMenu
-						key={item.key}
-						icon={icon ?? <UnorderedListOutlined />}
-						title={label}
-					>
-						{renderTreeView(children, selectedKey)}
-					</Menu.SubMenu>
-				);
+				return {
+					key: item.key as string,
+					icon: icon ?? <UnorderedListOutlined />,
+					label,
+					children: buildMenuItems(children, selectedKey),
+				};
 			}
 			const isSelected = key === selectedKey;
 			const isRoute = !(
@@ -116,20 +118,21 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 					? { pointerEvents: 'none' }
 					: {};
 
-			return (
-				<Menu.Item
-					key={item.key}
-					icon={icon ?? (isRoute && <UnorderedListOutlined />)}
-					style={linkStyle}
-				>
-					<Link to={route ?? ''} style={linkStyle}>
-						{label}
-					</Link>
-					{!siderCollapsed && isSelected && (
-						<div className="ant-menu-tree-arrow" />
-					)}
-				</Menu.Item>
-			);
+			return {
+				key: item.key as string,
+				icon: icon ?? (isRoute ? <UnorderedListOutlined /> : undefined),
+				style: linkStyle,
+				label: (
+					<>
+						<Link to={route ?? ''} style={linkStyle}>
+							{label}
+						</Link>
+						{!siderCollapsed && isSelected && (
+							<div className="ant-menu-tree-arrow" />
+						)}
+					</>
+				),
+			};
 		});
 	};
 
@@ -151,44 +154,39 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 		}
 	};
 
-	const logout = isExistAuthentication && (
-		<Menu.Item
-			key="logout"
-			onClick={() => handleLogout()}
-			icon={<LogoutOutlined />}
-		>
-			{translate('buttons.logout', 'Logout')}
-		</Menu.Item>
-	);
+	const logoutItem: MenuItem | null = isExistAuthentication
+		? {
+				key: 'logout',
+				icon: <LogoutOutlined />,
+				label: translate('buttons.logout', 'Logout'),
+				onClick: () => handleLogout(),
+			}
+		: null;
 
-	const dashboard = hasDashboard ? (
-		<Menu.Item key="dashboard" icon={<DashboardOutlined />}>
-			<Link to="/">{translate('dashboard.title', 'Dashboard')}</Link>
-			{!siderCollapsed && selectedKey === '/' && (
-				<div className="ant-menu-tree-arrow" />
-			)}
-		</Menu.Item>
-	) : null;
+	const dashboardItem: MenuItem | null = hasDashboard
+		? {
+				key: 'dashboard',
+				icon: <DashboardOutlined />,
+				label: (
+					<>
+						<Link to="/">
+							{translate('dashboard.title', 'Dashboard')}
+						</Link>
+						{!siderCollapsed && selectedKey === '/' && (
+							<div className="ant-menu-tree-arrow" />
+						)}
+					</>
+				),
+			}
+		: null;
 
-	const items = renderTreeView(menuItems, selectedKey);
+	const treeItems = buildMenuItems(menuItems, selectedKey);
 
-	const renderSider = () => {
-		if (render) {
-			return render({
-				dashboard,
-				items,
-				logout,
-				collapsed: siderCollapsed,
-			});
-		}
-		return (
-			<>
-				{dashboard}
-				{items}
-				{logout}
-			</>
-		);
-	};
+	const menuItemsAll: MenuItem[] = [
+		...(dashboardItem ? [dashboardItem] : []),
+		...treeItems,
+		...(logoutItem ? [logoutItem] : []),
+	];
 
 	const renderMenu = () => {
 		return (
@@ -202,12 +200,11 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 					overflow: 'auto',
 					height: 'calc(100% - 72px)',
 				}}
+				items={menuItemsAll}
 				onClick={() => {
 					setMobileSiderOpen(false);
 				}}
-			>
-				{renderSider()}
-			</Menu>
+			/>
 		);
 	};
 

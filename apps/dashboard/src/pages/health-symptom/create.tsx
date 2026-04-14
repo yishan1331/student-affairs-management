@@ -24,6 +24,7 @@ export const HealthSymptomCreate = () => {
 		id,
 		action: "create",
 		redirect: false,
+		defaultFormValues: { frequency: 1, is_recurring: false },
 		onMutationSuccess: () => {
 			dataProcessingSuccess(action, resource?.meta?.label);
 			go({

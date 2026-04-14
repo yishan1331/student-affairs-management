@@ -2,7 +2,7 @@ import {
 	Controller,
 	Get,
 	Post,
-	Put,
+	Patch,
 	Delete,
 	Body,
 	Param,
@@ -110,7 +110,7 @@ export class GradeSheetController {
 		return this.gradeSheetService.findOne(+id, user.id, isAdmin);
 	}
 
-	@Put(':id')
+	@Patch(':id')
 	update(
 		@Param('id') id: string,
 		@Body() updateGradeSheetDto: UpdateGradeSheetDto,

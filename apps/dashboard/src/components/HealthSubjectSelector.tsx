@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Select, Tabs } from "antd";
-import apiClient from "../services/api/apiClient";
-import { PET_TYPE_MAP } from "../common/constants";
+import { useList } from "@refinedev/core";
+import { PET_TYPE_MAP, ROUTE_RESOURCE } from "../common/constants";
 import { PetType } from "../common/types/models";
 
 interface Pet {
@@ -17,51 +17,19 @@ interface HealthSubjectSelectorProps {
 	formMode?: boolean;
 }
 
-// 共用 pets 快取，避免重複請求
-let petsCache: Pet[] | null = null;
-let petsCachePromise: Promise<Pet[]> | null = null;
-
-const fetchPetsOnce = async (): Promise<Pet[]> => {
-	if (petsCache !== null) return petsCache;
-	if (petsCachePromise) return petsCachePromise;
-	petsCachePromise = apiClient
-		.get("/v1/pet/my-pets")
-		.then((res) => {
-			const data = res.data?.data || res.data || [];
-			petsCache = data;
-			return data;
-		})
-		.catch(() => {
-			petsCache = [];
-			return [];
-
-		})
-		.finally(() => {
-			petsCachePromise = null;
-		});
-	return petsCachePromise;
-};
-
 export const HealthSubjectSelector: React.FC<HealthSubjectSelectorProps> = ({
 	value,
 	onChange,
 	formMode = false,
 }) => {
-	const [pets, setPets] = useState<Pet[]>(petsCache ?? []);
-	const [loading, setLoading] = useState(petsCache === null);
+	const { data, isLoading } = useList<Pet>({
+		resource: ROUTE_RESOURCE.pet,
+		filters: [{ field: "is_active", operator: "eq", value: true }],
+		sorters: [{ field: "name", order: "asc" }],
+		pagination: { pageSize: 100, mode: "server" },
+	});
 
-	useEffect(() => {
-		if (petsCache !== null) {
-			setPets(petsCache);
-			setLoading(false);
-			return;
-		}
-		setLoading(true);
-		fetchPetsOnce().then((data) => {
-			setPets(data);
-			setLoading(false);
-		});
-	}, []);
+	const pets = data?.data ?? [];
 
 	const petItems = pets.map((pet) => {
 		const typeInfo = PET_TYPE_MAP[pet.type as PetType];
@@ -80,13 +48,13 @@ export const HealthSubjectSelector: React.FC<HealthSubjectSelectorProps> = ({
 					onChange?.(val === -1 ? undefined : val);
 				}}
 				options={options}
-				loading={loading}
+				loading={isLoading}
 			/>
 		);
 	}
 
 	// 列表/趨勢模式：沒有寵物就不顯示
-	if (!loading && pets.length === 0) {
+	if (!isLoading && pets.length === 0) {
 		return null;
 	}
 

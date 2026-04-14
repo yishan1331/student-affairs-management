@@ -32,16 +32,15 @@ export const CustomBreadcrumb: React.FC<CustomBreadcrumbProps> = ({
 	const allItems = [...defaultItems, ...items];
 
 	return (
-		<Breadcrumb>
-			{allItems.map((item, index) => (
-				<Breadcrumb.Item key={index}>
-					{item.path ? (
-						<Link to={item.path}>{item.title}</Link>
-					) : (
-						item.title
-					)}
-				</Breadcrumb.Item>
-			))}
-		</Breadcrumb>
+		<Breadcrumb
+			items={allItems.map((item, index) => ({
+				key: index,
+				title: item.path ? (
+					<Link to={item.path}>{item.title}</Link>
+				) : (
+					item.title
+				),
+			}))}
+		/>
 	);
 };
