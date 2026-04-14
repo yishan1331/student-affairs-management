@@ -107,7 +107,7 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 				</CreateButton>,
 			]}
 		>
-			<HealthSubjectSelector value={petId} onChange={setPetId} />
+			<HealthSubjectSelector value={petId} onChange={(v) => { setPetId(v); setCurrent(1); }} />
 			{isMobile ? (
 				<MobileCardList<IHealthWeight>
 					dataSource={records}

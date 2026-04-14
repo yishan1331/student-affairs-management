@@ -335,6 +335,7 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 			});
 		}
 		setFilters(filters, "replace");
+		setCurrent(1);
 	};
 
 	const handleMonthChange = (value: Dayjs | null) => {
