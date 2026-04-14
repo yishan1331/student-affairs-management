@@ -126,6 +126,9 @@ model User {
   // Pet 共享關聯 (PetUser junction table)
   petUsers             PetUser[]
 
+  // 個人存取權杖（Shortcuts / 腳本用）
+  apiTokens            ApiToken[]
+
   auditLogs            AuditLog[]
 }
 
@@ -398,6 +401,22 @@ model HealthSymptom {
   updated_at        DateTime    @updatedAt
 
   @@index([user_id, pet_id, date])
+}
+
+model ApiToken {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name          String
+  token_hash    String    @unique
+  last_used_at  DateTime?
+  expires_at    DateTime?
+  revoked_at    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([token_hash])
 }
 
 model AuditLog {

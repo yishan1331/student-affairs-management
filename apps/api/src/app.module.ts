@@ -32,6 +32,8 @@ import { HealthToiletModule } from './core/health-toilet/health-toilet.module';
 import { HealthSymptomModule } from './core/health-symptom/health-symptom.module';
 import { PetModule } from './core/pet/pet.module';
 import { BotModule } from './core/bot/bot.module';
+import { ApiTokenModule } from './core/api-token/api-token.module';
+import { IngestModule } from './core/ingest/ingest.module';
 import { AuthorizationModule } from './common/modules/authorization/authorization.module';
 
 import { casbinModel } from '../casbin/model.conf';
@@ -73,6 +75,8 @@ const adapter = new StringAdapter(casbinPolicy);
 		HealthToiletModule,
 		HealthSymptomModule,
 		PetModule,
+		ApiTokenModule,
+		IngestModule,
 		BotModule.register(),
 	],
 	controllers: [],

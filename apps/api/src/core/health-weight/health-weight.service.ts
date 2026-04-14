@@ -17,6 +17,48 @@ export class HealthWeightService {
 		};
 	}
 
+	async upsertByDate(
+		userId: number,
+		data: { date: Date; weight: number; height?: number; bmi?: number; note?: string },
+	) {
+		const dayStart = new Date(data.date);
+		dayStart.setUTCHours(0, 0, 0, 0);
+		const dayEnd = new Date(dayStart);
+		dayEnd.setUTCHours(23, 59, 59, 999);
+
+		const existing = await this.prisma.healthWeight.findFirst({
+			where: {
+				user_id: userId,
+				pet_id: null,
+				date: { gte: dayStart, lte: dayEnd },
+			},
+		});
+
+		if (existing) {
+			return this.prisma.healthWeight.update({
+				where: { id: existing.id },
+				data: {
+					weight: data.weight,
+					...(data.height !== undefined ? { height: data.height } : {}),
+					...(data.bmi !== undefined ? { bmi: data.bmi } : {}),
+					...(data.note !== undefined ? { note: data.note } : {}),
+					modifier_id: userId,
+				},
+			});
+		}
+
+		return this.prisma.healthWeight.create({
+			data: {
+				user_id: userId,
+				date: data.date,
+				weight: data.weight,
+				height: data.height,
+				bmi: data.bmi,
+				note: data.note,
+			},
+		});
+	}
+
 	async create(userId: number, dto: CreateHealthWeightDto) {
 		if (dto.pet_id) {
 			const petUser = await this.prisma.petUser.findUnique({

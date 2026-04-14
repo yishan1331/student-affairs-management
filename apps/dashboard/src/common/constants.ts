@@ -79,6 +79,7 @@ export const ROUTE_RESOURCE = {
 	healthSymptom: "v1/health-symptom",
 	healthTrend: "v1/health-weight",
 	pet: "v1/pet",
+	apiToken: "v1/api-token",
 };
 export const ROUTE_PATH = {
 	schedule: "schedule",
@@ -96,4 +97,5 @@ export const ROUTE_PATH = {
 	healthSymptom: "health-symptom",
 	healthTrend: "health-trend",
 	pet: "pet",
+	apiToken: "api-token",
 };

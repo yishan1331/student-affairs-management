@@ -91,6 +91,10 @@ p, role:user, /api/v1/pet/:id, delete
 p, role:user, /api/v1/pet/:id/members, create
 p, role:user, /api/v1/pet/:id/members, delete
 p, role:user, /api/v1/pet/:id/members/:userId, delete
+p, role:user, /api/v1/api-token, read
+p, role:user, /api/v1/api-token, create
+p, role:user, /api/v1/api-token/:id, delete
+p, role:user, /api/v1/ingest/weight, create
 
 p, role:admin, /api/v1/user, *
 p, role:admin, /api/v1/user/:id, *
@@ -147,6 +151,9 @@ p, role:admin, /api/v1/pet/:id/members, *
 p, role:admin, /api/v1/pet/:id/members/:userId, *
 p, role:admin, /api/v1/pet/my-pets, *
 p, role:admin, /api/v1/pet/export, *
+p, role:admin, /api/v1/api-token, *
+p, role:admin, /api/v1/api-token/:id, *
+p, role:admin, /api/v1/ingest/weight, *
 
 g, role:admin, role:user
 g, role:user, role:guest`;

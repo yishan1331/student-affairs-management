@@ -32,6 +32,7 @@ import {
 	DashboardOutlined,
 	CoffeeOutlined,
 	MedicineBoxOutlined,
+	KeyOutlined,
 } from "@ant-design/icons";
 import Icon from "@ant-design/icons";
 
@@ -144,6 +145,7 @@ import {
 } from "./pages/health-symptom";
 import { HealthTrendList } from "./pages/health-trend";
 import { PetList, PetCreate, PetEdit, PetShow } from "./pages/pet";
+import { ApiTokenList } from "./pages/api-token";
 import { DashboardPage } from "./pages/dashboard";
 import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
@@ -413,6 +415,15 @@ const AppContent = () => {
 						parent: "system",
 					},
 				},
+				{
+					name: "api-token",
+					list: "/api-token",
+					meta: {
+						label: "存取權杖",
+						icon: <KeyOutlined />,
+						parent: "system",
+					},
+				},
 			]}
 		>
 			<Routes>
@@ -551,6 +562,10 @@ const AppContent = () => {
 
 					<Route path="/health-trend">
 						<Route index element={<HealthTrendList />} />
+					</Route>
+
+					<Route path="/api-token">
+						<Route index element={<ApiTokenList />} />
 					</Route>
 				</Route>
 
