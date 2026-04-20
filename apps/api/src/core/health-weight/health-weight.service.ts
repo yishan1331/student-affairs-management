@@ -76,8 +76,8 @@ export class HealthWeightService {
 		});
 	}
 
-	async findAll(query: Prisma.HealthWeightFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, ...this.userAccessWhere(userId) };
+	async findAll(query: Prisma.HealthWeightFindManyArgs, userId: number) {
+		const where = { ...query.where, ...this.userAccessWhere(userId) };
 		return this.prisma.healthWeight.findMany({
 			...query,
 			where,
@@ -88,12 +88,13 @@ export class HealthWeightService {
 		});
 	}
 
-	async count(where: Prisma.HealthWeightWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, ...this.userAccessWhere(userId) };
-		return this.prisma.healthWeight.count({ where: finalWhere });
+	async count(where: Prisma.HealthWeightWhereInput, userId: number) {
+		return this.prisma.healthWeight.count({
+			where: { ...where, ...this.userAccessWhere(userId) },
+		});
 	}
 
-	async findOne(id: number, userId: number, isAdmin: boolean) {
+	async findOne(id: number, userId: number) {
 		const record = await this.prisma.healthWeight.findUnique({
 			where: { id },
 			include: {
@@ -104,8 +105,7 @@ export class HealthWeightService {
 		if (!record) {
 			throw new NotFoundException('找不到此資料');
 		}
-		if (!isAdmin && record.user_id !== userId) {
-			// 檢查是否為共享寵物的成員
+		if (record.user_id !== userId) {
 			if (record.pet_id) {
 				const petUser = await this.prisma.petUser.findUnique({
 					where: { pet_id_user_id: { pet_id: record.pet_id, user_id: userId } },
@@ -120,10 +120,8 @@ export class HealthWeightService {
 		return record;
 	}
 
-	async update(id: number, dto: UpdateHealthWeightDto, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			await this.findOne(id, userId, false);
-		}
+	async update(id: number, dto: UpdateHealthWeightDto, userId: number) {
+		await this.findOne(id, userId);
 		try {
 			return await this.prisma.healthWeight.update({ where: { id }, data: dto });
 		} catch (error) {
@@ -134,10 +132,8 @@ export class HealthWeightService {
 		}
 	}
 
-	async remove(id: number, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			await this.findOne(id, userId, false);
-		}
+	async remove(id: number, userId: number) {
+		await this.findOne(id, userId);
 		try {
 			return await this.prisma.healthWeight.delete({ where: { id } });
 		} catch (error) {
@@ -148,9 +144,9 @@ export class HealthWeightService {
 		}
 	}
 
-	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
+	async exportData(userId: number, petId?: number | null) {
 		const where: Prisma.HealthWeightWhereInput = {
-			...(isAdmin ? {} : this.userAccessWhere(userId)),
+			...this.userAccessWhere(userId),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 		return this.prisma.healthWeight.findMany({
@@ -163,7 +159,7 @@ export class HealthWeightService {
 		});
 	}
 
-	async getTrend(userId: number, isAdmin: boolean, period: string, date: string, petId?: number | null) {
+	async getTrend(userId: number, period: string, date: string, petId?: number | null) {
 		// 解析日期字串，避免時區問題（支援 YYYY-MM-DD 及 ISO 格式）
 		const dateOnly = date.includes('T') ? date.slice(0, 10) : date;
 		const parts = dateOnly.split('-');
@@ -195,7 +191,7 @@ export class HealthWeightService {
 		const endDate = new Date(`${endStr}T23:59:59.999Z`);
 
 		const where = {
-			...(isAdmin ? {} : this.userAccessWhere(userId)),
+			...this.userAccessWhere(userId),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 			date: { gte: startDate, lte: endDate },
 		};
@@ -278,9 +274,9 @@ export class HealthWeightService {
 		return dates;
 	}
 
-	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
+	async getStatistics(userId: number, petId?: number | null) {
 		const where: Prisma.HealthWeightWhereInput = {
-			...(isAdmin ? {} : this.userAccessWhere(userId)),
+			...this.userAccessWhere(userId),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 

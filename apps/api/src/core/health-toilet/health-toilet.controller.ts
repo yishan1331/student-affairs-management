@@ -56,13 +56,12 @@ export class HealthToiletController {
 		@Res({ passthrough: true }) res: Response,
 	) {
 		const user = req.user as any;
-		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.HealthToiletFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.healthToiletService.findAll(prismaQuery, user.id, isAdmin),
-			this.healthToiletService.count(where, user.id, isAdmin),
+			this.healthToiletService.findAll(prismaQuery, user.id),
+			this.healthToiletService.count(where, user.id),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
@@ -72,7 +71,7 @@ export class HealthToiletController {
 	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthToiletService.getStatistics(user.id, user.role === 'admin', petId);
+		return this.healthToiletService.getStatistics(user.id, petId);
 	}
 
 	@Get('trend')
@@ -81,18 +80,14 @@ export class HealthToiletController {
 		const period = query.period || 'week';
 		const date = query.date || new Date().toISOString();
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthToiletService.getTrend(user.id, user.role === 'admin', period, date, petId);
+		return this.healthToiletService.getTrend(user.id, period, date, petId);
 	}
 
 	@Get('export')
 	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		const records = await this.healthToiletService.exportData(
-			user.id,
-			user.role === 'admin',
-			petId,
-		);
+		const records = await this.healthToiletService.exportData(user.id, petId);
 
 		const workbook = new ExcelJS.Workbook();
 		const worksheet = workbook.addWorksheet('如廁紀錄');
@@ -135,7 +130,7 @@ export class HealthToiletController {
 	@Get(':id')
 	findOne(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthToiletService.findOne(+id, user.id, user.role === 'admin');
+		return this.healthToiletService.findOne(+id, user.id);
 	}
 
 	@Patch(':id')
@@ -145,12 +140,12 @@ export class HealthToiletController {
 		@Body() dto: UpdateHealthToiletDto,
 	) {
 		const user = req.user as any;
-		return this.healthToiletService.update(+id, dto, user.id, user.role === 'admin');
+		return this.healthToiletService.update(+id, dto, user.id);
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthToiletService.remove(+id, user.id, user.role === 'admin');
+		return this.healthToiletService.remove(+id, user.id);
 	}
 }

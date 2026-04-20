@@ -169,7 +169,7 @@ export class BotCommandRouterService {
 			const target = await this.resolveTarget(ctx.userId!, parsed.args);
 			if (target.error) return { text: `❌ ${target.error}` };
 			const label = target.isMe ? '自己' : target.pet?.petName;
-			const stats = await this.healthWeightService.getStatistics(ctx.userId!, false, target.pet?.petId ?? undefined);
+			const stats = await this.healthWeightService.getStatistics(ctx.userId!, target.pet?.petId ?? undefined);
 			return { text: this.formatter.formatWeightStats(stats, label) };
 		}
 
@@ -209,7 +209,6 @@ export class BotCommandRouterService {
 			const records = await this.healthDietService.findAll(
 				{ where: { date: { gte: today, lt: tomorrow }, pet_id: target.pet?.petId ?? undefined } },
 				ctx.userId!,
-				false,
 			);
 			const label = target.isMe ? '自己' : target.pet?.petName;
 			return { text: this.formatter.formatDietToday(records, label) };
@@ -286,7 +285,7 @@ export class BotCommandRouterService {
 			const target = await this.resolveTarget(ctx.userId!, parsed.args);
 			if (target.error) return { text: `❌ ${target.error}` };
 			const label = target.isMe ? '自己' : target.pet?.petName;
-			const stats = await this.healthSymptomService.getStatistics(ctx.userId!, false, target.pet?.petId ?? undefined);
+			const stats = await this.healthSymptomService.getStatistics(ctx.userId!, target.pet?.petId ?? undefined);
 			return { text: this.formatter.formatSymptomStats(stats, label) };
 		}
 

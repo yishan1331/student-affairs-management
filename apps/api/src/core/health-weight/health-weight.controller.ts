@@ -51,13 +51,12 @@ export class HealthWeightController {
 		@Res({ passthrough: true }) res: Response,
 	) {
 		const user = req.user as any;
-		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.HealthWeightFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.healthWeightService.findAll(prismaQuery, user.id, isAdmin),
-			this.healthWeightService.count(where, user.id, isAdmin),
+			this.healthWeightService.findAll(prismaQuery, user.id),
+			this.healthWeightService.count(where, user.id),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
@@ -67,7 +66,7 @@ export class HealthWeightController {
 	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthWeightService.getStatistics(user.id, user.role === 'admin', petId);
+		return this.healthWeightService.getStatistics(user.id, petId);
 	}
 
 	@Get('trend')
@@ -76,18 +75,14 @@ export class HealthWeightController {
 		const period = query.period || 'week';
 		const date = query.date || new Date().toISOString();
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthWeightService.getTrend(user.id, user.role === 'admin', period, date, petId);
+		return this.healthWeightService.getTrend(user.id, period, date, petId);
 	}
 
 	@Get('export')
 	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		const records = await this.healthWeightService.exportData(
-			user.id,
-			user.role === 'admin',
-			petId,
-		);
+		const records = await this.healthWeightService.exportData(user.id, petId);
 
 		const workbook = new ExcelJS.Workbook();
 		const worksheet = workbook.addWorksheet('體重紀錄');
@@ -130,7 +125,7 @@ export class HealthWeightController {
 	@Get(':id')
 	findOne(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthWeightService.findOne(+id, user.id, user.role === 'admin');
+		return this.healthWeightService.findOne(+id, user.id);
 	}
 
 	@Patch(':id')
@@ -140,12 +135,12 @@ export class HealthWeightController {
 		@Body() dto: UpdateHealthWeightDto,
 	) {
 		const user = req.user as any;
-		return this.healthWeightService.update(+id, dto, user.id, user.role === 'admin');
+		return this.healthWeightService.update(+id, dto, user.id);
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthWeightService.remove(+id, user.id, user.role === 'admin');
+		return this.healthWeightService.remove(+id, user.id);
 	}
 }

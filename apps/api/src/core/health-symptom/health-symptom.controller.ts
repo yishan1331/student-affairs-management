@@ -74,13 +74,12 @@ export class HealthSymptomController {
 		@Res({ passthrough: true }) res: Response,
 	) {
 		const user = req.user as any;
-		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.HealthSymptomFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.healthSymptomService.findAll(prismaQuery, user.id, isAdmin),
-			this.healthSymptomService.count(where, user.id, isAdmin),
+			this.healthSymptomService.findAll(prismaQuery, user.id),
+			this.healthSymptomService.count(where, user.id),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
@@ -90,7 +89,7 @@ export class HealthSymptomController {
 	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthSymptomService.getStatistics(user.id, user.role === 'admin', petId);
+		return this.healthSymptomService.getStatistics(user.id, petId);
 	}
 
 	@Get('trend')
@@ -99,18 +98,14 @@ export class HealthSymptomController {
 		const period = query.period || 'week';
 		const date = query.date || new Date().toISOString();
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthSymptomService.getTrend(user.id, user.role === 'admin', period, date, petId);
+		return this.healthSymptomService.getTrend(user.id, period, date, petId);
 	}
 
 	@Get('export')
 	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		const records = await this.healthSymptomService.exportData(
-			user.id,
-			user.role === 'admin',
-			petId,
-		);
+		const records = await this.healthSymptomService.exportData(user.id, petId);
 
 		const workbook = new ExcelJS.Workbook();
 		const worksheet = workbook.addWorksheet('症狀紀錄');
@@ -163,7 +158,7 @@ export class HealthSymptomController {
 	@Get(':id')
 	findOne(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthSymptomService.findOne(+id, user.id, user.role === 'admin');
+		return this.healthSymptomService.findOne(+id, user.id);
 	}
 
 	@Patch(':id')
@@ -173,12 +168,12 @@ export class HealthSymptomController {
 		@Body() dto: UpdateHealthSymptomDto,
 	) {
 		const user = req.user as any;
-		return this.healthSymptomService.update(+id, dto, user.id, user.role === 'admin');
+		return this.healthSymptomService.update(+id, dto, user.id);
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthSymptomService.remove(+id, user.id, user.role === 'admin');
+		return this.healthSymptomService.remove(+id, user.id);
 	}
 }

@@ -58,13 +58,12 @@ export class HealthDietController {
 		@Res({ passthrough: true }) res: Response,
 	) {
 		const user = req.user as any;
-		const isAdmin = user.role === 'admin';
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.HealthDietFindManyArgs>(query);
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
-			this.healthDietService.findAll(prismaQuery, user.id, isAdmin),
-			this.healthDietService.count(where, user.id, isAdmin),
+			this.healthDietService.findAll(prismaQuery, user.id),
+			this.healthDietService.count(where, user.id),
 		]);
 		res.setHeader('x-total-count', total);
 		return data;
@@ -74,18 +73,14 @@ export class HealthDietController {
 	getStatistics(@Query() query: any, @Req() req: Request) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		return this.healthDietService.getStatistics(user.id, user.role === 'admin', petId);
+		return this.healthDietService.getStatistics(user.id, petId);
 	}
 
 	@Get('export')
 	async exportData(@Query() query: any, @Req() req: Request, @Res() res: Response) {
 		const user = req.user as any;
 		const petId = query.pet_id === 'null' ? null : query.pet_id ? +query.pet_id : undefined;
-		const records = await this.healthDietService.exportData(
-			user.id,
-			user.role === 'admin',
-			petId,
-		);
+		const records = await this.healthDietService.exportData(user.id, petId);
 
 		const workbook = new ExcelJS.Workbook();
 		const worksheet = workbook.addWorksheet('飲食紀錄');
@@ -130,7 +125,7 @@ export class HealthDietController {
 	@Get(':id')
 	findOne(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthDietService.findOne(+id, user.id, user.role === 'admin');
+		return this.healthDietService.findOne(+id, user.id);
 	}
 
 	@Patch(':id')
@@ -140,12 +135,12 @@ export class HealthDietController {
 		@Body() dto: UpdateHealthDietDto,
 	) {
 		const user = req.user as any;
-		return this.healthDietService.update(+id, dto, user.id, user.role === 'admin');
+		return this.healthDietService.update(+id, dto, user.id);
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string, @Req() req: Request) {
 		const user = req.user as any;
-		return this.healthDietService.remove(+id, user.id, user.role === 'admin');
+		return this.healthDietService.remove(+id, user.id);
 	}
 }

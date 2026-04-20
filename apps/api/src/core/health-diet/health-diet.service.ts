@@ -34,8 +34,8 @@ export class HealthDietService {
 		});
 	}
 
-	async findAll(query: Prisma.HealthDietFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, ...this.userAccessWhere(userId) };
+	async findAll(query: Prisma.HealthDietFindManyArgs, userId: number) {
+		const where = { ...query.where, ...this.userAccessWhere(userId) };
 		return this.prisma.healthDiet.findMany({
 			...query,
 			where,
@@ -46,12 +46,13 @@ export class HealthDietService {
 		});
 	}
 
-	async count(where: Prisma.HealthDietWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, ...this.userAccessWhere(userId) };
-		return this.prisma.healthDiet.count({ where: finalWhere });
+	async count(where: Prisma.HealthDietWhereInput, userId: number) {
+		return this.prisma.healthDiet.count({
+			where: { ...where, ...this.userAccessWhere(userId) },
+		});
 	}
 
-	async findOne(id: number, userId: number, isAdmin: boolean) {
+	async findOne(id: number, userId: number) {
 		const record = await this.prisma.healthDiet.findUnique({
 			where: { id },
 			include: {
@@ -62,7 +63,7 @@ export class HealthDietService {
 		if (!record) {
 			throw new NotFoundException('找不到此資料');
 		}
-		if (!isAdmin && record.user_id !== userId) {
+		if (record.user_id !== userId) {
 			if (record.pet_id) {
 				const petUser = await this.prisma.petUser.findUnique({
 					where: { pet_id_user_id: { pet_id: record.pet_id, user_id: userId } },
@@ -77,10 +78,8 @@ export class HealthDietService {
 		return record;
 	}
 
-	async update(id: number, dto: UpdateHealthDietDto, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			await this.findOne(id, userId, false);
-		}
+	async update(id: number, dto: UpdateHealthDietDto, userId: number) {
+		await this.findOne(id, userId);
 		try {
 			return await this.prisma.healthDiet.update({ where: { id }, data: dto });
 		} catch (error) {
@@ -91,10 +90,8 @@ export class HealthDietService {
 		}
 	}
 
-	async remove(id: number, userId: number, isAdmin: boolean) {
-		if (!isAdmin) {
-			await this.findOne(id, userId, false);
-		}
+	async remove(id: number, userId: number) {
+		await this.findOne(id, userId);
 		try {
 			return await this.prisma.healthDiet.delete({ where: { id } });
 		} catch (error) {
@@ -105,9 +102,9 @@ export class HealthDietService {
 		}
 	}
 
-	async exportData(userId: number, isAdmin: boolean, petId?: number | null) {
+	async exportData(userId: number, petId?: number | null) {
 		const where: Prisma.HealthDietWhereInput = {
-			...(isAdmin ? {} : this.userAccessWhere(userId)),
+			...this.userAccessWhere(userId),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 		return this.prisma.healthDiet.findMany({
@@ -120,9 +117,9 @@ export class HealthDietService {
 		});
 	}
 
-	async getStatistics(userId: number, isAdmin: boolean, petId?: number | null) {
+	async getStatistics(userId: number, petId?: number | null) {
 		const where: Prisma.HealthDietWhereInput = {
-			...(isAdmin ? {} : this.userAccessWhere(userId)),
+			...this.userAccessWhere(userId),
 			...(petId !== undefined ? { pet_id: petId } : {}),
 		};
 
