@@ -121,8 +121,8 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 					rowKey="id"
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.healthToilet, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.healthToilet, record.id)}
+					onShow={(record) => show(ROUTE_PATH.healthToilet, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.healthToilet, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.healthToilet,
@@ -198,14 +198,14 @@ export const HealthToiletList = ({ children }: PropsWithChildren) => {
 											icon: <EyeOutlined />,
 											label: "查看",
 											onClick: () =>
-												show(ROUTE_RESOURCE.healthToilet, record.id),
+												show(ROUTE_PATH.healthToilet, record.id),
 										},
 										{
 											key: "edit",
 											icon: <EditOutlined />,
 											label: "編輯",
 											onClick: () =>
-												edit(ROUTE_RESOURCE.healthToilet, record.id),
+												edit(ROUTE_PATH.healthToilet, record.id),
 										},
 										{ type: "divider" },
 										{

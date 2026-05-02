@@ -150,8 +150,8 @@ export const SchoolList = ({ children }: PropsWithChildren) => {
 					fields={mobileFields}
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.school, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.school, record.id)}
+					onShow={(record) => show(ROUTE_PATH.school, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.school, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.school,
