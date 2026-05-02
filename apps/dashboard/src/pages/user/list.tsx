@@ -111,8 +111,8 @@ export const UserList = ({ children }: PropsWithChildren) => {
 					fields={mobileFields}
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.user, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.user, record.id)}
+					onShow={(record) => show(ROUTE_PATH.user, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.user, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.user,
@@ -194,13 +194,13 @@ export const UserList = ({ children }: PropsWithChildren) => {
 												key: "show",
 												icon: <EyeOutlined />,
 												label: "查看",
-												onClick: () => show(ROUTE_RESOURCE.user, record.id),
+												onClick: () => show(ROUTE_PATH.user, record.id),
 											},
 											{
 												key: "edit",
 												icon: <EditOutlined />,
 												label: "編輯",
-												onClick: () => edit(ROUTE_RESOURCE.user, record.id),
+												onClick: () => edit(ROUTE_PATH.user, record.id),
 											},
 											{ type: "divider" },
 											{

@@ -115,8 +115,8 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 					rowKey="id"
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.salaryBase, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.salaryBase, record.id)}
+					onShow={(record) => show(ROUTE_PATH.salaryBase, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.salaryBase, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.salaryBase,
@@ -231,14 +231,14 @@ export const SalaryBaseList = ({ children }: PropsWithChildren) => {
 											icon: <EyeOutlined />,
 											label: "查看",
 											onClick: () =>
-												show(ROUTE_RESOURCE.salaryBase, record.id),
+												show(ROUTE_PATH.salaryBase, record.id),
 										},
 										{
 											key: "edit",
 											icon: <EditOutlined />,
 											label: "編輯",
 											onClick: () =>
-												edit(ROUTE_RESOURCE.salaryBase, record.id),
+												edit(ROUTE_PATH.salaryBase, record.id),
 										},
 										{ type: "divider" },
 										{

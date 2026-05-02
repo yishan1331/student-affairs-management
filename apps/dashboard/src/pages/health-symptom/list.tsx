@@ -130,8 +130,8 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 					rowKey="id"
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.healthSymptom, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.healthSymptom, record.id)}
+					onShow={(record) => show(ROUTE_PATH.healthSymptom, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.healthSymptom, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.healthSymptom,
@@ -238,14 +238,14 @@ export const HealthSymptomList = ({ children }: PropsWithChildren) => {
 											icon: <EyeOutlined />,
 											label: "查看",
 											onClick: () =>
-												show(ROUTE_RESOURCE.healthSymptom, record.id),
+												show(ROUTE_PATH.healthSymptom, record.id),
 										},
 										{
 											key: "edit",
 											icon: <EditOutlined />,
 											label: "編輯",
 											onClick: () =>
-												edit(ROUTE_RESOURCE.healthSymptom, record.id),
+												edit(ROUTE_PATH.healthSymptom, record.id),
 										},
 										{ type: "divider" },
 										{

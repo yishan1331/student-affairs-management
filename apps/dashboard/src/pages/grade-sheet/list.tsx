@@ -94,8 +94,8 @@ export const GradeSheetList = ({ children }: PropsWithChildren) => {
 					fields={mobileFields}
 					loading={tableProps.loading as boolean}
 					pagination={mobilePagination}
-					onShow={(record) => show(ROUTE_RESOURCE.gradeSheet, record.id)}
-					onEdit={(record) => edit(ROUTE_RESOURCE.gradeSheet, record.id)}
+					onShow={(record) => show(ROUTE_PATH.gradeSheet, record.id)}
+					onEdit={(record) => edit(ROUTE_PATH.gradeSheet, record.id)}
 					onDelete={(record) => {
 						deleteRecord({
 							resource: ROUTE_RESOURCE.gradeSheet,
@@ -166,13 +166,13 @@ export const GradeSheetList = ({ children }: PropsWithChildren) => {
 												key: "show",
 												icon: <EyeOutlined />,
 												label: "查看",
-												onClick: () => show(ROUTE_RESOURCE.gradeSheet, record.id),
+												onClick: () => show(ROUTE_PATH.gradeSheet, record.id),
 											},
 											{
 												key: "edit",
 												icon: <EditOutlined />,
 												label: "編輯",
-												onClick: () => edit(ROUTE_RESOURCE.gradeSheet, record.id),
+												onClick: () => edit(ROUTE_PATH.gradeSheet, record.id),
 											},
 											{ type: "divider" },
 											{
