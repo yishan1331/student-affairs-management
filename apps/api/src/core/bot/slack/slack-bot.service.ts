@@ -112,8 +112,18 @@ export class SlackBotService implements OnModuleInit, OnModuleDestroy {
 			});
 		}
 
-		await this.app.start();
-		this.logger.log('Slack Bot 已啟動 (Socket Mode)');
+		// Slack 連線失敗（例如 token 失效 / account_inactive）不應讓整個 API 崩潰，
+		// 僅停用 Bot 並記錄錯誤，HTTP 服務照常運作。
+		try {
+			await this.app.start();
+			this.logger.log('Slack Bot 已啟動 (Socket Mode)');
+		} catch (error) {
+			this.app = undefined as any;
+			this.logger.error(
+				'Slack Bot 啟動失敗，已停用 Bot（API 服務不受影響）',
+				error instanceof Error ? error.message : error,
+			);
+		}
 	}
 
 	async onModuleDestroy() {
