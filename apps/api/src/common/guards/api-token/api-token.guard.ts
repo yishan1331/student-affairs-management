@@ -40,6 +40,7 @@ export class ApiTokenGuard implements CanActivate {
 						account: true,
 						role: true,
 						status: true,
+						deleted_at: true,
 					},
 				},
 			},
@@ -51,7 +52,7 @@ export class ApiTokenGuard implements CanActivate {
 		if (token.expires_at && token.expires_at < new Date()) {
 			throw new UnauthorizedException('存取權杖已過期');
 		}
-		if (!token.user || token.user.status !== 'active') {
+		if (!token.user || token.user.status !== 'active' || token.user.deleted_at) {
 			throw new UnauthorizedException('使用者不存在或已停用');
 		}
 

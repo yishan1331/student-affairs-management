@@ -15,13 +15,26 @@ export class AttendanceService {
 		});
 	}
 
+	// 排除所屬學生／課程／學校已被軟刪除的考勤紀錄（紀錄本身保留於資料庫）
+	private activeStudentFilter(): Prisma.StudentWhereInput {
+		return { deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } };
+	}
+
 	async findAll(query: Prisma.AttendanceFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where: Prisma.AttendanceWhereInput = {
+			...query.where,
+			student: { is: this.activeStudentFilter() },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.attendance.findMany({ ...query, where });
 	}
 
 	async count(where: Prisma.AttendanceWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.AttendanceWhereInput = {
+			...where,
+			student: { is: this.activeStudentFilter() },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.attendance.count({ where: finalWhere });
 	}
 
@@ -82,7 +95,9 @@ export class AttendanceService {
 
 	async exportAttendance(courseId: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.AttendanceWhereInput = {};
-		if (courseId) where.student = { course_id: courseId };
+		const studentFilter: Prisma.StudentWhereInput = this.activeStudentFilter();
+		if (courseId) studentFilter.course_id = courseId;
+		where.student = { is: studentFilter };
 		if (!isAdmin) where.user_id = userId;
 		return this.prisma.attendance.findMany({
 			where,
@@ -93,7 +108,9 @@ export class AttendanceService {
 
 	async getStatistics(course_id: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.AttendanceWhereInput = {};
-		if (course_id) where.student = { course_id };
+		const studentFilter: Prisma.StudentWhereInput = this.activeStudentFilter();
+		if (course_id) studentFilter.course_id = course_id;
+		where.student = { is: studentFilter };
 		if (!isAdmin) where.user_id = userId;
 
 		const attendances = await this.prisma.attendance.findMany({

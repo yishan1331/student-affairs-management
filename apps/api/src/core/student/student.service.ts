@@ -14,13 +14,29 @@ export class StudentService {
 		});
 	}
 
+	// 排除已軟刪除的學生，以及所屬課程／學校已被軟刪除者（祖先過濾）
+	private notDeletedFilter(): Prisma.StudentWhereInput {
+		return {
+			deleted_at: null,
+			course: { deleted_at: null, school: { deleted_at: null } },
+		};
+	}
+
 	async findAll(query: Prisma.StudentFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where: Prisma.StudentWhereInput = {
+			...query.where,
+			...this.notDeletedFilter(),
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.student.findMany({ ...query, where });
 	}
 
 	async count(where: Prisma.StudentWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.StudentWhereInput = {
+			...where,
+			...this.notDeletedFilter(),
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.student.count({ where: finalWhere });
 	}
 
@@ -33,7 +49,7 @@ export class StudentService {
 				gradesheets: true,
 			},
 		});
-		if (!record) throw new NotFoundException('找不到該學生');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該學生');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此學生');
 		}
@@ -42,7 +58,7 @@ export class StudentService {
 
 	async update(id: number, updateStudentDto: UpdateStudentDto, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.student.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該學生');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該學生');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限修改此學生');
 		}
@@ -52,19 +68,21 @@ export class StudentService {
 		});
 	}
 
+	// 軟刪除：標記 deleted_at，保留出席／成績歷史
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.student.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該學生');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該學生');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限刪除此學生');
 		}
-		return this.prisma.student.delete({
+		return this.prisma.student.update({
 			where: { id },
+			data: { deleted_at: new Date(), modifier_id: userId },
 		});
 	}
 
 	async exportStudents(courseId: number | undefined, userId: number, isAdmin: boolean) {
-		const where: Prisma.StudentWhereInput = {};
+		const where: Prisma.StudentWhereInput = { ...this.notDeletedFilter() };
 		if (courseId) where.course_id = courseId;
 		if (!isAdmin) where.user_id = userId;
 		return this.prisma.student.findMany({

@@ -20,22 +20,24 @@ export class DashboardService {
 			todayAttendanceCount,
 			todayTotalCount,
 		] = await Promise.all([
-			this.prisma.school.count({ where: userFilter }),
-			this.prisma.school.count({ where: { ...userFilter, is_active: true } }),
-			this.prisma.course.count({ where: userFilter }),
-			this.prisma.student.count({ where: userFilter }),
-			this.prisma.student.count({ where: { ...userFilter, is_active: true } }),
+			this.prisma.school.count({ where: { ...userFilter, deleted_at: null } }),
+			this.prisma.school.count({ where: { ...userFilter, is_active: true, deleted_at: null } }),
+			this.prisma.course.count({ where: { ...userFilter, deleted_at: null, school: { deleted_at: null } } }),
+			this.prisma.student.count({ where: { ...userFilter, deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } } }),
+			this.prisma.student.count({ where: { ...userFilter, is_active: true, deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } } }),
 			this.prisma.attendance.count({
 				where: {
 					...userFilter,
 					date: { gte: todayStart, lte: todayEnd },
 					status: 'attendance',
+					student: { is: { deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } } },
 				},
 			}),
 			this.prisma.attendance.count({
 				where: {
 					...userFilter,
 					date: { gte: todayStart, lte: todayEnd },
+					student: { is: { deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } } },
 				},
 			}),
 		]);

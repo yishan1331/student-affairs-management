@@ -31,11 +31,18 @@ export class SalaryBaseService {
 	}
 
 	async findAll(query: Prisma.SalaryBaseFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where: Prisma.SalaryBaseWhereInput = {
+			...query.where,
+			deleted_at: null,
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		const results = await this.prisma.salaryBase.findMany({
 			...query,
 			where,
-			include: { schools: true, courses: true },
+			include: {
+				schools: { where: { deleted_at: null } },
+				courses: { where: { deleted_at: null } },
+			},
 		});
 		return results.map((r) => ({
 			...r,
@@ -45,16 +52,24 @@ export class SalaryBaseService {
 	}
 
 	async count(where: Prisma.SalaryBaseWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.SalaryBaseWhereInput = {
+			...where,
+			deleted_at: null,
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.salaryBase.count({ where: finalWhere });
 	}
 
 	async findOne(id: number, userId: number, isAdmin: boolean) {
 		const result = await this.prisma.salaryBase.findUnique({
 			where: { id },
-			include: { schools: true, courses: true, courseSessions: { include: { course: true } } },
+			include: {
+				schools: { where: { deleted_at: null } },
+				courses: { where: { deleted_at: null } },
+				courseSessions: { where: { deleted_at: null }, include: { course: true } },
+			},
 		});
-		if (!result) throw new NotFoundException('找不到該薪資級距');
+		if (!result || result.deleted_at) throw new NotFoundException('找不到該薪資級距');
 		if (!isAdmin && result.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此薪資級距');
 		}
@@ -67,7 +82,7 @@ export class SalaryBaseService {
 
 	async update(id: number, dto: UpdateSalaryBaseDto, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.salaryBase.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該薪資級距');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該薪資級距');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限修改此薪資級距');
 		}
@@ -98,12 +113,17 @@ export class SalaryBaseService {
 		});
 	}
 
+	// 軟刪除：標記 deleted_at。歷史 CourseSession 已存的 salary_amount 不受影響，
+	// 仍保留 salary_base_id 參照（不再被列入可選級距）。
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.salaryBase.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該薪資級距');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該薪資級距');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限刪除此薪資級距');
 		}
-		return this.prisma.salaryBase.delete({ where: { id } });
+		return this.prisma.salaryBase.update({
+			where: { id },
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
 	}
 }
