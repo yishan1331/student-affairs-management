@@ -28,9 +28,11 @@ export class PetService {
 	}
 
 	async findAll(query: Prisma.PetFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin
-			? query.where
-			: { ...query.where, petUsers: { some: { user_id: userId } } };
+		const where: Prisma.PetWhereInput = {
+			...query.where,
+			deleted_at: null,
+			...(isAdmin ? {} : { petUsers: { some: { user_id: userId } } }),
+		};
 		return this.prisma.pet.findMany({
 			...query,
 			where,
@@ -44,9 +46,11 @@ export class PetService {
 	}
 
 	async count(where: Prisma.PetWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin
-			? where
-			: { ...where, petUsers: { some: { user_id: userId } } };
+		const finalWhere: Prisma.PetWhereInput = {
+			...where,
+			deleted_at: null,
+			...(isAdmin ? {} : { petUsers: { some: { user_id: userId } } }),
+		};
 		return this.prisma.pet.count({ where: finalWhere });
 	}
 
@@ -54,6 +58,7 @@ export class PetService {
 		return this.prisma.pet.findMany({
 			where: {
 				is_active: true,
+				deleted_at: null,
 				petUsers: { some: { user_id: userId } },
 			},
 			select: { id: true, name: true, type: true },
@@ -71,7 +76,7 @@ export class PetService {
 				},
 			},
 		});
-		if (!record) {
+		if (!record || record.deleted_at) {
 			throw new NotFoundException('找不到此寵物');
 		}
 		if (!isAdmin && !record.petUsers.some((pu) => pu.user_id === userId)) {
@@ -81,6 +86,10 @@ export class PetService {
 	}
 
 	async update(id: number, dto: UpdatePetDto, userId: number, isAdmin: boolean) {
+		const existing = await this.prisma.pet.findUnique({ where: { id } });
+		if (!existing || existing.deleted_at) {
+			throw new NotFoundException('找不到此寵物');
+		}
 		if (!isAdmin) {
 			const petUser = await this.prisma.petUser.findUnique({
 				where: { pet_id_user_id: { pet_id: id, user_id: userId } },
@@ -99,7 +108,12 @@ export class PetService {
 		}
 	}
 
+	// 軟刪除：標記 deleted_at，保留所有健康紀錄歷史
 	async remove(id: number, userId: number, isAdmin: boolean) {
+		const existing = await this.prisma.pet.findUnique({ where: { id } });
+		if (!existing || existing.deleted_at) {
+			throw new NotFoundException('找不到此寵物');
+		}
 		if (!isAdmin) {
 			const petUser = await this.prisma.petUser.findUnique({
 				where: { pet_id_user_id: { pet_id: id, user_id: userId } },
@@ -108,20 +122,17 @@ export class PetService {
 				throw new ForbiddenException('只有擁有者可以刪除寵物');
 			}
 		}
-		try {
-			return await this.prisma.pet.delete({ where: { id } });
-		} catch (error) {
-			if (error?.code === 'P2025') {
-				throw new NotFoundException('找不到此寵物');
-			}
-			throw error;
-		}
+		return this.prisma.pet.update({
+			where: { id },
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
 	}
 
 	async exportData(userId: number, isAdmin: boolean) {
-		const where = isAdmin
-			? {}
-			: { petUsers: { some: { user_id: userId } } };
+		const where: Prisma.PetWhereInput = {
+			deleted_at: null,
+			...(isAdmin ? {} : { petUsers: { some: { user_id: userId } } }),
+		};
 		return this.prisma.pet.findMany({
 			where,
 			include: {
@@ -162,8 +173,10 @@ export class PetService {
 			}
 		}
 
-		// 確認目標使用者存在
-		const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+		// 確認目標使用者存在（排除已軟刪除的帳號）
+		const targetUser = await this.prisma.user.findFirst({
+			where: { id: targetUserId, deleted_at: null },
+		});
 		if (!targetUser) {
 			throw new NotFoundException('找不到此使用者');
 		}

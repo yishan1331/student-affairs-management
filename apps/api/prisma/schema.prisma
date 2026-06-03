@@ -88,6 +88,7 @@ model User {
   telegram_id String?  @unique
   slack_id    String?  @unique
   status      Status?  @default(active)
+  deleted_at  DateTime? // 軟刪除：標記刪除時間，停用帳號並保留其關聯資料
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -130,6 +131,8 @@ model User {
   apiTokens            ApiToken[]
 
   auditLogs            AuditLog[]
+
+  @@index([deleted_at])
 }
 
 model School {
@@ -144,6 +147,7 @@ model School {
   user        User?    @relation("SchoolOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
   modifier    User?    @relation("SchoolModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at  DateTime? // 軟刪除：標記刪除時間，保留底下課程／學生／薪資歷史
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -152,6 +156,7 @@ model School {
   courseSessions CourseSession[]
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model Course {
@@ -169,6 +174,7 @@ model Course {
   user        User?    @relation("CourseOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
   modifier    User?    @relation("CourseModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at  DateTime? // 軟刪除：標記刪除時間，保留學生／上課紀錄／薪資歷史
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -177,6 +183,7 @@ model Course {
   salaryBases          SalaryBase[]
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model Student {
@@ -191,6 +198,7 @@ model Student {
   user        User?    @relation("StudentOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id Int?
   modifier    User?    @relation("StudentModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at  DateTime? // 軟刪除：標記刪除時間，保留出席／成績歷史
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -198,6 +206,7 @@ model Student {
   gradesheets GradeSheet[]
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model Attendance {
@@ -245,6 +254,7 @@ model SalaryBase {
   user         User?    @relation("SalaryBaseOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id  Int?
   modifier     User?    @relation("SalaryBaseModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at   DateTime? // 軟刪除：標記刪除時間，保留歷史薪資結算的級距參照
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 
@@ -253,6 +263,7 @@ model SalaryBase {
   courseSessions   CourseSession[]
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model CourseSession {
@@ -274,10 +285,12 @@ model CourseSession {
   user                 User?       @relation("CourseSessionOwner", fields: [user_id], references: [id], onDelete: SetNull)
   modifier_id          Int?
   modifier             User?       @relation("CourseSessionModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at           DateTime?   // 軟刪除：標記刪除時間，保留薪資/出席結算稽核紀錄
   created_at           DateTime    @default(now())
   updated_at           DateTime    @updatedAt
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model Pet {
@@ -295,6 +308,7 @@ model Pet {
   user        User      @relation("PetOwner", fields: [user_id], references: [id], onDelete: Cascade)
   modifier_id Int?
   modifier    User?     @relation("PetModifier", fields: [modifier_id], references: [id], onDelete: SetNull)
+  deleted_at  DateTime? // 軟刪除：標記刪除時間，保留健康紀錄歷史
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
@@ -305,6 +319,7 @@ model Pet {
   petUsers       PetUser[]
 
   @@index([user_id])
+  @@index([deleted_at])
 }
 
 model PetUser {

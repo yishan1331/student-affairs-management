@@ -14,13 +14,26 @@ export class GradeSheetService {
 		});
 	}
 
+	// 排除所屬學生／課程／學校已被軟刪除的成績紀錄（紀錄本身保留於資料庫）
+	private activeStudentFilter(): Prisma.StudentWhereInput {
+		return { deleted_at: null, course: { deleted_at: null, school: { deleted_at: null } } };
+	}
+
 	async findAll(query: Prisma.GradeSheetFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where: Prisma.GradeSheetWhereInput = {
+			...query.where,
+			student: { is: this.activeStudentFilter() },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.gradeSheet.findMany({ ...query, where });
 	}
 
 	async count(where: Prisma.GradeSheetWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.GradeSheetWhereInput = {
+			...where,
+			student: { is: this.activeStudentFilter() },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.gradeSheet.count({ where: finalWhere });
 	}
 
@@ -63,7 +76,9 @@ export class GradeSheetService {
 
 	async exportGradeSheets(courseId: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.GradeSheetWhereInput = {};
-		if (courseId) where.student = { course_id: courseId };
+		const studentFilter: Prisma.StudentWhereInput = this.activeStudentFilter();
+		if (courseId) studentFilter.course_id = courseId;
+		where.student = { is: studentFilter };
 		if (!isAdmin) where.user_id = userId;
 		return this.prisma.gradeSheet.findMany({
 			where,
@@ -74,7 +89,9 @@ export class GradeSheetService {
 
 	async getStatistics(course_id: number | undefined, userId: number, isAdmin: boolean) {
 		const where: Prisma.GradeSheetWhereInput = {};
-		if (course_id) where.student = { course_id };
+		const studentFilter: Prisma.StudentWhereInput = this.activeStudentFilter();
+		if (course_id) studentFilter.course_id = course_id;
+		where.student = { is: studentFilter };
 		if (!isAdmin) where.user_id = userId;
 
 		const grades = await this.prisma.gradeSheet.findMany({

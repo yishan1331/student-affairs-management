@@ -15,7 +15,12 @@ export class CourseService {
 	}
 
 	async findAll(query: Prisma.CourseFindManyArgs, userId: number, isAdmin: boolean) {
-		const where = isAdmin ? query.where : { ...query.where, user_id: userId };
+		const where: Prisma.CourseWhereInput = {
+			...query.where,
+			deleted_at: null,
+			school: { deleted_at: null },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.course.findMany({
 			...query,
 			where,
@@ -24,7 +29,12 @@ export class CourseService {
 	}
 
 	async count(where: Prisma.CourseWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.CourseWhereInput = {
+			...where,
+			deleted_at: null,
+			school: { deleted_at: null },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.course.count({ where: finalWhere });
 	}
 
@@ -34,7 +44,10 @@ export class CourseService {
 		name?: string;
 		day_of_week?: string;
 	}, userId: number, isAdmin: boolean) {
-		const where: Prisma.CourseWhereInput = {};
+		const where: Prisma.CourseWhereInput = {
+			deleted_at: null,
+			school: { deleted_at: null },
+		};
 
 		if (!isAdmin) {
 			where.user_id = userId;
@@ -67,7 +80,7 @@ export class CourseService {
 				students: true,
 			},
 		});
-		if (!record) throw new NotFoundException('找不到該課程');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該課程');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限存取此課程');
 		}
@@ -76,7 +89,7 @@ export class CourseService {
 
 	async update(id: number, updateCourseDto: UpdateCourseDto, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.course.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該課程');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該課程');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限修改此課程');
 		}
@@ -86,14 +99,16 @@ export class CourseService {
 		});
 	}
 
+	// 軟刪除：標記 deleted_at，保留學生／上課紀錄／薪資歷史，從列表中隱藏
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.course.findUnique({ where: { id } });
-		if (!record) throw new NotFoundException('找不到該課程');
+		if (!record || record.deleted_at) throw new NotFoundException('找不到該課程');
 		if (!isAdmin && record.user_id !== userId) {
 			throw new ForbiddenException('無權限刪除此課程');
 		}
-		return this.prisma.course.delete({
+		return this.prisma.course.update({
 			where: { id },
+			data: { deleted_at: new Date(), modifier_id: userId },
 		});
 	}
 }

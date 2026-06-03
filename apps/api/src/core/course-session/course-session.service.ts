@@ -75,7 +75,7 @@ export class CourseSessionService {
 				include: { school: true },
 			});
 
-			if (!course) {
+			if (!course || course.deleted_at) {
 				throw new NotFoundException(`Course with id ${courseId} not found`);
 			}
 
@@ -95,6 +95,7 @@ export class CourseSessionService {
 				where: {
 					courses: { some: { id: courseId } },
 					is_active: true,
+					deleted_at: null,
 				},
 			});
 		}
@@ -106,6 +107,7 @@ export class CourseSessionService {
 					schools: { some: { id: resolvedSchoolId } },
 					courses: { none: {} }, // exclude tiers that are bound to specific courses
 					is_active: true,
+					deleted_at: null,
 				},
 			});
 		}
@@ -176,7 +178,11 @@ export class CourseSessionService {
 	async findAll(query: Prisma.CourseSessionFindManyArgs, userId: number, isAdmin: boolean) {
 		const finalQuery = {
 			...query,
-			where: isAdmin ? query.where : { ...query.where, user_id: userId },
+			where: {
+				...query.where,
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
 		};
 
 		const primaryOrderBy = finalQuery.orderBy;
@@ -199,7 +205,11 @@ export class CourseSessionService {
 	}
 
 	async count(where: Prisma.CourseSessionWhereInput, userId: number, isAdmin: boolean) {
-		const finalWhere = isAdmin ? where : { ...where, user_id: userId };
+		const finalWhere: Prisma.CourseSessionWhereInput = {
+			...where,
+			deleted_at: null,
+			...(isAdmin ? {} : { user_id: userId }),
+		};
 		return this.prisma.courseSession.count({ where: finalWhere });
 	}
 
@@ -213,7 +223,7 @@ export class CourseSessionService {
 			},
 		});
 
-		if (!record) {
+		if (!record || record.deleted_at) {
 			throw new NotFoundException('找不到該課程節次');
 		}
 
@@ -230,7 +240,7 @@ export class CourseSessionService {
 			where: { id },
 		});
 
-		if (!existing) {
+		if (!existing || existing.deleted_at) {
 			throw new NotFoundException(`CourseSession with id ${id} not found`);
 		}
 
@@ -311,7 +321,7 @@ export class CourseSessionService {
 			where: { id },
 		});
 
-		if (!existing) {
+		if (!existing || existing.deleted_at) {
 			throw new NotFoundException('找不到該課程節次');
 		}
 
@@ -319,7 +329,11 @@ export class CourseSessionService {
 			throw new ForbiddenException('無權限刪除此課程節次');
 		}
 
-		return this.prisma.courseSession.delete({ where: { id } });
+		// 軟刪除：標記 deleted_at，保留薪資/出席結算稽核紀錄
+		return this.prisma.courseSession.update({
+			where: { id },
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
 	}
 
 	async batchGenerate(dto: BatchGenerateCourseSessionDto, userId: number) {
@@ -349,7 +363,7 @@ export class CourseSessionService {
 			const course = await this.prisma.course.findUnique({
 				where: { id: courseId },
 			});
-			if (!course) continue;
+			if (!course || course.deleted_at) continue;
 
 			// Parse day_of_week (e.g., "1,3,5" = Mon, Wed, Fri)
 			const daysOfWeek = course.day_of_week
@@ -424,7 +438,7 @@ export class CourseSessionService {
 	 * If start_date / end_date provided, only sessions within that date range are recalculated.
 	 */
 	async recalculateAllSalaries(startDate?: string, endDate?: string) {
-		const where: Prisma.CourseSessionWhereInput = { is_cancelled: false };
+		const where: Prisma.CourseSessionWhereInput = { is_cancelled: false, deleted_at: null };
 		if (startDate && endDate) {
 			where.date = {
 				gte: this.toUTCMidnight(startDate),
@@ -465,6 +479,7 @@ export class CourseSessionService {
 				lte: this.toUTCMidnight(endDate),
 			},
 			is_cancelled: false, // Exclude cancelled sessions from salary totals
+			deleted_at: null, // Exclude soft-deleted sessions
 		};
 
 		if (!isAdmin) {

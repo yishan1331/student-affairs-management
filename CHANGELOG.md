@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-06-03
+
+### 軟刪除機制（Soft Delete）
+
+將原本的「物理刪除」改為「軟刪除」，避免刪除一筆資料時連帶 cascade 毀掉底下的歷史紀錄（學生、出缺勤、成績、寵物健康紀錄、上課薪資結算等）。被刪除的資料保留在資料庫並從所有列表/統計中隱藏，可後續還原。
+
+- **背景**：原本刪除 Course/School 會透過 Prisma `onDelete: Cascade` 連鎖刪除 Student → Attendance/GradeSheet、以及 CourseSession（含每堂課的薪資金額），且 `AuditLog` 在 DELETE 時 `changes: null`（不保存內容），刪除後完全無法復原。
+
+- **影響的 6 個 Model**（各新增 `deleted_at DateTime?` 欄位 + 索引）：
+  - `School`、`Student`、`Pet`、`SalaryBase`、`CourseSession`、`User`
+  - 對應 migration：`20260603044006_add_course_soft_delete`、`20260603050622_add_soft_delete_to_core_models`
+
+- **行為變更**：
+  - 各 model 的 `DELETE` 端點改為標記 `deleted_at`（不再物理刪除），同時更新 `modifier_id`。
+  - 所有 `list / count / findOne / update` 查詢排除已軟刪除的紀錄。
+
+- **祖先過濾**（刪上層→下層自動隱藏，並可隨上層還原而自動回復）：
+  - Course 列表排除「所屬 School 已刪除」。
+  - Student 列表排除「所屬 Course / School 已刪除」。
+  - Attendance、GradeSheet 的 列表 / 統計 / 匯出 排除「所屬 Student / Course / School 已刪除」。
+  - Dashboard 各項統計（學校 / 課程 / 學生 / 今日出席率）一併套用。
+
+- **薪資相關**：
+  - `CourseSession` 不做祖先過濾 —— 即使其 Course/School 被刪除，歷史上課與薪資結算仍保留於薪資彙總（`getSalarySummary` / `recalculateAllSalaries` 僅排除已軟刪除的 session）。
+  - 薪資計算 `calculateSalary` 排除已軟刪除的 `SalaryBase`，但歷史 session 已存的 `salary_amount` 不受影響。
+
+- **安全性（User 軟刪除）**：
+  - 登入、JWT 驗證、Bot（Telegram/Slack）綁定查詢一律查不到已軟刪除帳號。
+  - `ApiTokenGuard` 除了 `status` 外，新增 `deleted_at` 檢查，避免軟刪除帳號的 PAT 仍可使用。
+
+- **設計邊界**：
+  - 葉節點紀錄（`Attendance`、`GradeSheet`、各 `Health*`）維持硬刪除（刪單筆為刻意修正），透過上層祖先過濾隱藏。
+  - 唯一鍵（`User.account`、`School.code`）仍受 DB unique 限制，軟刪除後無法以相同值新建，需還原舊紀錄。
+  - 目前為純後台隱藏，尚未提供還原（restore）的 UI / API。
+
 ## 2026-04-15
 
 ### 體重精度調整
