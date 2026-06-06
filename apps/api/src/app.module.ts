@@ -15,6 +15,7 @@ import configurationFactory from './config/configuration.factory';
 import secretConfigFactory from './config/secret.config';
 import {
 	GLOBAL_VALIDATION_PIPE,
+	GLOBAL_LOGGING_INTERCEPTOR,
 	GLOBAL_RESPONSE_INTERCEPTOR,
 	GLOBAL_EXCEPTIONS_FILTER,
 	GLOBAL_PRISMA_EXCEPTIONS_FILTER,
@@ -82,6 +83,7 @@ const adapter = new StringAdapter(casbinPolicy);
 	controllers: [],
 	providers: [
 		GLOBAL_VALIDATION_PIPE,
+		GLOBAL_LOGGING_INTERCEPTOR,
 		GLOBAL_RESPONSE_INTERCEPTOR,
 		GLOBAL_EXCEPTIONS_FILTER,
 		GLOBAL_PRISMA_EXCEPTIONS_FILTER,

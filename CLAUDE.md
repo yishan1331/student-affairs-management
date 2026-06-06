@@ -26,8 +26,9 @@ Package manager: npm (workspaces configured in root package.json).
 ### API (`apps/api`)
 - `npm run dev` — NestJS watch mode
 - `npm run build:local` — `nest build` (local development)
-- `npm run build` — `prisma generate && tsc` (production/Vercel)
-- `npm run start:prod` — `node dist/main`
+- `npm run build` — `prisma generate && nest build` (production/Zeabur container)
+- `npm run build:vercel` — `prisma generate && tsc -p tsconfig.build.json` (Vercel fallback)
+- `npm run start:prod` — `node dist/src/main`
 - `npm run test` — Jest unit tests
 - `npm run test:cov` — Jest with coverage
 - `npm run prisma:migrate` — Run Prisma migrations
@@ -124,7 +125,13 @@ Package manager: npm (workspaces configured in root package.json).
 
 ## Deployment
 
-Both apps are configured for Vercel deployment. API has a `main.vercel.ts` entry point. CORS whitelist in `src/config/cors.config.ts` controls allowed origins.
+**Primary: Zeabur (container deployment)**
+- **API**: Built with `nest build` (output to `dist/`), started via `node dist/src/main` listening on `PORT`. NestJS runs as a long-lived process — the default `Logger` writes to stdout/stderr, which Zeabur captures and shows in the service's runtime logs.
+- **Dashboard**: Built via the Refine/Vite Dockerfile (`apps/dashboard/Dockerfile`) and served as static files with the `serve` package (`refinedev/node:18` base image).
+- **CORS**: `src/config/cors.config.ts` whitelists `astrid-app.vercel.app` + `localhost:5173`, and allow-lists Vercel preview URLs (`astrid-*.vercel.app`) and any `*.zeabur.app` origin.
+
+**Fallback: Vercel (serverless)**
+- API retains the `main.vercel.ts` serverless entry point and `build:vercel` script (`tsc`-based) for Vercel deployment. `apps/api/vercel.json` is still present.
 
 ## Git
 
