@@ -18,6 +18,7 @@ import { Prisma } from '@prisma/client';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 
@@ -81,6 +82,16 @@ export class UserController {
 			throw new ForbiddenException('無權限修改此使用者資料');
 		}
 		return this.userService.update(id, updateUserDto);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		if (!isAdmin) {
+			throw new ForbiddenException('只有管理員可以刪除使用者');
+		}
+		return this.userService.removeBatch(deleteBatchDto.ids, user.id);
 	}
 
 	@Delete(':id')

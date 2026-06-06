@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { HealthWeightService } from './health-weight.service';
 import { CreateHealthWeightDto } from './dto/create-health-weight.dto';
 import { UpdateHealthWeightDto } from './dto/update-health-weight.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -136,6 +137,12 @@ export class HealthWeightController {
 	) {
 		const user = req.user as any;
 		return this.healthWeightService.update(+id, dto, user.id);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.healthWeightService.removeBatch(deleteBatchDto.ids, user.id);
 	}
 
 	@Delete(':id')

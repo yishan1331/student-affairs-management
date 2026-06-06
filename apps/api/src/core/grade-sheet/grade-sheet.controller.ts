@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { GradeSheetService } from './grade-sheet.service';
 import { CreateGradeSheetDto } from './dto/create-grade-sheet.dto';
 import { UpdateGradeSheetDto } from './dto/update-grade-sheet.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -119,6 +120,13 @@ export class GradeSheetController {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
 		return this.gradeSheetService.update(+id, updateGradeSheetDto, user.id, isAdmin);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.gradeSheetService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Delete(':id')

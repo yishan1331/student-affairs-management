@@ -17,6 +17,7 @@ import { CourseSessionService } from './course-session.service';
 import { CreateCourseSessionDto } from './dto/create-course-session.dto';
 import { UpdateCourseSessionDto } from './dto/update-course-session.dto';
 import { BatchGenerateCourseSessionDto } from './dto/batch-generate-course-session.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -105,6 +106,13 @@ export class CourseSessionController {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
 		return this.courseSessionService.update(+id, dto, user.id, isAdmin);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.courseSessionService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Delete(':id')

@@ -16,6 +16,7 @@ import { Request, Response } from 'express';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -69,6 +70,13 @@ export class SchoolController {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
 		return this.schoolService.update(+id, updateSchoolDto, user.id, isAdmin);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.schoolService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Delete(':id')

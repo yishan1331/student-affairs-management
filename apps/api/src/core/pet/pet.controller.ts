@@ -18,6 +18,7 @@ import { PetService } from './pet.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { AddPetMemberDto } from './dto/add-pet-member.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -153,6 +154,12 @@ export class PetController {
 	) {
 		const user = req.user as any;
 		return this.petService.addMember(+id, dto.user_id, user.id, user.role === 'admin');
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.petService.removeBatch(deleteBatchDto.ids, user.id, user.role === 'admin');
 	}
 
 	@Delete(':id/members/:userId')

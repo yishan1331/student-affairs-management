@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { HealthToiletService } from './health-toilet.service';
 import { CreateHealthToiletDto } from './dto/create-health-toilet.dto';
 import { UpdateHealthToiletDto } from './dto/update-health-toilet.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -141,6 +142,12 @@ export class HealthToiletController {
 	) {
 		const user = req.user as any;
 		return this.healthToiletService.update(+id, dto, user.id);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.healthToiletService.removeBatch(deleteBatchDto.ids, user.id);
 	}
 
 	@Delete(':id')

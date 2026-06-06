@@ -68,6 +68,18 @@ export class StudentService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.student.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at，保留出席／成績歷史
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.student.findUnique({ where: { id } });

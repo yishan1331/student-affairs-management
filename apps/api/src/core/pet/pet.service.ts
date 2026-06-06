@@ -108,6 +108,20 @@ export class PetService {
 		}
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.pet.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin
+					? {}
+					: { petUsers: { some: { user_id: userId, role: 'owner' } } }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at，保留所有健康紀錄歷史
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const existing = await this.prisma.pet.findUnique({ where: { id } });

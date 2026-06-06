@@ -113,6 +113,18 @@ export class SalaryBaseService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.salaryBase.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at。歷史 CourseSession 已存的 salary_amount 不受影響，
 	// 仍保留 salary_base_id 參照（不再被列入可選級距）。
 	async remove(id: number, userId: number, isAdmin: boolean) {

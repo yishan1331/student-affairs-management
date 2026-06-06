@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { HealthDietService } from './health-diet.service';
 import { CreateHealthDietDto } from './dto/create-health-diet.dto';
 import { UpdateHealthDietDto } from './dto/update-health-diet.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -136,6 +137,12 @@ export class HealthDietController {
 	) {
 		const user = req.user as any;
 		return this.healthDietService.update(+id, dto, user.id);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.healthDietService.removeBatch(deleteBatchDto.ids, user.id);
 	}
 
 	@Delete(':id')

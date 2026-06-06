@@ -99,6 +99,18 @@ export class CourseService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.course.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at，保留學生／上課紀錄／薪資歷史，從列表中隱藏
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.course.findUnique({ where: { id } });

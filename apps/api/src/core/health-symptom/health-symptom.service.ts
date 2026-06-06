@@ -90,6 +90,13 @@ export class HealthSymptomService {
 		}
 	}
 
+	async removeBatch(ids: number[], userId: number) {
+		const result = await this.prisma.healthSymptom.deleteMany({
+			where: { AND: [{ id: { in: ids } }, this.userAccessWhere(userId)] },
+		});
+		return { count: result.count };
+	}
+
 	async remove(id: number, userId: number) {
 		await this.findOne(id, userId);
 		try {

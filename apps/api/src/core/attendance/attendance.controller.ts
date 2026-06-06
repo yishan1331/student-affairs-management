@@ -17,8 +17,8 @@ import * as ExcelJS from 'exceljs';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateBatchAttendanceDto } from './dto/create-batch-attendance.dto';
-import { DeleteBatchAttendanceDto } from './dto/delete-batch-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -121,10 +121,10 @@ export class AttendanceController {
 	}
 
 	@Delete('batch')
-	removeBatch(@Body() deleteBatchAttendanceDto: DeleteBatchAttendanceDto, @Req() req: Request) {
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
-		return this.attendanceService.removeBatch(deleteBatchAttendanceDto.ids, user.id, isAdmin);
+		return this.attendanceService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Get(':id')

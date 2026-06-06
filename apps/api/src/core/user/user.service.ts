@@ -80,6 +80,14 @@ export class UserService {
 		});
 	}
 
+	async removeBatch(ids: number[], selfId: number) {
+		const result = await this.prisma.user.updateMany({
+			where: { id: { in: ids }, NOT: { id: selfId }, deleted_at: null },
+			data: { deleted_at: new Date() },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at，停用帳號並保留其關聯資料（學校／課程／寵物等）
 	async remove(id: number) {
 		return await this.prisma.user.update({

@@ -16,6 +16,7 @@ import { Request, Response } from 'express';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -82,6 +83,13 @@ export class CourseController {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
 		return this.courseService.update(+id, updateCourseDto, user.id, isAdmin);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.courseService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Delete(':id')

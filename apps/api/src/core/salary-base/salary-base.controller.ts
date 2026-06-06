@@ -16,6 +16,7 @@ import { Request, Response } from 'express';
 import { SalaryBaseService } from './salary-base.service';
 import { CreateSalaryBaseDto } from './dto/create-salary-base.dto';
 import { UpdateSalaryBaseDto } from './dto/update-salary-base.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -69,6 +70,13 @@ export class SalaryBaseController {
 		const user = req.user as any;
 		const isAdmin = user.role === 'admin';
 		return this.salaryBaseService.update(+id, dto, user.id, isAdmin);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.salaryBaseService.removeBatch(deleteBatchDto.ids, user.id, isAdmin);
 	}
 
 	@Delete(':id')

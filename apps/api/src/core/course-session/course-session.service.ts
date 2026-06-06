@@ -316,6 +316,18 @@ export class CourseSessionService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.courseSession.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const existing = await this.prisma.courseSession.findUnique({
 			where: { id },

@@ -58,6 +58,18 @@ export class SchoolService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.school.updateMany({
+			where: {
+				id: { in: ids },
+				deleted_at: null,
+				...(isAdmin ? {} : { user_id: userId }),
+			},
+			data: { deleted_at: new Date(), modifier_id: userId },
+		});
+		return { count: result.count };
+	}
+
 	// 軟刪除：標記 deleted_at。底下的課程／學生／薪資歷史完整保留，
 	// 並透過讀取時的祖先過濾（school.deleted_at）自動從列表隱藏。
 	async remove(id: number, userId: number, isAdmin: boolean) {

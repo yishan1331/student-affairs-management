@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { HealthSymptomService } from './health-symptom.service';
 import { CreateHealthSymptomDto } from './dto/create-health-symptom.dto';
 import { UpdateHealthSymptomDto } from './dto/update-health-symptom.dto';
+import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
 import { JwtAuthGuard, RbacGuard } from '../../common/guards';
@@ -169,6 +170,12 @@ export class HealthSymptomController {
 	) {
 		const user = req.user as any;
 		return this.healthSymptomService.update(+id, dto, user.id);
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchDto: DeleteBatchDto, @Req() req: Request) {
+		const user = req.user as any;
+		return this.healthSymptomService.removeBatch(deleteBatchDto.ids, user.id);
 	}
 
 	@Delete(':id')

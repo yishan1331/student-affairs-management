@@ -10,9 +10,17 @@ import {
 } from "@refinedev/antd";
 import { Grid, Space, Table, Typography, Dropdown, Modal, Button } from "antd";
 import { MoreOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useGo, useNavigation, useResource, useDelete } from "@refinedev/core";
+import {
+	useGo,
+	useNavigation,
+	useResource,
+	useDelete,
+	useApiUrl,
+	useCustomMutation,
+	useInvalidate,
+} from "@refinedev/core";
 import { useLocation } from "react-router";
-import { type PropsWithChildren } from "react";
+import { useState, type Key, type PropsWithChildren } from "react";
 import dayjs from "dayjs";
 
 import { ISchool } from "../../common/types/models";
@@ -38,6 +46,49 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 
 	const { resource } = useResource();
 	const { mutate: deleteRecord } = useDelete();
+
+	const apiUrl = useApiUrl();
+	const invalidate = useInvalidate();
+	const { mutate: batchDelete, isLoading: isBatchDeleting } = useCustomMutation();
+	const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+
+	const handleBatchDelete = () => {
+		if (selectedRowKeys.length === 0) return;
+		Modal.confirm({
+			title: `確認要刪除選取的 ${selectedRowKeys.length} 筆紀錄嗎？`,
+			okText: "確認",
+			cancelText: "取消",
+			okType: "danger",
+			onOk: () =>
+				new Promise<void>((resolve, reject) => {
+					batchDelete(
+						{
+							url: `${apiUrl}/${ROUTE_RESOURCE.course}/batch`,
+							method: "delete",
+							values: { ids: selectedRowKeys },
+							successNotification: {
+								message: "批次刪除成功",
+								description: `已成功刪除 ${selectedRowKeys.length} 筆資料`,
+								type: "success",
+							},
+							errorNotification: {
+								message: "批次刪除失敗",
+								description: "無法刪除選取的資料",
+								type: "error",
+							},
+						},
+						{
+							onSuccess: () => {
+								setSelectedRowKeys([]);
+								invalidate({ resource: ROUTE_RESOURCE.course, invalidates: ["list"] });
+								resolve();
+							},
+							onError: () => reject(),
+						},
+					);
+				}),
+		});
+	};
 
 	const { tableProps, sorters, searchFormProps, tableQuery, setCurrent, setPageSize } =
 		useTable<ICourse>({
@@ -101,6 +152,19 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 		<List
 			breadcrumb={true}
 			headerButtons={[
+				...(!isMobile && selectedRowKeys.length > 0
+					? [
+							<Button
+								key="batch-delete"
+								danger
+								icon={<DeleteOutlined />}
+								loading={isBatchDeleting}
+								onClick={handleBatchDelete}
+							>
+								批次刪除 ({selectedRowKeys.length})
+							</Button>,
+						]
+					: []),
 				<CreateButton
 					key="create"
 					hideText={false}
@@ -168,7 +232,17 @@ export const CourseList = ({ children }: PropsWithChildren) => {
 					}}
 				/>
 			) : (
-			<Table {...tableProps} dataSource={records} rowKey="id" scroll={{ x: 'max-content' }}>
+			<Table
+				{...tableProps}
+				dataSource={records}
+				rowKey="id"
+				scroll={{ x: 'max-content' }}
+				rowSelection={{
+					selectedRowKeys,
+					onChange: setSelectedRowKeys,
+					preserveSelectedRowKeys: true,
+				}}
+			>
 				{!isMobile && (
 					<Table.Column
 						dataIndex="id"

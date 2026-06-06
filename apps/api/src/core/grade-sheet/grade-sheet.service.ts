@@ -63,6 +63,13 @@ export class GradeSheetService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const result = await this.prisma.gradeSheet.deleteMany({
+			where: { id: { in: ids }, ...(isAdmin ? {} : { user_id: userId }) },
+		});
+		return { count: result.count };
+	}
+
 	async remove(id: number, userId: number, isAdmin: boolean) {
 		const record = await this.prisma.gradeSheet.findUnique({ where: { id } });
 		if (!record) throw new NotFoundException('找不到該成績紀錄');
