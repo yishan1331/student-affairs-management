@@ -337,8 +337,6 @@ export class CourseSessionService {
 	}
 
 	async batchGenerate(dto: BatchGenerateCourseSessionDto, userId: number) {
-		const results: any[] = [];
-
 		// Determine date range
 		let rangeStart: Date;
 		let rangeEnd: Date;
@@ -359,78 +357,80 @@ export class CourseSessionService {
 			);
 		}
 
-		for (const courseId of dto.course_ids) {
-			const course = await this.prisma.course.findUnique({
-				where: { id: courseId },
-			});
-			if (!course || course.deleted_at) continue;
+		// 1. Pre-fetch all requested (non-deleted) courses in a single query
+		const courses = await this.prisma.course.findMany({
+			where: { id: { in: dto.course_ids }, deleted_at: null },
+		});
+		if (courses.length === 0) {
+			return { created: 0 };
+		}
 
-			// Parse day_of_week (e.g., "1,3,5" = Mon, Wed, Fri)
+		// 2. Pre-fetch existing (non-deleted) sessions for these courses in range
+		//    in ONE query. Filter deleted_at so soft-deleted records don't block
+		//    a re-import.
+		const existingSessions = await this.prisma.courseSession.findMany({
+			where: {
+				course_id: { in: courses.map((c) => c.id) },
+				deleted_at: null,
+				date: { gte: rangeStart, lte: rangeEnd },
+			},
+			select: { course_id: true, date: true },
+		});
+		const existingKeys = new Set(
+			existingSessions.map(
+				(s) => `${s.course_id}|${s.date.toISOString().split('T')[0]}`,
+			),
+		);
+
+		// 3. Build all rows. Batch-generated sessions all have student count 0,
+		//    so salary is identical for every session of a course — compute it
+		//    ONCE per course instead of once per session.
+		const rows: Prisma.CourseSessionCreateManyInput[] = [];
+		for (const course of courses) {
+			const { salary_amount, salary_base_id } = await this.calculateSalary(
+				course.id,
+				0,
+			);
+
+			// Parse day_of_week (e.g., "1,3,5" = Mon, Wed, Fri).
+			// day_of_week uses 1=Monday..7=Sunday; JS getUTCDay uses 0=Sunday.
 			const daysOfWeek = course.day_of_week
 				.split(',')
 				.map((d) => parseInt(d.trim()));
 
-			// Generate all dates in the given range that match day_of_week
-			// Note: day_of_week uses 1=Monday, 7=Sunday
-			// JavaScript Date.getDay() uses 0=Sunday, 1=Monday, ..., 6=Saturday
-			const firstDay = rangeStart;
-			const lastDay = rangeEnd;
-
-			const dates: Date[] = [];
 			for (
-				let d = new Date(firstDay);
-				d <= lastDay;
+				let d = new Date(rangeStart);
+				d <= rangeEnd;
 				d.setUTCDate(d.getUTCDate() + 1)
 			) {
-				// Convert JS getUTCDay (0=Sun) to our format (1=Mon, 7=Sun)
 				let dayNum = d.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
 				dayNum = dayNum === 0 ? 7 : dayNum; // Convert: 0->7, 1->1, ..., 6->6
+				if (!daysOfWeek.includes(dayNum)) continue;
 
-				if (daysOfWeek.includes(dayNum)) {
-					dates.push(new Date(d));
-				}
-			}
+				const dateStr = d.toISOString().split('T')[0];
+				if (existingKeys.has(`${course.id}|${dateStr}`)) continue;
 
-			// Check for existing sessions to avoid duplicates
-			const existingSessions = await this.prisma.courseSession.findMany({
-				where: {
-					course_id: courseId,
-					date: {
-						gte: firstDay,
-						lte: lastDay,
-					},
-				},
-			});
-			const existingDates = new Set(
-				existingSessions.map((s) => s.date.toISOString().split('T')[0]),
-			);
-
-			// Create sessions for dates that don't exist yet
-			for (const date of dates) {
-				const dateStr = date.toISOString().split('T')[0];
-				if (existingDates.has(dateStr)) continue;
-
-				// Calculate salary (handles fixed salary where student count doesn't matter)
-				const { salary_amount, salary_base_id } = await this.calculateSalary(courseId, 0);
-
-				const session = await this.prisma.courseSession.create({
-					data: {
-						course_id: courseId,
-						date: date,
-						actual_student_count: 0,
-						is_cancelled: false,
-						salary_amount,
-						salary_base_id,
-						note: null,
-						modifier_id: dto.modifier_id,
-						user_id: userId,
-					},
+				rows.push({
+					course_id: course.id,
+					date: new Date(d),
+					actual_student_count: 0,
+					is_cancelled: false,
+					salary_amount,
+					salary_base_id,
+					note: null,
+					modifier_id: dto.modifier_id,
+					user_id: userId,
 				});
-				results.push(session);
 			}
 		}
 
-		return { created: results.length, sessions: results };
+		if (rows.length === 0) {
+			return { created: 0 };
+		}
+
+		// 4. Single bulk insert (atomic — one statement, all-or-nothing)
+		const result = await this.prisma.courseSession.createMany({ data: rows });
+		return { created: result.count };
 	}
 
 	/**

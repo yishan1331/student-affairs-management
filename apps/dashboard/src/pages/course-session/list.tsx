@@ -415,14 +415,26 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 					end_date: batchDateRange[1].format("YYYY-MM-DD"),
 					modifier_id: user?.id,
 				},
+				// 批次匯入可能跨多門課、整月份，耗時較長，單獨放寬此請求的 timeout
+				{ timeout: 120000 },
 			);
 			const result = response.data?.data || response.data;
 			message.success(`成功匯入 ${result.created} 筆上課記錄`);
 			setBatchModalOpen(false);
 			setSelectedCourseIds([]);
 			tableQueryResult.refetch();
-		} catch (error) {
-			message.error("批次匯入失敗");
+		} catch (error: any) {
+			// 連線逾時時，後端可能仍在背景處理並已寫入；提示使用者確認而非直接報失敗
+			if (error?.code === "ECONNABORTED") {
+				message.warning(
+					"匯入處理時間較長，可能仍在背景完成。請稍候重新整理確認，匯入可安全重試（不會重複）。",
+				);
+				setBatchModalOpen(false);
+				setSelectedCourseIds([]);
+				tableQueryResult.refetch();
+			} else {
+				message.error("批次匯入失敗");
+			}
 		} finally {
 			setBatchLoading(false);
 		}

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-06-06
+
+### 批次匯入上課紀錄：效能優化與逾時體驗
+
+修正「批次匯入上課紀錄」整月跨多門課時，後端耗時約 47 秒、超過前端 30 秒 timeout 而顯示假失敗（實際後端已成功寫入）的問題。
+
+- **後端效能**（`course-session.service.ts` 的 `batchGenerate`）：
+  - 課程、既有 session 改為**各一次查詢**預先載入（原本逐課查詢）。
+  - 批次產生的 session 學生數皆為 0，薪資**每門課只計算一次**（原本每筆都重算，138 筆 → 31 次）。
+  - 改用 `createMany` **單次批次插入**（原本逐筆 `create`），單一語句具原子性。
+  - 預估耗時從 ~47s 降至 ~5s。
+
+- **修正 soft-delete 地雷**：`batchGenerate` 判斷「該日是否已存在」時補上 `deleted_at: null` 過濾，避免已軟刪除的紀錄擋住重新匯入。
+
+- **前端體驗**（`pages/course-session/list.tsx`）：
+  - 此匯入請求單獨將 timeout 放寬至 120s。
+  - 連線逾時（`ECONNABORTED`）時改為提示「可能仍在背景完成、請重新整理確認、可安全重試」，並自動 refetch，不再誤報失敗。
+
+- **可觀測性**（先前提交）：新增全域 `LoggingInterceptor` 記錄每筆 request，`HttpExceptionFilter` 記錄 5xx 含 stack，輸出至 stdout 供 Zeabur runtime log 擷取。
+
 ## 2026-06-03
 
 ### 軟刪除機制（Soft Delete）
