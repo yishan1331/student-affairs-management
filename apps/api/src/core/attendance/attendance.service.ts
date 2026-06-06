@@ -75,6 +75,15 @@ export class AttendanceService {
 		});
 	}
 
+	async removeBatch(ids: number[], userId: number, isAdmin: boolean) {
+		const where: Prisma.AttendanceWhereInput = {
+			id: { in: ids },
+			...(isAdmin ? {} : { user_id: userId }),
+		};
+		const result = await this.prisma.attendance.deleteMany({ where });
+		return { count: result.count };
+	}
+
 	async createBatch(createBatchAttendanceDto: CreateBatchAttendanceDto, userId: number) {
 		const { course_id, date, records } = createBatchAttendanceDto;
 

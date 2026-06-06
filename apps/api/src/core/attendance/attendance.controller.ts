@@ -17,6 +17,7 @@ import * as ExcelJS from 'exceljs';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateBatchAttendanceDto } from './dto/create-batch-attendance.dto';
+import { DeleteBatchAttendanceDto } from './dto/delete-batch-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
@@ -117,6 +118,13 @@ export class AttendanceController {
 
 		await workbook.xlsx.write(res);
 		res.end();
+	}
+
+	@Delete('batch')
+	removeBatch(@Body() deleteBatchAttendanceDto: DeleteBatchAttendanceDto, @Req() req: Request) {
+		const user = req.user as any;
+		const isAdmin = user.role === 'admin';
+		return this.attendanceService.removeBatch(deleteBatchAttendanceDto.ids, user.id, isAdmin);
 	}
 
 	@Get(':id')

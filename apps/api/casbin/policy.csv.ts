@@ -62,6 +62,7 @@ p, role:user, /api/v1/attendance, create
 p, role:user, /api/v1/attendance/:id, update
 p, role:user, /api/v1/attendance/:id, delete
 p, role:user, /api/v1/attendance/batch, create
+p, role:user, /api/v1/attendance/batch, delete
 p, role:user, /api/v1/grade-sheet, create
 p, role:user, /api/v1/grade-sheet/:id, update
 p, role:user, /api/v1/grade-sheet/:id, delete
