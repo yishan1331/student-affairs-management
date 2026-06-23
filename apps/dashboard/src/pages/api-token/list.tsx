@@ -20,6 +20,8 @@ import { apiClient } from "../../services/api";
 import { showMessage } from "../../utils/message";
 import { TOKEN_KEY } from "../../common/constants";
 import { getTokenPayload } from "../../providers/authProvider";
+import { MobileCardList } from "../../components/mobile";
+import type { MobileCardField } from "../../components/mobile";
 
 interface ApiTokenOwner {
 	id: number;
@@ -114,6 +116,45 @@ export const ApiTokenList = () => {
 		return <Tag color="green">啟用中</Tag>;
 	};
 
+	const renderRevoke = (record: ApiTokenItem) =>
+		record.revoked_at ? null : (
+			<Popconfirm
+				title="確認撤銷此權杖？"
+				description="撤銷後使用此權杖的自動化將立即失效"
+				okText="撤銷"
+				cancelText="取消"
+				okType="danger"
+				onConfirm={() => handleRevoke(record.id)}
+			>
+				<Button danger size="small" icon={<DeleteOutlined />}>
+					撤銷
+				</Button>
+			</Popconfirm>
+		);
+
+	const mobileFields: MobileCardField<ApiTokenItem>[] = [
+		{ dataIndex: "name", label: "名稱" },
+		...(isAdmin
+			? [
+					{
+						label: "擁有者",
+						render: (_: any, record: ApiTokenItem) =>
+							record.user
+								? `${record.user.username} (${record.user.account})`
+								: "-",
+					} as MobileCardField<ApiTokenItem>,
+				]
+			: []),
+		{ label: "狀態", render: (_: any, record: ApiTokenItem) => statusTag(record) },
+		{ dataIndex: "last_used_at", label: "最後使用", render: (v: any) => formatDate(v) },
+		{
+			dataIndex: "expires_at",
+			label: "到期時間",
+			render: (v: any) => (v ? formatDate(v) : "永久"),
+		},
+		{ dataIndex: "created_at", label: "建立時間", render: (v: any) => formatDate(v) },
+	];
+
 	return (
 		<Card
 			title={
@@ -139,13 +180,21 @@ export const ApiTokenList = () => {
 				message="用於 iOS 捷徑或腳本存取特定 API（例如 /v1/ingest/weight）。權杖僅在建立當下顯示一次，請立即複製保存。"
 			/>
 
+			{isMobile ? (
+				<MobileCardList<ApiTokenItem>
+					dataSource={tokens}
+					fields={mobileFields}
+					loading={loading}
+					extraActions={renderRevoke}
+				/>
+			) : (
 			<Table<ApiTokenItem>
 				dataSource={tokens}
 				rowKey="id"
 				loading={loading}
 				pagination={false}
 				scroll={{ x: "max-content" }}
-				size={isMobile ? "small" : "middle"}
+				size="middle"
 			>
 				<Table.Column<ApiTokenItem> dataIndex="name" title="名稱" />
 				{isAdmin && (
@@ -179,24 +228,10 @@ export const ApiTokenList = () => {
 				/>
 				<Table.Column<ApiTokenItem>
 					title="操作"
-					render={(_, record) =>
-						record.revoked_at ? null : (
-							<Popconfirm
-								title="確認撤銷此權杖？"
-								description="撤銷後使用此權杖的自動化將立即失效"
-								okText="撤銷"
-								cancelText="取消"
-								okType="danger"
-								onConfirm={() => handleRevoke(record.id)}
-							>
-								<Button danger size="small" icon={<DeleteOutlined />}>
-									撤銷
-								</Button>
-							</Popconfirm>
-						)
-					}
+					render={(_, record) => renderRevoke(record)}
 				/>
 			</Table>
+			)}
 
 			<Modal
 				open={modalOpen}

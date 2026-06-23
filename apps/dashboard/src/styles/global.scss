@@ -75,4 +75,14 @@
     .ant-breadcrumb {
         display: none;
     }
+
+    // 表單控制項在手機上滿版（覆蓋桌面寫死的固定寬度，例如 200px）
+    // 桌面維持各表單自訂寬度，僅在 <768px 強制滿版避免窄螢幕顯示不全
+    .ant-form-item-control-input-content {
+        .ant-select,
+        .ant-picker,
+        .ant-input-number {
+            width: 100% !important;
+        }
+    }
 }
