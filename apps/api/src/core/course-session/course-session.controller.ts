@@ -20,11 +20,11 @@ import { BatchGenerateCourseSessionDto } from './dto/batch-generate-course-sessi
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 @ApiTags('課程節次')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/course-session')
 export class CourseSessionController {
 	private readonly queryBuilder: PrismaQueryBuilder;

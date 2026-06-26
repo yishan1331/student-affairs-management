@@ -81,6 +81,12 @@ export class UserController {
 		if (!isAdmin && user.id !== +id) {
 			throw new ForbiddenException('無權限修改此使用者資料');
 		}
+		// 縱深防禦：非 admin（即使編輯自己）不得變更權限相關欄位，避免自我提權
+		if (!isAdmin) {
+			delete updateUserDto.role;
+			delete updateUserDto.subsystems;
+			delete updateUserDto.status;
+		}
 		return this.userService.update(id, updateUserDto);
 	}
 

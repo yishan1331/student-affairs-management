@@ -16,6 +16,11 @@ enum Role {
   guest
 }
 
+enum Subsystem {
+  course
+  health
+}
+
 enum Status {
   active
   inactive
@@ -84,6 +89,7 @@ model User {
   password    String
   username    String
   role        Role?    @default(guest)
+  subsystems  Subsystem[] @default([course, health])
   email       String?  @unique
   telegram_id String?  @unique
   slack_id    String?  @unique

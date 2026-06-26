@@ -20,11 +20,11 @@ import { UpdateGradeSheetDto } from './dto/update-grade-sheet.dto';
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 @ApiTags('成績管理')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/grade-sheet')
 export class GradeSheetController {
 	private readonly queryBuilder: PrismaQueryBuilder;

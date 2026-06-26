@@ -33,6 +33,7 @@ export class AuthService {
 			sub: payload.sub,
 			username: payload.username,
 			role: payload.role,
+			subsystems: payload.subsystems ?? [],
 		};
 		const refreshPayload = { sub: payload.sub, type: 'refresh' };
 		return {
@@ -59,6 +60,7 @@ export class AuthService {
 				sub: user.id,
 				username: user.username,
 				role: user.role!,
+				subsystems: user.subsystems ?? [],
 			};
 			return this.generateJwt(jwtPayload);
 		} catch (error) {

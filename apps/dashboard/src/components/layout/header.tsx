@@ -15,6 +15,7 @@ import React, { useContext, useEffect } from 'react';
 import { ColorModeContext } from '../../contexts/color-mode';
 import { IUser } from '../../common/types/models';
 import { useUser } from '../../contexts/userContext';
+import { SubsystemSwitcher } from './subsystem-switcher';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -38,7 +39,7 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 	const headerStyles: React.CSSProperties = {
 		backgroundColor: token.colorBgElevated,
 		display: 'flex',
-		justifyContent: 'flex-end',
+		justifyContent: 'space-between',
 		alignItems: 'center',
 		padding: isMobile ? '0px 12px 0px 48px' : '0px 24px',
 		height: '64px',
@@ -52,6 +53,10 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 
 	return (
 		<AntdLayout.Header style={headerStyles}>
+			{/* 左側：子系統切換器（僅授權多個子系統時顯示，否則為佔位空白以維持右側對齊） */}
+			<div style={{ display: 'flex', alignItems: 'center' }}>
+				<SubsystemSwitcher />
+			</div>
 			<Space>
 				<Button
 					type="text"

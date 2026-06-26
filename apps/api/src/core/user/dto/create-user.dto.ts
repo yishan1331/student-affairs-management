@@ -1,4 +1,4 @@
-import { Role, Status } from '@prisma/client';
+import { Role, Status, Subsystem } from '@prisma/client';
 
 import {
 	IsMobilePhone,
@@ -9,6 +9,7 @@ import {
 	IsDefined,
 	IsOptional,
 	IsEnum,
+	IsArray,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -31,6 +32,11 @@ export class CreateUserDto {
 	@IsOptional()
 	@IsEnum(Role)
 	role?: Role;
+
+	@IsOptional()
+	@IsArray()
+	@IsEnum(Subsystem, { each: true })
+	subsystems?: Subsystem[];
 
 	@IsOptional()
 	@IsEmail()

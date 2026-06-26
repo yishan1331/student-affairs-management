@@ -36,6 +36,9 @@ import type { MenuProps } from 'antd';
 import type { RefineThemedLayoutV2SiderProps } from '@refinedev/antd';
 import type { CSSProperties } from 'react';
 
+import { useSubsystem } from '../../contexts/subsystemContext';
+import { RESOURCE_SUBSYSTEM } from '../../common/constants';
+
 type MenuItem = NonNullable<MenuProps['items']>[number];
 
 const drawerButtonStyles: CSSProperties = {
@@ -71,6 +74,7 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 	const TitleFromContext = useTitle();
 	const translate = useTranslate();
 	const { menuItems, selectedKey, defaultOpenKeys } = useMenu({ meta });
+	const { activeSubsystem } = useSubsystem();
 	const breakpoint = Grid.useBreakpoint();
 	const { hasDashboard } = useRefineContext();
 	const authProvider = useActiveAuthProvider();
@@ -180,7 +184,29 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
 			}
 		: null;
 
-	const treeItems = buildMenuItems(menuItems, selectedKey);
+	// 依目前作用中的子系統過濾選單：未列於 RESOURCE_SUBSYSTEM 的項目視為共用一律顯示，
+	// 有歸屬者僅在符合作用中子系統時顯示；過濾後若群組已無子項則一併隱藏。
+	const filterTreeBySubsystem = (items: ITreeMenu[]): ITreeMenu[] =>
+		items
+			.map((item) => ({
+				...item,
+				children: item.children
+					? filterTreeBySubsystem(item.children)
+					: item.children,
+			}))
+			.filter((item) => {
+				const sub = RESOURCE_SUBSYSTEM[item.name];
+				if (sub && sub !== activeSubsystem) return false;
+				// 群組（無自身路由）若過濾後無子項則隱藏
+				const isGroup = !item.route;
+				if (isGroup && (item.children?.length ?? 0) === 0) return false;
+				return true;
+			});
+
+	const treeItems = buildMenuItems(
+		filterTreeBySubsystem(menuItems),
+		selectedKey,
+	);
 
 	const menuItemsAll: MenuItem[] = [
 		...(dashboardItem ? [dashboardItem] : []),
