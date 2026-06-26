@@ -195,8 +195,15 @@ export const CourseSessionList = ({ children }: PropsWithChildren) => {
 
 	const records = tableProps.dataSource as ICourseSession[];
 
-	// 切換模式時重置分頁：行事曆取全部資料，表格用預設分頁
+	// 切換模式時重置分頁：行事曆取全部資料，表格用預設分頁。
+	// 僅在 viewMode「真的改變」時才重置，避免 useTable setter 參考變動造成 effect 重跑、
+	// 把自編輯/檢視頁返回時從網址還原的分頁狀態（例如 current=3）洗回第 1 頁。
+	const prevViewMode = useRef(viewMode);
 	useEffect(() => {
+		if (prevViewMode.current === viewMode) {
+			return;
+		}
+		prevViewMode.current = viewMode;
 		setCurrent(1);
 		if (viewMode === "calendar") {
 			setPageSize(500);
