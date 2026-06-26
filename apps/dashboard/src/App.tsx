@@ -3,7 +3,7 @@ import { Refine, Authenticated } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { ErrorComponent, useNotificationProvider } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
-import routerBindings, {
+import {
 	NavigateToResource,
 	DocumentTitleHandler,
 	UnsavedChangesNotifier,
@@ -58,6 +58,7 @@ const ToiletOutlined = (props: any) => (
 
 import { authProvider } from "./providers/authProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
+import { routerProvider } from "./providers/routerProvider";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { apiClient } from "./services/api";
 import { useGlobalMessage } from "./hooks/useGlobalMessage";
@@ -162,7 +163,7 @@ const AppContent = () => {
 		<Refine
 			dataProvider={customDataProvider}
 			notificationProvider={useNotificationProvider}
-			routerProvider={routerBindings}
+			routerProvider={routerProvider}
 			authProvider={authProvider}
 			accessControlProvider={accessControlProvider}
 			options={{
