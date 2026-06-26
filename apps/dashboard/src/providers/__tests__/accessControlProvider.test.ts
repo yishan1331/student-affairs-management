@@ -17,11 +17,15 @@ function buildMockJwt(payload: Record<string, unknown>): string {
 	return `${encode(header)}.${encode(payload as Record<string, unknown>)}.${sig}`;
 }
 
-function buildTokenForRole(role: string): string {
+function buildTokenForRole(
+	role: string,
+	subsystems: string[] = ['course', 'health'],
+): string {
 	return buildMockJwt({
 		sub: '1',
 		username: `${role}-user`,
 		role,
+		subsystems,
 		exp: Math.floor(Date.now() / 1000) + 3600,
 	});
 }
@@ -178,6 +182,47 @@ describe('accessControlProvider', () => {
 				expect(result).toEqual({ can: false });
 			},
 		);
+	});
+
+	// ----------------------------------------------------------------
+	// Subsystem gating (independent of role)
+	// ----------------------------------------------------------------
+	describe('subsystem gating', () => {
+		it('denies a course-gated resource when account lacks the course subsystem', async () => {
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('admin', ['health']);
+			const result = await accessControlProvider.can!({
+				action: 'list',
+				resource: 'school',
+			});
+			expect(result.can).toBe(false);
+		});
+
+		it('denies a health-gated resource when account lacks the health subsystem', async () => {
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('admin', ['course']);
+			const result = await accessControlProvider.can!({
+				action: 'list',
+				resource: 'health-weight',
+			});
+			expect(result.can).toBe(false);
+		});
+
+		it('allows a course-gated resource when account has the course subsystem', async () => {
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('admin', ['course']);
+			const result = await accessControlProvider.can!({
+				action: 'list',
+				resource: 'school',
+			});
+			expect(result.can).toBe(true);
+		});
+
+		it('allows shared resources (e.g. pet) regardless of subsystems', async () => {
+			localStorageStore[TOKEN_KEY] = buildTokenForRole('admin', []);
+			const result = await accessControlProvider.can!({
+				action: 'list',
+				resource: 'pet',
+			});
+			expect(result.can).toBe(true);
+		});
 	});
 
 	// ----------------------------------------------------------------

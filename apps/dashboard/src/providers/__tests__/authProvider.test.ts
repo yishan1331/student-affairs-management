@@ -67,6 +67,7 @@ describe('authProvider', () => {
 				sub: '1',
 				username: 'admin',
 				role: 'admin',
+				subsystems: ['course', 'health'],
 				exp: Math.floor(Date.now() / 1000) + 3600,
 			});
 
@@ -90,10 +91,12 @@ describe('authProvider', () => {
 			// Token stored in localStorage
 			expect(localStorageStore[TOKEN_KEY]).toBe(fakeToken);
 
-			// Returned success with redirect
+			// 落地子系統依授權決定（此處 course 優先），並記錄到 localStorage
+			expect(localStorageStore['SAMS_SUBSYSTEM']).toBe('course');
+
+			// 採整頁重載導向（window.location.href），故僅回傳 success
 			expect(result).toEqual({
 				success: true,
-				redirectTo: '/',
 			});
 		});
 
@@ -129,9 +132,9 @@ describe('authProvider', () => {
 
 			expect(Storage.prototype.removeItem).toHaveBeenCalledWith(TOKEN_KEY);
 			expect(localStorageStore[TOKEN_KEY]).toBeUndefined();
+			// 採整頁重載導向（window.location.href = '/login'），故僅回傳 success
 			expect(result).toEqual({
 				success: true,
-				redirectTo: '/login',
 			});
 		});
 	});
@@ -194,6 +197,7 @@ describe('authProvider', () => {
 				sub: '42',
 				username: 'teacher1',
 				role: 'guest',
+				subsystems: ['course'],
 				exp: Math.floor(Date.now() / 1000) + 3600,
 			});
 			localStorageStore[TOKEN_KEY] = token;
@@ -204,6 +208,7 @@ describe('authProvider', () => {
 				id: '42',
 				username: 'teacher1',
 				role: 'guest',
+				subsystems: ['course'],
 			});
 		});
 

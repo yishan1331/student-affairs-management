@@ -5,9 +5,16 @@ import {
 	ScheduleOutlined,
 	FormOutlined,
 	TeamOutlined,
+	DashboardOutlined,
+	CoffeeOutlined,
+	MedicineBoxOutlined,
+	LineChartOutlined,
 } from "@ant-design/icons";
 import { useLink, useRouterType, useRouterContext } from "@refinedev/core";
 import { useLocation } from "react-router";
+
+import { useSubsystem } from "../../contexts/subsystemContext";
+import type { Subsystem } from "../../common/constants";
 
 interface NavItem {
 	key: string;
@@ -16,32 +23,21 @@ interface NavItem {
 	path: string;
 }
 
-const navItems: NavItem[] = [
-	{
-		key: "dashboard",
-		label: "首頁",
-		icon: <AppstoreOutlined />,
-		path: "/",
-	},
-	{
-		key: "schedule",
-		label: "課表",
-		icon: <ScheduleOutlined />,
-		path: "/schedule",
-	},
-	{
-		key: "course-session",
-		label: "上課",
-		icon: <FormOutlined />,
-		path: "/course-session",
-	},
-	{
-		key: "student",
-		label: "學生",
-		icon: <TeamOutlined />,
-		path: "/student",
-	},
-];
+// 各子系統的手機底部快速導覽項目
+const NAV_ITEMS_BY_SUBSYSTEM: Record<Subsystem, NavItem[]> = {
+	course: [
+		{ key: "dashboard", label: "首頁", icon: <AppstoreOutlined />, path: "/" },
+		{ key: "schedule", label: "課表", icon: <ScheduleOutlined />, path: "/schedule" },
+		{ key: "course-session", label: "上課", icon: <FormOutlined />, path: "/course-session" },
+		{ key: "student", label: "學生", icon: <TeamOutlined />, path: "/student" },
+	],
+	health: [
+		{ key: "health-weight", label: "體重", icon: <DashboardOutlined />, path: "/health-weight" },
+		{ key: "health-diet", label: "飲食", icon: <CoffeeOutlined />, path: "/health-diet" },
+		{ key: "health-symptom", label: "症狀", icon: <MedicineBoxOutlined />, path: "/health-symptom" },
+		{ key: "health-trend", label: "趨勢", icon: <LineChartOutlined />, path: "/health-trend" },
+	],
+};
 
 export const BottomNav: React.FC = () => {
 	const { token } = theme.useToken();
@@ -53,8 +49,15 @@ export const BottomNav: React.FC = () => {
 	const { Link: LegacyLink } = useRouterContext();
 	const Link = routerType === "legacy" ? LegacyLink : NewLink;
 	const { pathname } = useLocation();
+	const { activeSubsystem } = useSubsystem();
 
 	if (!isMobile) return null;
+
+	// 依作用中子系統決定導覽項目；無作用中子系統時不顯示
+	const navItems = activeSubsystem
+		? NAV_ITEMS_BY_SUBSYSTEM[activeSubsystem]
+		: [];
+	if (navItems.length === 0) return null;
 
 	const isActive = (path: string) => {
 		if (path === "/") return pathname === "/";

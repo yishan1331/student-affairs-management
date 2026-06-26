@@ -19,11 +19,11 @@ import { UpdateSalaryBaseDto } from './dto/update-salary-base.dto';
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 @ApiTags('薪資級距')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/salary-base')
 export class SalaryBaseController {
 	private readonly queryBuilder: PrismaQueryBuilder;

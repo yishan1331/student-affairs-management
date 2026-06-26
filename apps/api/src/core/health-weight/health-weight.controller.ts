@@ -20,11 +20,11 @@ import { UpdateHealthWeightDto } from './dto/update-health-weight.dto';
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 @ApiTags('健康管理-體重')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/health-weight')
 export class HealthWeightController {
 	private readonly queryBuilder: PrismaQueryBuilder;

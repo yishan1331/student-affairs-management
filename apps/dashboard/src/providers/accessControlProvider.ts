@@ -1,12 +1,12 @@
 import { AccessControlProvider, CanParams } from '@refinedev/core';
 
-import { TOKEN_KEY } from '../common/constants';
+import { TOKEN_KEY, RESOURCE_SUBSYSTEM, type Subsystem } from '../common/constants';
 import { getTokenPayload } from './authProvider';
 
 // 簡化版的權限檢查，避免使用 Casbin
 export const accessControlProvider: AccessControlProvider = {
 	can: async (params: CanParams) => {
-		const { action, resource, params: resourceParams } = params;
+		const { action, resource } = params;
 		const token = localStorage.getItem(TOKEN_KEY);
 		if (!token) {
 			return {
@@ -16,7 +16,18 @@ export const accessControlProvider: AccessControlProvider = {
 
 		const payload = getTokenPayload(token);
 		const role = payload.role;
+		const subsystems = (payload.subsystems ?? []) as Subsystem[];
 
+		// ── 子系統把關（與角色無關）──
+		// 資源若歸屬某子系統，帳號必須擁有該子系統才可存取；共用資源不受限。
+		if (resource) {
+			const resourceSub = RESOURCE_SUBSYSTEM[resource];
+			if (resourceSub && !subsystems.includes(resourceSub)) {
+				return { can: false, reason: '此帳號無權存取該子系統' };
+			}
+		}
+
+		// ── 角色把關 ──
 		// admin 可以執行所有操作
 		if (role === 'admin') {
 			return { can: true };

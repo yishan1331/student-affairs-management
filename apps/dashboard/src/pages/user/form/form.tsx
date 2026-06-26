@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, Input, Flex, Segmented, Select, Button, Modal } from "antd";
+import { Form, Input, Flex, Segmented, Select, Button, Modal, Checkbox } from "antd";
 import { LockOutlined } from "@ant-design/icons";
 import type { FormProps } from "antd";
 
@@ -7,7 +7,11 @@ import { useStyles } from "../editStyled";
 import { ICreateUser, IUpdateUser } from "../../../common/types/models";
 import { useGlobalNotification } from "../../../hooks/useGlobalNotification";
 import apiClient from "../../../services/api/apiClient";
-import { ROUTE_RESOURCE } from "../../../common/constants";
+import {
+	ROUTE_RESOURCE,
+	SUBSYSTEM_ORDER,
+	SUBSYSTEM_CONFIG,
+} from "../../../common/constants";
 
 type Props = {
 	formProps: FormProps<any>;
@@ -20,6 +24,11 @@ const roleOptions = [
 	{ label: "使用者", value: "user" },
 	{ label: "訪客", value: "guest" },
 ];
+
+const subsystemOptions = SUBSYSTEM_ORDER.map((s) => ({
+	label: SUBSYSTEM_CONFIG[s].label,
+	value: s,
+}));
 
 export const UserForm = (props: Props) => {
 	const { styles } = useStyles();
@@ -122,6 +131,22 @@ export const UserForm = (props: Props) => {
 							placeholder="請選擇角色"
 							options={roleOptions}
 						/>
+					</Form.Item>
+					<Form.Item
+						label="可使用子系統"
+						name="subsystems"
+						className={styles.formItem}
+						initialValue={
+							props.isEdit ? undefined : SUBSYSTEM_ORDER
+						}
+						rules={[
+							{
+								required: true,
+								message: "請至少選擇一個子系統",
+							},
+						]}
+					>
+						<Checkbox.Group options={subsystemOptions} />
 					</Form.Item>
 					<Form.Item
 						label="信箱"

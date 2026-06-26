@@ -1,6 +1,13 @@
 import type { AuthProvider } from '@refinedev/core';
 import { apiClient } from '../services/api';
-import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '../common/constants';
+import {
+	TOKEN_KEY,
+	REFRESH_TOKEN_KEY,
+	SUBSYSTEM_KEY,
+	SUBSYSTEM_ORDER,
+	SUBSYSTEM_CONFIG,
+	type Subsystem,
+} from '../common/constants';
 
 const decodeBase64Url = (base64Url: string) => {
 	const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -43,10 +50,23 @@ export const authProvider: AuthProvider = {
 			if (refresh_token) {
 				localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
 			}
-			console.log(access_token);
+
+			// 依此帳號被授權的子系統決定落地頁（只有健康子系統的帳號不能落在課程頁）
+			const payload = getTokenPayload(access_token);
+			const allowed = SUBSYSTEM_ORDER.filter((s) =>
+				((payload.subsystems ?? []) as Subsystem[]).includes(s),
+			);
+			const landingSubsystem = allowed[0];
+			if (landingSubsystem) {
+				localStorage.setItem(SUBSYSTEM_KEY, landingSubsystem);
+			}
+			const landingPath = landingSubsystem
+				? SUBSYSTEM_CONFIG[landingSubsystem].defaultPath
+				: '/';
+
 			// 以整頁重載方式進入,確保清空前一位使用者殘留的 React Query 記憶體快取,
 			// 避免換帳號登入時看到上一位使用者(如管理者)查詢過的資料。
-			window.location.href = '/course-session';
+			window.location.href = landingPath;
 			return {
 				success: true,
 			};
@@ -60,6 +80,7 @@ export const authProvider: AuthProvider = {
 	logout: async () => {
 		localStorage.removeItem(TOKEN_KEY);
 		localStorage.removeItem(REFRESH_TOKEN_KEY);
+		localStorage.removeItem(SUBSYSTEM_KEY);
 		// 以整頁重載方式登出,徹底清空 React Query 記憶體快取與其他應用狀態,
 		// 避免下一位登入者看到上一位殘留的查詢資料。
 		window.location.href = '/login';
@@ -101,6 +122,7 @@ export const authProvider: AuthProvider = {
 					id: payload.sub,
 					username: payload.username,
 					role: payload.role,
+					subsystems: payload.subsystems ?? [],
 				};
 			} catch (error) {
 				return null;

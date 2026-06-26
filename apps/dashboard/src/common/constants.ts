@@ -2,6 +2,49 @@ import { MealType, ToiletType, PetType, SymptomType, Severity } from "./types/mo
 
 export const TOKEN_KEY = "SAMS";
 export const REFRESH_TOKEN_KEY = "SAMS_REFRESH";
+// 目前作用中的子系統（前端檢視狀態，存 localStorage）
+export const SUBSYSTEM_KEY = "SAMS_SUBSYSTEM";
+
+// ── 子系統 ──
+export type Subsystem = "course" | "health";
+
+// 子系統顯示順序（決定切換器排列與預設落地子系統的優先序）
+export const SUBSYSTEM_ORDER: Subsystem[] = ["course", "health"];
+
+// 子系統設定：標籤與預設落地頁
+export const SUBSYSTEM_CONFIG: Record<
+	Subsystem,
+	{ label: string; defaultPath: string }
+> = {
+	course: { label: "課程管理", defaultPath: "/course-session" },
+	health: { label: "健康管理", defaultPath: "/health-weight" },
+};
+
+// resource name → 所屬子系統 的單一真實來源。
+// 未列於此的 resource（user / pet / api-token / system）視為「共用」，不受子系統限制。
+export const RESOURCE_SUBSYSTEM: Record<string, Subsystem> = {
+	// 課程管理
+	dashboard: "course",
+	schedule: "course",
+	teaching: "course",
+	school: "course",
+	course: "course",
+	"course-session": "course",
+	"student-management": "course",
+	student: "course",
+	attendance: "course",
+	"grade-sheet": "course",
+	"salary-management": "course",
+	"salary-base": "course",
+	"salary-overview": "course",
+	// 健康管理
+	health: "health",
+	"health-weight": "health",
+	"health-diet": "health",
+	"health-toilet": "health",
+	"health-symptom": "health",
+	"health-trend": "health",
+};
 
 // API基礎URL配置
 export const BASE_URL = import.meta.env.VITE_API_URL;

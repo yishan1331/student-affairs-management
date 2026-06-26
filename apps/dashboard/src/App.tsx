@@ -68,6 +68,7 @@ import {
 	CustomSider,
 	CustomLayout,
 	BottomNav,
+	SubsystemRouteGuard,
 } from "./components";
 import "./styles/global.scss";
 
@@ -152,6 +153,7 @@ import { ScheduleList } from "./pages/schedule";
 import { LoginPage } from "./pages/login";
 import { dataProvider } from "./providers/rest-data-provider";
 import { UserContextProvider } from "./contexts/userContext";
+import { SubsystemContextProvider } from "./contexts/subsystemContext";
 
 const AppContent = () => {
 	const customDataProvider = dataProvider(
@@ -451,7 +453,9 @@ const AppContent = () => {
 										marginRight: "auto",
 									}}
 								>
-									<Outlet />
+									<SubsystemRouteGuard>
+										<Outlet />
+									</SubsystemRouteGuard>
 								</div>
 								<BottomNav />
 							</CustomLayout>
@@ -610,10 +614,12 @@ const App: React.FC = () => {
 			<RefineKbarProvider>
 				<ColorModeContextProvider>
 					<UserContextProvider>
-						<AntdApp>
-							{contextHolder}
-							<AppContent />
-						</AntdApp>
+						<SubsystemContextProvider>
+							<AntdApp>
+								{contextHolder}
+								<AppContent />
+							</AntdApp>
+						</SubsystemContextProvider>
 					</UserContextProvider>
 				</ColorModeContextProvider>
 			</RefineKbarProvider>

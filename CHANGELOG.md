@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-06-26
+
+### 雙子系統架構與帳號層級存取控制
+
+將系統拆分為**課程管理**與**健康管理**兩個子系統，並可依帳號開放可使用哪個（或哪些）子系統。權限新增「子系統」維度，與既有角色（admin/user/guest）正交：角色決定「能做什麼動作」，子系統決定「能進入哪個功能區」。
+
+- **資料層**（`schema.prisma`）：新增 `enum Subsystem { course health }`，`User` 新增 `subsystems Subsystem[] @default([course, health])`。既有帳號 migration 後預設兩者皆可用。
+
+- **後端授權**：
+  - JWT access token payload 新增 `subsystems`（供前端解碼使用）。
+  - 新增 `SubsystemGuard`（`common/guards/subsystem/`），以「路由前綴 → 子系統」對照表為單一真實來源，掛在課程／健康共 12 個 controller 的 `JwtAuthGuard` → `RbacGuard` 之後；不符回 403。共用路由（user/pet/api-token/upload 等）不受限。
+  - `request.user.subsystems` 由 `JwtStrategy` 自 DB 取得，故權限調整即時生效、不受舊 token 影響。
+  - `CreateUserDto` 支援設定 `subsystems`。
+  - 縱深防禦：`PATCH /v1/user/:id` 對非 admin（即使編輯自己）剝除 `role`/`subsystems`/`status` 欄位，避免自我提權。
+
+- **前端**：
+  - 新增**子系統切換器**（Header），僅授權多個子系統時顯示；切換後導向該子系統預設落地頁。
+  - 側邊選單與手機底部導覽依作用中子系統過濾（`RESOURCE_SUBSYSTEM` 對照表為單一真實來源）。
+  - `accessControlProvider` 加入子系統把關；`authProvider` 登入導向改依授權子系統決定落地頁；深連到已授權子系統頁面時自動同步切換器。
+  - `SubsystemRouteGuard`：直接以網址進入無權子系統頁面時，於 render 階段即重導至有權落地頁，避免無權頁面送出 API 觸發 403。
+  - 授權子系統清單於每次導覽重讀 token，使背景刷新後（admin 調整權限）選單與切換器能即時反映。
+  - 使用者管理 create/edit 頁新增「可使用子系統」多選欄位，詳情頁顯示子系統標籤。
+
 ## 2026-06-06
 
 ### 批次匯入上課紀錄：效能優化與逾時體驗

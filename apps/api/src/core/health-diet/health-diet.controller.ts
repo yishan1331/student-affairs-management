@@ -20,7 +20,7 @@ import { UpdateHealthDietDto } from './dto/update-health-diet.dto';
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 const mealTypeMap: Record<string, string> = {
 	breakfast: '早餐',
@@ -31,7 +31,7 @@ const mealTypeMap: Record<string, string> = {
 
 @ApiTags('健康管理-飲食')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/health-diet')
 export class HealthDietController {
 	private readonly queryBuilder: PrismaQueryBuilder;

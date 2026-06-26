@@ -30,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			account: user.account,
 			role: user.role,
 			status: user.status,
+			subsystems: user.subsystems ?? [],
 		};
 	}
 }

@@ -20,7 +20,7 @@ import { UpdateHealthToiletDto } from './dto/update-health-toilet.dto';
 import { DeleteBatchDto } from '../../common/dto/delete-batch.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaQueryBuilder } from '../../common/utils/prisma-query-builder';
-import { JwtAuthGuard, RbacGuard } from '../../common/guards';
+import { JwtAuthGuard, RbacGuard, SubsystemGuard } from '../../common/guards';
 
 const toiletTypeMap: Record<string, string> = {
 	urination: '小便',
@@ -29,7 +29,7 @@ const toiletTypeMap: Record<string, string> = {
 
 @ApiTags('健康管理-如廁')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(JwtAuthGuard, RbacGuard, SubsystemGuard)
 @Controller('v1/health-toilet')
 export class HealthToiletController {
 	private readonly queryBuilder: PrismaQueryBuilder;

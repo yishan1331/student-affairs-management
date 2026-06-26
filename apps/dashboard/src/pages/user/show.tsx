@@ -9,13 +9,22 @@ import {
 	CustomShowHeaderButtons,
 	CustomShowList,
 } from "../../components";
-import { ROUTE_RESOURCE } from "../../common/constants";
+import {
+	ROUTE_RESOURCE,
+	SUBSYSTEM_CONFIG,
+	SUBSYSTEM_ORDER,
+} from "../../common/constants";
 import { DataSource } from "../../common/types/types";
 
 const roleMap: Record<string, { label: string; color: string }> = {
 	admin: { label: "管理員", color: "red" },
 	user: { label: "使用者", color: "blue" },
 	guest: { label: "訪客", color: "green" },
+};
+
+const subsystemColor: Record<string, string> = {
+	course: "geekblue",
+	health: "magenta",
 };
 
 export const UserShow = () => {
@@ -53,6 +62,26 @@ export const UserShow = () => {
 					<Tag color={r.color}>{r.label}</Tag>
 				) : (
 					<Typography.Text>{record?.role}</Typography.Text>
+				);
+			},
+		},
+		{
+			label: "可使用子系統",
+			value: "subsystems",
+			type: "custom",
+			render: () => {
+				const subs = record?.subsystems ?? [];
+				if (subs.length === 0) {
+					return <Typography.Text type="secondary">無</Typography.Text>;
+				}
+				return (
+					<>
+						{SUBSYSTEM_ORDER.filter((s) => subs.includes(s)).map((s) => (
+							<Tag key={s} color={subsystemColor[s]}>
+								{SUBSYSTEM_CONFIG[s].label}
+							</Tag>
+						))}
+					</>
 				);
 			},
 		},
