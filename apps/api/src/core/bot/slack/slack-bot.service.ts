@@ -44,6 +44,18 @@ export class SlackBotService implements OnModuleInit, OnModuleDestroy {
 			return;
 		}
 
+		// 先驗證 token 是否有效，避免失效 token（account_inactive / invalid_auth）進入
+		// Socket Mode 的背景重連迴圈，導致無法被 try/catch 攔截的 unhandled rejection 讓 API 崩潰。
+		try {
+			await new WebClient(token).auth.test();
+		} catch (error) {
+			this.logger.error(
+				'Slack token 驗證失敗，已停用 Bot（API 服務不受影響）',
+				error instanceof Error ? error.message : error,
+			);
+			return;
+		}
+
 		this.app = new App({
 			token,
 			signingSecret,
@@ -53,6 +65,14 @@ export class SlackBotService implements OnModuleInit, OnModuleDestroy {
 		});
 
 		this.webClient = this.app.client;
+
+		// 兜底：攔截 Bolt 執行期錯誤（含 Socket Mode 連線錯誤），避免拖垮 API 程序。
+		this.app.error(async (error) => {
+			this.logger.error(
+				'Slack Bot 執行期錯誤（已忽略，API 服務不受影響）',
+				error instanceof Error ? error.message : error,
+			);
+		});
 
 		// 監聽所有斜線指令開頭的訊息
 		this.app.message(/^\/\w+/, async ({ message, say }) => {

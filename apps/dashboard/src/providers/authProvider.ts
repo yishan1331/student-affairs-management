@@ -44,9 +44,11 @@ export const authProvider: AuthProvider = {
 				localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
 			}
 			console.log(access_token);
+			// 以整頁重載方式進入,確保清空前一位使用者殘留的 React Query 記憶體快取,
+			// 避免換帳號登入時看到上一位使用者(如管理者)查詢過的資料。
+			window.location.href = '/course-session';
 			return {
 				success: true,
-				redirectTo: '/course-session',
 			};
 		} catch (error) {
 			return {
@@ -58,9 +60,11 @@ export const authProvider: AuthProvider = {
 	logout: async () => {
 		localStorage.removeItem(TOKEN_KEY);
 		localStorage.removeItem(REFRESH_TOKEN_KEY);
+		// 以整頁重載方式登出,徹底清空 React Query 記憶體快取與其他應用狀態,
+		// 避免下一位登入者看到上一位殘留的查詢資料。
+		window.location.href = '/login';
 		return {
 			success: true,
-			redirectTo: '/login',
 		};
 	},
 	check: async () => {
