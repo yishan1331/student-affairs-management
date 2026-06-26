@@ -44,6 +44,7 @@ interface ISalarySummarySession {
 interface ISalarySummaryCourse {
 	courseId: number;
 	courseName: string;
+	dayOfWeek: string | null;
 	sessionCount: number;
 	totalSalary: number;
 	sessions: ISalarySummarySession[];
@@ -60,6 +61,26 @@ interface ISalarySummarySchool {
 
 const formatCurrency = (value: number): string => {
 	return `$${value.toLocaleString("zh-TW")}`;
+};
+
+// 將 day_of_week 字串（例如 "1,3,5"）格式化為「週一、三、五」
+const WEEKDAY_LABELS: Record<string, string> = {
+	"1": "一",
+	"2": "二",
+	"3": "三",
+	"4": "四",
+	"5": "五",
+	"6": "六",
+	"7": "日",
+};
+
+const formatDayOfWeek = (value?: string | null): string => {
+	if (!value) return "—";
+	const labels = value
+		.split(",")
+		.map((d) => WEEKDAY_LABELS[d.trim()])
+		.filter(Boolean);
+	return labels.length > 0 ? `週${labels.join("、")}` : "—";
 };
 
 // ===== 元件 =====
@@ -147,6 +168,13 @@ export const SalaryOverviewList: React.FC = () => {
 			title: "課程名稱",
 			dataIndex: "courseName",
 			key: "courseName",
+		},
+		{
+			title: "上課星期",
+			dataIndex: "dayOfWeek",
+			key: "dayOfWeek",
+			align: "center" as const,
+			render: (value: string | null) => formatDayOfWeek(value),
 		},
 		{
 			title: "上課次數",
@@ -384,7 +412,7 @@ export const SalaryOverviewList: React.FC = () => {
 														<Text strong style={{ fontSize: 13 }}>{course.courseName}</Text>
 														<div>
 															<Text type="secondary" style={{ fontSize: 12 }}>
-																{course.sessionCount} 堂
+																{formatDayOfWeek(course.dayOfWeek)} · {course.sessionCount} 堂
 															</Text>
 														</div>
 													</div>
@@ -470,10 +498,11 @@ export const SalaryOverviewList: React.FC = () => {
 											<Table.Summary.Cell index={1}>
 												<Text strong>合計</Text>
 											</Table.Summary.Cell>
-											<Table.Summary.Cell index={2} align="center">
+											<Table.Summary.Cell index={2} />
+											<Table.Summary.Cell index={3} align="center">
 												<Text strong>{totalSessions}</Text>
 											</Table.Summary.Cell>
-											<Table.Summary.Cell index={3} align="right">
+											<Table.Summary.Cell index={4} align="right">
 												<Text strong style={{ color: "#52c41a" }}>
 													{formatCurrency(totalAmount)}
 												</Text>
