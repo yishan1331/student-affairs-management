@@ -48,7 +48,8 @@ export const ThemedHeaderV2: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 	if (sticky) {
 		headerStyles.position = 'sticky';
 		headerStyles.top = 0;
-		headerStyles.zIndex = 1;
+		// 高於內容（如被選中的 Radio.Button 預設 z-index:1），低於 antd 彈窗（1000+）
+		headerStyles.zIndex = 11;
 	}
 
 	return (
