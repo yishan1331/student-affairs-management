@@ -8,5 +8,6 @@ export { CustomBreadcrumb } from './breadcrumb';
 export { CustomShowHeaderButtons } from './show-header-buttons';
 export { CustomShowList } from './show-list';
 export { HealthSubjectSelector } from './HealthSubjectSelector';
+export { PawOutlined, ToiletOutlined } from './custom-icons';
 export { MobileCardList, MobileFilterBar, BottomNav } from './mobile';
 export type { MobileCardField, MobileCardListProps } from './mobile';

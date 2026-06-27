@@ -17,7 +17,7 @@ export const SUBSYSTEM_CONFIG: Record<
 	{ label: string; defaultPath: string }
 > = {
 	course: { label: "課程管理", defaultPath: "/course-session" },
-	health: { label: "健康管理", defaultPath: "/health-weight" },
+	health: { label: "健康管理", defaultPath: "/health-calendar" },
 };
 
 // resource name → 所屬子系統 的單一真實來源。
@@ -39,6 +39,7 @@ export const RESOURCE_SUBSYSTEM: Record<string, Subsystem> = {
 	"salary-overview": "course",
 	// 健康管理
 	health: "health",
+	"health-calendar": "health",
 	"health-weight": "health",
 	"health-diet": "health",
 	"health-toilet": "health",
