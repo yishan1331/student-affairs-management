@@ -12,6 +12,7 @@ import {
 	DatePicker,
 	Space,
 	Tooltip,
+	message,
 } from "antd";
 import {
 	CalendarOutlined,
@@ -121,6 +122,60 @@ export const HealthCalendarList: React.FC = () => {
 	useEffect(() => {
 		fetchMonth();
 	}, [fetchMonth]);
+
+	// ── 今天是否大便了（獨立查詢，不受目前檢視月份影響）──
+	const [todayDefecated, setTodayDefecated] = useState<boolean | null>(null);
+	const [todayDefecationTime, setTodayDefecationTime] = useState<string | null>(null);
+	const [quickAdding, setQuickAdding] = useState(false);
+
+	const fetchTodayStatus = useCallback(async () => {
+		const today = dayjs().format("YYYY-MM-DD");
+		try {
+			const res = await apiClient.get("/v1/health-toilet", {
+				params: {
+					pet_id: petId != null ? petId : "null",
+					type: ToiletType.defecation,
+					date_gte: today,
+					date_lte: `${today}T23:59:59`,
+					pageSize: 100,
+				},
+			});
+			const list: IHealthToilet[] = res.data?.data ?? [];
+			setTodayDefecated(list.length > 0);
+			// time 為 "HH:mm" 字串，字典序即時間序，取當天最後一次
+			setTodayDefecationTime(
+				list.length > 0
+					? list.reduce((latest, r) => (r.time > latest ? r.time : latest), list[0].time)
+					: null,
+			);
+		} catch {
+			setTodayDefecated(null);
+			setTodayDefecationTime(null);
+		}
+	}, [petId]);
+
+	useEffect(() => {
+		fetchTodayStatus();
+	}, [fetchTodayStatus]);
+
+	const handleQuickAddDefecation = useCallback(async () => {
+		setQuickAdding(true);
+		try {
+			await apiClient.post("/v1/health-toilet", {
+				date: dayjs().format("YYYY-MM-DD"),
+				time: dayjs().format("HH:mm"),
+				type: ToiletType.defecation,
+				is_normal: true,
+				pet_id: petId ?? undefined,
+			});
+			message.success("已記錄今天大便了");
+			await Promise.all([fetchTodayStatus(), fetchMonth()]);
+		} catch {
+			message.error("記錄失敗，請稍後再試");
+		} finally {
+			setQuickAdding(false);
+		}
+	}, [petId, fetchTodayStatus, fetchMonth]);
 
 	// ── 依日彙總（供格子徽章使用）──
 	const dayMap = useMemo(() => {
@@ -305,9 +360,42 @@ export const HealthCalendarList: React.FC = () => {
 
 	return (
 		<div>
-			<Title level={3}>
-				<CalendarOutlined /> 健康行事曆
-			</Title>
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "space-between",
+					flexWrap: "wrap",
+					gap: 12,
+					marginBottom: 8,
+				}}
+			>
+				<Title level={3} style={{ margin: 0 }}>
+					<CalendarOutlined /> 健康行事曆
+				</Title>
+				<Tooltip
+					title={
+						todayDefecated
+							? `今天已大便${todayDefecationTime ? ` ${todayDefecationTime}` : ""}，點擊可再記一筆`
+							: "今天還沒大便，點一下打卡"
+					}
+				>
+					<Button
+						type="text"
+						loading={quickAdding}
+						onClick={handleQuickAddDefecation}
+						style={{
+							fontSize: 24,
+							height: "auto",
+							padding: 4,
+							lineHeight: 1,
+							opacity: todayDefecated ? 1 : 0.45,
+						}}
+					>
+						💩{todayDefecated ? " ✅" : ""}
+					</Button>
+				</Tooltip>
+			</div>
 
 			<HealthSubjectSelector value={petId} onChange={setPetId} />
 
