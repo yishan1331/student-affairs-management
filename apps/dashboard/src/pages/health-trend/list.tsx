@@ -25,7 +25,7 @@ import {
 	MedicineBoxOutlined,
 	ClearOutlined,
 } from "@ant-design/icons";
-import { DualAxes, Column, Pie, Line } from "@ant-design/charts";
+import { Column, Pie, Line } from "@ant-design/charts";
 import dayjs, { Dayjs } from "dayjs";
 import apiClient from "../../services/api/apiClient";
 import { HealthSubjectSelector } from "../../components";
@@ -40,6 +40,7 @@ interface WeightTrendDataItem {
 	date: string;
 	weight: number | null;
 	bmi: number | null;
+	body_fat: number | null;
 	count: number;
 }
 
@@ -225,53 +226,66 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 					: dayjs(d.date).format("MM-DD"),
 			weight: d.weight as number,
 			bmi: d.bmi as number,
+			body_fat: d.body_fat as number,
 		}));
 
 	const summary = trendData?.summary;
 
-	// 只有在實際有 BMI 資料時才用雙軸；否則單軸避免出現重複的 y 軸刻度
+	// 三條線的顏色
+	const C_WEIGHT = "#1890ff";
+	const C_BMI = "#ff7a45";
+	const C_BODY_FAT = "#52c41a";
+
+	// 只有在實際有資料時才畫該條線（避免出現重複的 y 軸刻度）
 	const hasBmi = chartData.some(
 		(d) => d.bmi !== null && d.bmi !== undefined && !isNaN(d.bmi)
 	);
+	const hasBodyFat = chartData.some(
+		(d) => d.body_fat !== null && d.body_fat !== undefined && !isNaN(d.body_fat)
+	);
 
-	const dualAxesConfig: any = {
-		xField: "date",
-		data: chartData,
-		children: [
-			{
-				type: "line",
-				yField: "weight",
-				style: { lineWidth: 2, stroke: "#1890ff" },
-				point: { size: 4, fill: "#1890ff" },
-				axis: {
-					y: { title: "體重 (kg)", position: "left" },
-				},
-			},
-			{
-				type: "line",
-				yField: "bmi",
-				style: {
-					lineWidth: 2,
-					stroke: "#ff7a45",
-					lineDash: [4, 4],
-				},
-				point: { size: 4, fill: "#ff7a45" },
-				axis: {
-					y: { title: "BMI", position: "right" },
-				},
-			},
-		],
-	};
-
+	// 體重單獨一張圖（kg，scale 與 BMI/體脂率差距大，不適合混在一起）
 	const lineConfig: any = {
 		data: chartData,
 		xField: "date",
 		yField: "weight",
-		style: { lineWidth: 2, stroke: "#1890ff" },
-		point: { size: 4, fill: "#1890ff" },
+		style: { lineWidth: 2, stroke: C_WEIGHT },
+		point: { size: 4, fill: C_WEIGHT },
 		axis: {
 			y: { title: "體重 (kg)" },
 		},
+	};
+
+	// BMI 與體脂率 scale 相近，合併成一張多系列折線圖（共用同一 y 軸）
+	const ratioData: { date: string; type: string; value: number }[] = [];
+	chartData.forEach((d) => {
+		if (hasBmi && d.bmi != null && !isNaN(d.bmi)) {
+			ratioData.push({ date: d.date, type: "BMI", value: d.bmi });
+		}
+		if (hasBodyFat && d.body_fat != null && !isNaN(d.body_fat)) {
+			ratioData.push({ date: d.date, type: "體脂率 (%)", value: d.body_fat });
+		}
+	});
+	const ratioDomain = [
+		hasBmi ? "BMI" : null,
+		hasBodyFat ? "體脂率 (%)" : null,
+	].filter(Boolean) as string[];
+	const ratioRange = [
+		hasBmi ? C_BMI : null,
+		hasBodyFat ? C_BODY_FAT : null,
+	].filter(Boolean) as string[];
+	const ratioTitle = ratioDomain.join(" / ");
+
+	const ratioLineConfig: any = {
+		data: ratioData,
+		xField: "date",
+		yField: "value",
+		colorField: "type",
+		scale: { color: { domain: ratioDomain, range: ratioRange } },
+		style: { lineWidth: 2 },
+		point: { size: 4 },
+		axis: { y: { title: ratioTitle } },
+		legend: { color: { position: "top" as const } },
 	};
 
 	if (loading) {
@@ -349,13 +363,16 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 					<Empty description="此期間無體重紀錄" />
 				</Card>
 			) : (
-				<Card title={hasBmi ? "體重 / BMI 趨勢" : "體重趨勢"}>
-					{hasBmi ? (
-						<DualAxes {...dualAxesConfig} height={isMobile ? 280 : 400} />
-					) : (
+				<>
+					<Card title="體重趨勢" style={{ marginBottom: 16 }}>
 						<Line {...lineConfig} height={isMobile ? 280 : 400} />
+					</Card>
+					{(hasBmi || hasBodyFat) && (
+						<Card title={`${ratioTitle} 趨勢`}>
+							<Line {...ratioLineConfig} height={isMobile ? 280 : 400} />
+						</Card>
 					)}
-				</Card>
+				</>
 			)}
 		</>
 	);

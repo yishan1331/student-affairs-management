@@ -227,32 +227,37 @@ export class HealthWeightService {
 
 		const records = await this.prisma.healthWeight.findMany({
 			where,
-			select: { date: true, weight: true, bmi: true },
+			select: { date: true, weight: true, bmi: true, body_fat: true },
 			orderBy: { date: 'asc' },
 		});
 
-		let data: { date: string; weight: number | null; bmi: number | null; count: number }[];
+		let data: { date: string; weight: number | null; bmi: number | null; body_fat: number | null; count: number }[];
 
 		if (period === 'day') {
 			data = records.map((r) => ({
 				date: r.date.toISOString(),
 				weight: r.weight,
 				bmi: r.bmi,
+				body_fat: r.body_fat,
 				count: 1,
 			}));
 		} else {
 			// 按日分組
-			const grouped: Record<string, { totalWeight: number; totalBmi: number; count: number; bmiCount: number }> = {};
+			const grouped: Record<string, { totalWeight: number; totalBmi: number; totalBodyFat: number; count: number; bmiCount: number; bodyFatCount: number }> = {};
 			for (const r of records) {
 				const key = r.date.toISOString().slice(0, 10);
 				if (!grouped[key]) {
-					grouped[key] = { totalWeight: 0, totalBmi: 0, count: 0, bmiCount: 0 };
+					grouped[key] = { totalWeight: 0, totalBmi: 0, totalBodyFat: 0, count: 0, bmiCount: 0, bodyFatCount: 0 };
 				}
 				grouped[key].totalWeight += r.weight;
 				grouped[key].count += 1;
 				if (r.bmi != null) {
 					grouped[key].totalBmi += r.bmi;
 					grouped[key].bmiCount += 1;
+				}
+				if (r.body_fat != null) {
+					grouped[key].totalBodyFat += r.body_fat;
+					grouped[key].bodyFatCount += 1;
 				}
 			}
 
@@ -265,6 +270,7 @@ export class HealthWeightService {
 					date: key,
 					weight: g ? Math.round((g.totalWeight / g.count) * 100) / 100 : null,
 					bmi: g && g.bmiCount > 0 ? Math.round((g.totalBmi / g.bmiCount) * 100) / 100 : null,
+					body_fat: g && g.bodyFatCount > 0 ? Math.round((g.totalBodyFat / g.bodyFatCount) * 100) / 100 : null,
 					count: g ? g.count : 0,
 				});
 			}
