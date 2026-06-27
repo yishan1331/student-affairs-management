@@ -39,6 +39,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			const where = `${request?.method} ${request?.originalUrl || request?.url}`;
 			const stack = exception instanceof Error ? exception.stack : undefined;
 			this.logger.error(`${where} ${status} - ${JSON.stringify(message)}`, stack);
+		} else if (
+			status >= HttpStatus.BAD_REQUEST &&
+			(request?.originalUrl || request?.url || '').includes('/v1/ingest')
+		) {
+			// DEBUG: 資料匯入端點的 4xx（含驗證 400）印出原始 payload 與被拒原因
+			const where = `${request?.method} ${request?.originalUrl || request?.url}`;
+			this.logger.warn(
+				`${where} ${status} - body=${JSON.stringify(request?.body)} - ${JSON.stringify(message)}`,
+			);
 		}
 
 		if (response.headersSent) return;
