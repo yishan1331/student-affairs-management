@@ -51,6 +51,7 @@ import {
 	SubsystemRouteGuard,
 	PawOutlined,
 	ToiletOutlined,
+	PWAUpdatePrompt,
 } from "./components";
 import "./styles/global.scss";
 
@@ -614,6 +615,7 @@ const App: React.FC = () => {
 						<SubsystemContextProvider>
 							<AntdApp>
 								{contextHolder}
+								<PWAUpdatePrompt />
 								<AppContent />
 							</AntdApp>
 						</SubsystemContextProvider>

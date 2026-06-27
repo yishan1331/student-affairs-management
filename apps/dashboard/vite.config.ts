@@ -7,7 +7,8 @@ export default defineConfig({
 	plugins: [
 		react(),
 		VitePWA({
-			registerType: 'autoUpdate',
+			// prompt：偵測到新版時不自動重載，改由前端跳出「立即更新」提示讓使用者點擊
+			registerType: 'prompt',
 			includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
 			manifest: {
 				name: '學校課程管理系統',
