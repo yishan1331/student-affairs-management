@@ -58,7 +58,7 @@ const ToiletOutlined = (props: any) => (
 
 import { authProvider } from "./providers/authProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
-import { routerProvider } from "./providers/routerProvider";
+import { routerProvider, ListLocationTracker } from "./providers/routerProvider";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { apiClient } from "./services/api";
 import { useGlobalMessage } from "./hooks/useGlobalMessage";
@@ -429,6 +429,7 @@ const AppContent = () => {
 				},
 			]}
 		>
+			<ListLocationTracker />
 			<Routes>
 				<Route
 					element={

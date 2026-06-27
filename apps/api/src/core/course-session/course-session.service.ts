@@ -522,6 +522,7 @@ export class CourseSessionService {
 			courses: Map<string, {
 				courseId: number | null;
 				courseName: string;
+				dayOfWeek: string | null;
 				sessionCount: number;
 				totalSalary: number;
 				sessions: {
@@ -560,6 +561,7 @@ export class CourseSessionService {
 				schoolEntry.courses.set(courseKey, {
 					courseId: session.course_id,
 					courseName,
+					dayOfWeek: session.course?.day_of_week ?? null,
 					sessionCount: 0,
 					totalSalary: 0,
 					sessions: [],

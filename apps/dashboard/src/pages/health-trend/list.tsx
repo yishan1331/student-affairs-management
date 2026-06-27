@@ -25,7 +25,7 @@ import {
 	MedicineBoxOutlined,
 	ClearOutlined,
 } from "@ant-design/icons";
-import { DualAxes, Column, Pie } from "@ant-design/charts";
+import { DualAxes, Column, Pie, Line } from "@ant-design/charts";
 import dayjs, { Dayjs } from "dayjs";
 import apiClient from "../../services/api/apiClient";
 import { HealthSubjectSelector } from "../../components";
@@ -130,54 +130,55 @@ const PeriodControls: React.FC<{
 
 	return (
 		<Card style={{ marginBottom: 16 }}>
-			<Row gutter={[12, 12]} align="middle">
-				<Col xs={24} sm="auto">
-					<Radio.Group
-						value={period}
-						onChange={(e) => setPeriod(e.target.value)}
-						optionType="button"
-						buttonStyle="solid"
-					>
-						<Radio.Button value="day">日</Radio.Button>
-						<Radio.Button value="week">週</Radio.Button>
-						<Radio.Button value="month">月</Radio.Button>
-					</Radio.Group>
-				</Col>
-				<Col xs={24} sm="auto">
-					<Space>
-						<Button
-							icon={<LeftOutlined />}
-							onClick={() => navigatePeriod(-1)}
-						/>
-						<DatePicker
-							value={date}
-							onChange={(d) => d && setDate(d)}
-							picker={period === "month" ? "month" : "date"}
-							allowClear={false}
-						/>
-						<Button
-							icon={<RightOutlined />}
-							onClick={() => navigatePeriod(1)}
-						/>
-					</Space>
-				</Col>
-				<Col xs={24} sm="auto">
-					<Typography.Text type="secondary">
-						{periodLabel}
-					</Typography.Text>
-				</Col>
-				<Col xs={24} sm="auto" style={{ marginLeft: "auto" }}>
-					<Tooltip title="重置篩選">
-						<Button
-							icon={<ClearOutlined />}
-							onClick={() => {
-								setPeriod("day");
-								setDate(dayjs());
-							}}
-						/>
-					</Tooltip>
-				</Col>
-			</Row>
+			<div
+				style={{
+					display: "flex",
+					flexWrap: "wrap",
+					alignItems: "center",
+					gap: 12,
+				}}
+			>
+				<Radio.Group
+					value={period}
+					onChange={(e) => setPeriod(e.target.value)}
+					optionType="button"
+					buttonStyle="solid"
+				>
+					<Radio.Button value="week">週</Radio.Button>
+					<Radio.Button value="month">月</Radio.Button>
+				</Radio.Group>
+				<Space>
+					<Button
+						icon={<LeftOutlined />}
+						onClick={() => navigatePeriod(-1)}
+					/>
+					<DatePicker
+						value={date}
+						onChange={(d) => d && setDate(d)}
+						picker={period === "month" ? "month" : "date"}
+						allowClear={false}
+					/>
+					<Button
+						icon={<RightOutlined />}
+						onClick={() => navigatePeriod(1)}
+					/>
+				</Space>
+				<Tooltip title="重置篩選">
+					<Button
+						icon={<ClearOutlined />}
+						onClick={() => {
+							setPeriod("week");
+							setDate(dayjs());
+						}}
+					/>
+				</Tooltip>
+			</div>
+			<Typography.Text
+				type="secondary"
+				style={{ display: "block", marginTop: 8 }}
+			>
+				{periodLabel}
+			</Typography.Text>
 		</Card>
 	);
 };
@@ -218,12 +219,20 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 	const chartData = (trendData?.data || [])
 		.filter((d) => d.weight !== null)
 		.map((d) => ({
-			date: period === "day" ? dayjs(d.date).format("HH:mm") : d.date,
+			date:
+				period === "day"
+					? dayjs(d.date).format("HH:mm")
+					: dayjs(d.date).format("MM-DD"),
 			weight: d.weight as number,
 			bmi: d.bmi as number,
 		}));
 
 	const summary = trendData?.summary;
+
+	// 只有在實際有 BMI 資料時才用雙軸；否則單軸避免出現重複的 y 軸刻度
+	const hasBmi = chartData.some(
+		(d) => d.bmi !== null && d.bmi !== undefined && !isNaN(d.bmi)
+	);
 
 	const dualAxesConfig: any = {
 		xField: "date",
@@ -252,6 +261,17 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 				},
 			},
 		],
+	};
+
+	const lineConfig: any = {
+		data: chartData,
+		xField: "date",
+		yField: "weight",
+		style: { lineWidth: 2, stroke: "#1890ff" },
+		point: { size: 4, fill: "#1890ff" },
+		axis: {
+			y: { title: "體重 (kg)" },
+		},
 	};
 
 	if (loading) {
@@ -329,8 +349,12 @@ const WeightTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 					<Empty description="此期間無體重紀錄" />
 				</Card>
 			) : (
-				<Card title="體重 / BMI 趨勢">
-					<DualAxes {...dualAxesConfig} height={isMobile ? 280 : 400} />
+				<Card title={hasBmi ? "體重 / BMI 趨勢" : "體重趨勢"}>
+					{hasBmi ? (
+						<DualAxes {...dualAxesConfig} height={isMobile ? 280 : 400} />
+					) : (
+						<Line {...lineConfig} height={isMobile ? 280 : 400} />
+					)}
 				</Card>
 			)}
 		</>
@@ -394,7 +418,10 @@ const ToiletTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; is
 		colorField: "type",
 		stack: true,
 		color: ["#1890ff", "#faad14"],
-		axis: { y: { title: "次數" } },
+		axis: {
+			y: { title: "次數" },
+			x: { labelFormatter: (v: string) => dayjs(v).format("MM-DD") },
+		},
 		legend: { position: "top" as const },
 	};
 
@@ -573,7 +600,10 @@ const SymptomTrendTab: React.FC<{ period: Period; date: Dayjs; petId?: number; i
 		xField: "date",
 		yField: "count",
 		color: "#ff7a45",
-		axis: { y: { title: "次數" } },
+		axis: {
+			y: { title: "次數" },
+			x: { labelFormatter: (v: string) => dayjs(v).format("MM-DD") },
+		},
 	};
 
 	const severityPieConfig: any = {
