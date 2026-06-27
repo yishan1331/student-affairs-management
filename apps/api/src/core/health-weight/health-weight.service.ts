@@ -17,9 +17,21 @@ export class HealthWeightService {
 		};
 	}
 
+	// BMI 規則：有體重＋身高就自動計算（忽略傳入值）；否則採用傳入的 bmi。
+	private resolveBmi(
+		weight?: number | null,
+		height?: number | null,
+		bmi?: number | null,
+	): number | undefined {
+		if (weight != null && height != null && height > 0) {
+			return Math.round((weight / ((height / 100) * (height / 100))) * 100) / 100;
+		}
+		return bmi ?? undefined;
+	}
+
 	async upsertByDate(
 		userId: number,
-		data: { date: string; weight: number; height?: number; bmi?: number; note?: string },
+		data: { date: string; weight: number; height?: number; bmi?: number; body_fat?: number; note?: string },
 	) {
 		// 以原字串前 10 碼取 YYYY-MM-DD（發送端的本地日曆日）
 		// 並將資料的 date 欄位正規化為該日午夜 UTC，同日多次上傳即可 upsert 到同一筆
@@ -34,13 +46,16 @@ export class HealthWeightService {
 			},
 		});
 
+		const bmi = this.resolveBmi(data.weight, data.height, data.bmi);
+
 		if (existing) {
 			return this.prisma.healthWeight.update({
 				where: { id: existing.id },
 				data: {
 					weight: data.weight,
 					...(data.height !== undefined ? { height: data.height } : {}),
-					...(data.bmi !== undefined ? { bmi: data.bmi } : {}),
+					bmi: bmi ?? null,
+					...(data.body_fat !== undefined ? { body_fat: data.body_fat } : {}),
 					...(data.note !== undefined ? { note: data.note } : {}),
 					modifier_id: userId,
 				},
@@ -53,7 +68,8 @@ export class HealthWeightService {
 				date: normalizedDate,
 				weight: data.weight,
 				height: data.height,
-				bmi: data.bmi,
+				bmi,
+				body_fat: data.body_fat,
 				note: data.note,
 			},
 		});
@@ -71,6 +87,7 @@ export class HealthWeightService {
 		return this.prisma.healthWeight.create({
 			data: {
 				...dto,
+				bmi: this.resolveBmi(dto.weight, dto.height, dto.bmi),
 				user_id: userId,
 			},
 		});
@@ -122,8 +139,13 @@ export class HealthWeightService {
 
 	async update(id: number, dto: UpdateHealthWeightDto, userId: number) {
 		await this.findOne(id, userId);
+		const data: any = { ...dto };
+		// 這次更新有動到體重或身高時，依規則重算 BMI（有身高自動計算、否則採用傳入值）
+		if (dto.weight !== undefined || dto.height !== undefined) {
+			data.bmi = this.resolveBmi(dto.weight, dto.height, dto.bmi) ?? null;
+		}
 		try {
-			return await this.prisma.healthWeight.update({ where: { id }, data: dto });
+			return await this.prisma.healthWeight.update({ where: { id }, data });
 		} catch (error) {
 			if (error?.code === 'P2025') {
 				throw new NotFoundException('找不到此資料或無權限修改');

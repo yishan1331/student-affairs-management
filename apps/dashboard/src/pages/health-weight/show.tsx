@@ -86,6 +86,16 @@ export const HealthWeightShow = () => {
 			),
 		},
 		{
+			label: "體脂肪率 (%)",
+			value: "body_fat",
+			type: "custom",
+			render: () => (
+				<Typography.Text>
+					{record?.body_fat != null ? record.body_fat.toFixed(1) : "-"}
+				</Typography.Text>
+			),
+		},
+		{
 			label: "備註",
 			value: "note",
 			type: "custom",

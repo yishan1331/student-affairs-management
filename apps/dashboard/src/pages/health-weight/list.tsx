@@ -112,6 +112,11 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 			dataIndex: "bmi",
 			render: (value: number) => value ? value.toFixed(1) : "-",
 		},
+		{
+			label: "體脂肪率",
+			dataIndex: "body_fat",
+			render: (value: number) => value != null ? value.toFixed(1) + " %" : "-",
+		},
 	];
 
 	const mobilePagination = isMobile ? {
@@ -235,6 +240,13 @@ export const HealthWeightList = ({ children }: PropsWithChildren) => {
 					title="BMI"
 					render={(value: number) =>
 						value ? value.toFixed(1) : "-"
+					}
+				/>
+				<Table.Column
+					dataIndex="body_fat"
+					title="體脂肪率 (%)"
+					render={(value: number) =>
+						value != null ? value.toFixed(1) : "-"
 					}
 				/>
 				<Table.Column

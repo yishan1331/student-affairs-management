@@ -25,6 +25,12 @@ export class IngestWeightDto {
 	bmi?: number;
 
 	@IsOptional()
+	@IsNumber()
+	@Min(0)
+	@Max(100)
+	body_fat?: number;
+
+	@IsOptional()
 	@IsString()
 	note?: string;
 }

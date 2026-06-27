@@ -21,21 +21,12 @@ export const HealthWeightForm = (props: Props) => {
 			{...props.formProps}
 			layout="vertical"
 			onFinish={(values: any) => {
-				const weight = values.weight;
-				const height = values.height;
-				let bmi: number | undefined;
-				if (weight && height && height > 0) {
-					bmi =
-						Math.round(
-							(weight / ((height / 100) * (height / 100))) * 100
-						) / 100;
-				}
+				// BMI 由後端依規則處理：有體重＋身高自動計算、否則採用此處輸入值
 				props.formProps.onFinish?.({
 					...values,
 					date: values.date
 						? dayjs(values.date).format("YYYY-MM-DD")
 						: undefined,
-					bmi,
 					pet_id: values.pet_id ?? undefined,
 				});
 			}}
@@ -86,6 +77,61 @@ export const HealthWeightForm = (props: Props) => {
 						step={0.1}
 						precision={1}
 						placeholder="請輸入身高"
+					/>
+				</Form.Item>
+				<Form.Item
+					noStyle
+					shouldUpdate={(prev, cur) =>
+						prev.weight !== cur.weight || prev.height !== cur.height
+					}
+				>
+					{({ getFieldValue }) => {
+						const w = getFieldValue("weight");
+						const h = getFieldValue("height");
+						const auto = !!(w && h && h > 0);
+						const computed = auto
+							? Math.round(
+									(w / ((h / 100) * (h / 100))) * 100
+								) / 100
+							: undefined;
+						return (
+							<Form.Item
+								label="BMI"
+								name="bmi"
+								className={styles.formItem}
+								extra={
+									auto
+										? `已依體重 / 身高自動計算，將儲存為 ${computed}`
+										: "未填身高時，可手動輸入 BMI"
+								}
+							>
+								<InputNumber
+									style={{ width: "200px" }}
+									min={0}
+									max={100}
+									step={0.01}
+									precision={2}
+									disabled={auto}
+									placeholder={
+										auto ? String(computed) : "請輸入 BMI"
+									}
+								/>
+							</Form.Item>
+						);
+					}}
+				</Form.Item>
+				<Form.Item
+					label="體脂肪率 (%)"
+					name="body_fat"
+					className={styles.formItem}
+				>
+					<InputNumber
+						style={{ width: "200px" }}
+						min={0}
+						max={100}
+						step={0.1}
+						precision={1}
+						placeholder="請輸入體脂肪率"
 					/>
 				</Form.Item>
 				<Form.Item

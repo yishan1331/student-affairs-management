@@ -95,6 +95,7 @@ export class HealthWeightController {
 			{ header: '體重(kg)', key: 'weight', width: 12 },
 			{ header: '身高(cm)', key: 'height', width: 12 },
 			{ header: 'BMI', key: 'bmi', width: 10 },
+			{ header: '體脂肪率(%)', key: 'body_fat', width: 12 },
 			{ header: '備註', key: 'note', width: 25 },
 		];
 
@@ -106,6 +107,7 @@ export class HealthWeightController {
 				weight: record.weight,
 				height: record.height || '',
 				bmi: record.bmi || '',
+				body_fat: record.body_fat || '',
 				note: record.note || '',
 			});
 		});

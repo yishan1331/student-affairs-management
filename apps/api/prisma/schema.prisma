@@ -352,6 +352,7 @@ model HealthWeight {
   weight      Float    // 體重（公斤）
   height      Float?   // 身高（公分）
   bmi         Float?   // BMI 值
+  body_fat    Float?   // 體脂肪率（%）
   note        String?
   modifier_id Int?
   modifier    User?    @relation("HealthWeightModifier", fields: [modifier_id], references: [id], onDelete: SetNull)

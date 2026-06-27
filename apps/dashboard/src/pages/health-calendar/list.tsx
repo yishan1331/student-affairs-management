@@ -390,6 +390,7 @@ const DayDetailDrawer: React.FC<{
 									<Text strong>{r.weight} kg</Text>
 									{r.height != null && <Text type="secondary">　身高 {r.height} cm</Text>}
 									{r.bmi != null && <Text type="secondary">　BMI {r.bmi}</Text>}
+									{r.body_fat != null && <Text type="secondary">　體脂 {r.body_fat}%</Text>}
 									{r.note && (
 										<div>
 											<Text type="secondary">備註：{r.note}</Text>

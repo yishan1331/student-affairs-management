@@ -6,6 +6,7 @@ export interface IHealthWeight {
 	weight: number;
 	height?: number;
 	bmi?: number;
+	body_fat?: number;
 	note?: string;
 	created_at: Date;
 	updated_at: Date;
@@ -25,6 +26,7 @@ export interface ICreateHealthWeight {
 	weight: number;
 	height?: number;
 	bmi?: number;
+	body_fat?: number;
 	note?: string;
 	pet_id?: number;
 }
@@ -34,6 +36,7 @@ export interface IUpdateHealthWeight {
 	weight?: number;
 	height?: number;
 	bmi?: number;
+	body_fat?: number;
 	note?: string;
 	pet_id?: number;
 }
