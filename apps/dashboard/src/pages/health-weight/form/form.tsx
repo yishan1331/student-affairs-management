@@ -127,7 +127,7 @@ export const HealthWeightForm = (props: Props) => {
 				>
 					<InputNumber
 						style={{ width: "200px" }}
-						min={0}
+						min={0.1}
 						max={100}
 						step={0.1}
 						precision={1}

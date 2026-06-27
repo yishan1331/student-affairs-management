@@ -26,7 +26,7 @@ export class IngestWeightDto {
 
 	@IsOptional()
 	@IsNumber()
-	@Min(0)
+	@Min(0.1)
 	@Max(100)
 	body_fat?: number;
 
