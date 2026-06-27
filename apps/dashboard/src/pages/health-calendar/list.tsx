@@ -12,6 +12,7 @@ import {
 	DatePicker,
 	Space,
 	Tooltip,
+	Popconfirm,
 	message,
 } from "antd";
 import {
@@ -171,7 +172,7 @@ export const HealthCalendarList: React.FC = () => {
 			message.success("已記錄今天大便了");
 			await Promise.all([fetchTodayStatus(), fetchMonth()]);
 		} catch {
-			message.error("記錄失敗，請稍後再試");
+			// 錯誤訊息（含 409 重複）由 apiClient 攔截器統一顯示
 		} finally {
 			setQuickAdding(false);
 		}
@@ -373,28 +374,39 @@ export const HealthCalendarList: React.FC = () => {
 				<Title level={3} style={{ margin: 0 }}>
 					<CalendarOutlined /> 健康行事曆
 				</Title>
-				<Tooltip
-					title={
+				<Popconfirm
+					title="排便打卡"
+					description={
 						todayDefecated
-							? `今天已大便${todayDefecationTime ? ` ${todayDefecationTime}` : ""}，點擊可再記一筆`
-							: "今天還沒大便，點一下打卡"
+							? "今天已有大便紀錄，確定要再記一筆嗎？"
+							: "確定要記錄今天大便了嗎？"
 					}
+					okText="確定打卡"
+					cancelText="取消"
+					onConfirm={handleQuickAddDefecation}
 				>
-					<Button
-						type="text"
-						loading={quickAdding}
-						onClick={handleQuickAddDefecation}
-						style={{
-							fontSize: 24,
-							height: "auto",
-							padding: 4,
-							lineHeight: 1,
-							opacity: todayDefecated ? 1 : 0.45,
-						}}
+					<Tooltip
+						title={
+							todayDefecated
+								? `今天已大便${todayDefecationTime ? ` ${todayDefecationTime}` : ""}，點擊可再記一筆`
+								: "今天還沒大便，點一下打卡"
+						}
 					>
-						💩{todayDefecated ? " ✅" : ""}
-					</Button>
-				</Tooltip>
+						<Button
+							type="text"
+							loading={quickAdding}
+							style={{
+								fontSize: 24,
+								height: "auto",
+								padding: 4,
+								lineHeight: 1,
+								opacity: todayDefecated ? 1 : 0.45,
+							}}
+						>
+							💩{todayDefecated ? " ✅" : ""}
+						</Button>
+					</Tooltip>
+				</Popconfirm>
 			</div>
 
 			<HealthSubjectSelector value={petId} onChange={setPetId} />

@@ -1,4 +1,9 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+	Injectable,
+	ForbiddenException,
+	NotFoundException,
+	ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthToiletDto } from './dto/create-health-toilet.dto';
 import { UpdateHealthToiletDto } from './dto/update-health-toilet.dto';
@@ -25,6 +30,19 @@ export class HealthToiletService {
 			if (!petUser) {
 				throw new ForbiddenException('此寵物不存在或您無權存取');
 			}
+		}
+		// 防止同一分鐘重複紀錄（相同對象 / 日期 / 時間 / 類型）
+		const duplicate = await this.prisma.healthToilet.findFirst({
+			where: {
+				user_id: userId,
+				pet_id: dto.pet_id ?? null,
+				date: dto.date,
+				time: dto.time,
+				type: dto.type,
+			},
+		});
+		if (duplicate) {
+			throw new ConflictException('相同時間已有一筆相同的如廁紀錄，請勿重複新增');
 		}
 		return this.prisma.healthToilet.create({
 			data: {
