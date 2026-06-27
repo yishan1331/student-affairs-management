@@ -177,7 +177,7 @@ export const ApiTokenList = () => {
 				style={{ marginBottom: 16 }}
 				type="info"
 				showIcon
-				message="用於 iOS 捷徑或腳本存取特定 API（例如 /v1/ingest/weight）。權杖僅在建立當下顯示一次，請立即複製保存。"
+				message="用於 iOS 捷徑或腳本存取特定 API（例如 /v1/ingest/weight、/v1/ingest/toilet）。權杖僅在建立當下顯示一次，請立即複製保存。"
 			/>
 
 			{isMobile ? (

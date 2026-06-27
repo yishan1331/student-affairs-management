@@ -3,11 +3,13 @@ import {
 	ForbiddenException,
 	NotFoundException,
 	ConflictException,
+	BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthToiletDto } from './dto/create-health-toilet.dto';
 import { UpdateHealthToiletDto } from './dto/update-health-toilet.dto';
-import { Prisma } from '@prisma/client';
+import { IngestToiletDto } from '../ingest/dto/ingest-toilet.dto';
+import { Prisma, ToiletType } from '@prisma/client';
 
 @Injectable()
 export class HealthToiletService {
@@ -50,6 +52,34 @@ export class HealthToiletService {
 				user_id: userId,
 			},
 		});
+	}
+
+	// PAT 匯入用（iOS 捷徑等）：date 可帶 ISO 時間自動取 HH:mm，type 預設大便。
+	// 重用 create() 的寵物權限檢查與防重複（409）邏輯。
+	async ingestCreate(userId: number, dto: IngestToiletDto) {
+		const ymd = dto.date.slice(0, 10);
+		const normalizedDate = new Date(`${ymd}T00:00:00.000Z`);
+
+		// 時間優先序：明確帶入的 time > date 內 ISO 時間（取字面 HH:mm，不做時區換算）
+		let time = dto.time;
+		if (!time) {
+			const matched = dto.date.match(/T([01]\d|2[0-3]):([0-5]\d)/);
+			if (matched) {
+				time = `${matched[1]}:${matched[2]}`;
+			}
+		}
+		if (!time) {
+			throw new BadRequestException('需要提供 time（HH:mm），或在 date 帶上時間（ISO 8601）');
+		}
+
+		return this.create(userId, {
+			date: normalizedDate,
+			time,
+			type: dto.type ?? ToiletType.defecation,
+			is_normal: dto.is_normal,
+			note: dto.note,
+			pet_id: dto.pet_id,
+		} as CreateHealthToiletDto);
 	}
 
 	async findAll(query: Prisma.HealthToiletFindManyArgs, userId: number) {
