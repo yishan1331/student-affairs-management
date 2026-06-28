@@ -107,6 +107,7 @@ p, role:user, /api/v1/api-token, read
 p, role:user, /api/v1/api-token, create
 p, role:user, /api/v1/api-token/:id, delete
 p, role:user, /api/v1/ingest/weight, create
+p, role:user, /api/v1/ingest/toilet, create
 
 p, role:admin, /api/v1/user, *
 p, role:admin, /api/v1/user/:id, *
@@ -166,6 +167,7 @@ p, role:admin, /api/v1/pet/export, *
 p, role:admin, /api/v1/api-token, *
 p, role:admin, /api/v1/api-token/:id, *
 p, role:admin, /api/v1/ingest/weight, *
+p, role:admin, /api/v1/ingest/toilet, *
 
 g, role:admin, role:user
 g, role:user, role:guest`;
