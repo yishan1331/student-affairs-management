@@ -59,6 +59,13 @@ export class HealthToiletController {
 		const user = req.user as any;
 		const prismaQuery =
 			this.queryBuilder.build<Prisma.HealthToiletFindManyArgs>(query);
+		// 補上第二排序鍵 time（同日時間晚到早），避免同日以建立順序呈現
+		const orderBy = prismaQuery.orderBy;
+		const orderByList = Array.isArray(orderBy) ? orderBy : orderBy ? [orderBy] : [];
+		if (!orderByList.some((o) => o && 'time' in o)) {
+			orderByList.push({ time: 'desc' });
+		}
+		prismaQuery.orderBy = orderByList;
 		const where = this.queryBuilder.buildWhere(query);
 		const [data, total] = await Promise.all([
 			this.healthToiletService.findAll(prismaQuery, user.id),
